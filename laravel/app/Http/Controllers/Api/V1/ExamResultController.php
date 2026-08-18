@@ -18,6 +18,7 @@ class ExamResultController extends ApiController
 
         $query = Result::where('tenant_id', $user->tenant_id)
             ->when($request->has('exam_id'), fn($q) => $q->where('exam_id', $request->input('exam_id')))
+            ->when($request->has('student_id'), fn($q) => $q->where('student_id', $request->input('student_id')))
             ->when($request->has('session_id'), fn($q) => $q->where('session_id', $request->input('session_id')))
             ->when($request->has('class_id'), fn($q) => $q->whereHas('exam', fn($e) => $e->where('class_id', $request->input('class_id'))))
             ->when($request->has('is_published'), fn($q) => $q->where('is_published', filter_var($request->input('is_published'), FILTER_VALIDATE_BOOLEAN)))

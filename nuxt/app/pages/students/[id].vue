@@ -2,14 +2,14 @@
   <div class="student-detail">
     <div class="page-header">
       <NuxtLink to="/students" class="btn btn-outline btn-sm">
-        <icon :name="mdiArrowLeft" /> ফিরে যান
+        <icon name="arrow-left" /> ফিরে যান
       </NuxtLink>
       <div class="header-actions">
         <NuxtLink :to="`/students/${student?.id}/edit`" class="btn btn-primary btn-sm">
-          <icon :name="mdiPencil" /> সম্পাদনা
+          <icon name="pencil" /> সম্পাদনা
         </NuxtLink>
         <button class="btn btn-outline-danger btn-sm" @click="confirmDelete">
-          <icon :name="mdiDelete" /> মুছুন
+          <icon name="delete" /> মুছুন
         </button>
       </div>
     </div>
@@ -53,12 +53,12 @@
               <p class="detail-value">{{ student.roll_number || '-' }}</p>
             </div>
             <div class="detail-item">
-              <label class="detail-label">শ্রেণি</label>
-              <p class="detail-value">{{ student.class?.name_bn || student.class_name || '-' }}</p>
+              <label class="detail-label">শ্রেণি আইডি</label>
+              <p class="detail-value">{{ student.class_id || '-' }}</p>
             </div>
             <div class="detail-item">
-              <label class="detail-label">অংশ</label>
-              <p class="detail-value">{{ student.section?.name_bn || student.section_name || '-' }}</p>
+              <label class="detail-label">সেকশন আইডি</label>
+              <p class="detail-value">{{ student.section_id || '-' }}</p>
             </div>
             <div class="detail-item">
               <label class="detail-label">জন্ম তারিখ</label>
@@ -103,8 +103,52 @@
               <span class="meta-label">অবস্থা</span>
               <span class="badge" :class="student.is_active ? 'badge-success' : 'badge-secondary'">{{ student.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span>
             </div>
-            <div class="meta-item"><span class="meta-label">তৈরি করা হয়েছে</span><span class="meta-value">{{ formatDateTime(student.created_at) }}</span></div>
-            <div class="meta-item"><span class="meta-label">আপডেট করা হয়েছে</span><span class="meta-value">{{ formatDateTime(student.updated_at) }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enrollments -->
+      <div class="card">
+        <div class="card-header"><h3>ভর্তির ইতিহাস</h3></div>
+        <div class="card-body">
+          <div v-if="enrollLoading" class="loading-state"><div class="spinner" /></div>
+          <div v-else-if="(enrollments?.data?.data || student.enrollments || []).length === 0" class="empty-state"><p>কোনো ভর্তি নেই</p></div>
+          <div v-else class="table-responsive">
+            <table class="table table-hover">
+              <thead><tr><th>ভর্তি নং</th><th>ক্লাস</th><th>সেশন</th><th>অবস্থা</th><th>তারিখ</th></tr></thead>
+              <tbody>
+                <tr v-for="e in (enrollments?.data?.data || student.enrollments || [])" :key="e.id">
+                  <td>{{ e.enrollment_number }}</td>
+                  <td>{{ e.class_id }}</td>
+                  <td>{{ e.session_id }}</td>
+                  <td><span class="badge" :class="e.status === 'active' ? 'badge-success' : 'badge-warning'">{{ e.status }}</span></td>
+                  <td>{{ formatDate(e.enrollment_date) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Results -->
+      <div class="card">
+        <div class="card-header"><h3>সাম্প্রতিক ফলাফল</h3></div>
+        <div class="card-body">
+          <div v-if="resultsLoading" class="loading-state"><div class="spinner" /></div>
+          <div v-else-if="(results?.data?.data || []).length === 0" class="empty-state"><p>কোনো ফলাফল নেই</p></div>
+          <div v-else class="table-responsive">
+            <table class="table table-hover">
+              <thead><tr><th>পরীক্ষা</th><th>প্রাপ্ত</th><th>মোট</th><th>শতকরা</th><th>অবস্থা</th></tr></thead>
+              <tbody>
+                <tr v-for="r in (results?.data?.data || [])" :key="r.id">
+                  <td>{{ r.exam?.name_bn || '-' }}</td>
+                  <td>{{ r.marks_obtained ?? '-' }}</td>
+                  <td>{{ r.total_marks ?? '-' }}</td>
+                  <td>{{ r.percentage ?? '-' }}%</td>
+                  <td><span class="badge" :class="r.is_published ? 'badge-success' : 'badge-warning'">{{ r.is_published ? 'প্রকাশিত' : 'অপ্রকাশিত' }}</span></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -121,18 +165,41 @@ const route = useRoute()
 const api = useApiClient()
 const loading = ref(true)
 const student = ref<any>(null)
+const enrollments = ref<any>(null)
+const results = ref<any>(null)
+const enrollLoading = ref(false)
+const resultsLoading = ref(false)
 
 async function loadStudent() {
   loading.value = true
   try {
     const res = await api.get(`/students/${route.params.id}`)
     student.value = res.data.data
+    await Promise.all([loadEnrollments(), loadResults()])
   } catch (error) { console.error('Failed to load student:', error) }
   finally { loading.value = false }
 }
 
+async function loadEnrollments() {
+  enrollLoading.value = true
+  try {
+    const res = await api.get(`/enrollments?student_id=${route.params.id}`)
+    enrollments.value = res.data
+  } catch (e) { console.error('enrollments', e) }
+  finally { enrollLoading.value = false }
+}
+
+async function loadResults() {
+  resultsLoading.value = true
+  try {
+    const res = await api.get(`/exam-results?student_id=${route.params.id}`)
+    results.value = res.data
+  } catch (e) { console.error('results', e) }
+  finally { resultsLoading.value = false }
+}
+
 const confirmDelete = () => {
-  if (confirm(`"${student.value?.name_bn}" ছাত্রটিকে মুছে ফেলতে চান?`)) {
+  if (confirm(`"${student.value?.name_bn}\" ছাত্রটিকে মুছে ফেলতে চান?`)) {
     api.delete(`/students/${student.value?.id}`).then(() => navigateTo('/students'))
   }
 }
