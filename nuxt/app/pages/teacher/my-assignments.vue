@@ -28,7 +28,7 @@
 import { ref, onMounted } from 'vue'
 import { useApiClient } from '~/utils/api'
 
-definePageMeta({ name: 'teacher-self-assignments' })
+definePageMeta({ name: 'teacher-my-assignments' })
 
 const api = useApiClient()
 const loading = ref(true)

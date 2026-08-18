@@ -98,7 +98,7 @@ const mainNavItems = computed(() => {
   if (role.value === 'student') {
     items.push({ path: '/student/me', label: 'আমার তথ্য', icon: 'students' })
   } else if (role.value === 'teacher') {
-    items.push({ path: '/teacher/assignments', label: 'আমার বরাদ্দ', icon: 'assignment' })
+    items.push({ path: '/teacher/my-assignments', label: 'আমার বরাদ্দ', icon: 'assignment' })
     items.push(
       { path: '/attendance', label: 'হাজিরা', icon: 'attendance' },
       { path: '/exams', label: 'পরীক্ষা', icon: 'exam' },
