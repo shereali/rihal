@@ -305,13 +305,13 @@ class FinanceController extends ApiController
         $perPage = min((int) $request->input('per_page', 15), 100);
 
         $query = FeePayment::where('tenant_id', $user->tenant_id)
-            ->when($request->has('search'), fn($q) => $q->whereHas('student.user', fn($s) => $s->where('name_bn', 'like', "%{$request->input('search')}%")))
+            ->when($request->has('search'), fn($q) => $q->whereHas('student', fn($s) => $s->where('name_bn', 'like', "%{$request->input('search')}%")))
             ->when($request->has('student_id'), fn($q) => $q->where('student_id', $request->input('student_id')))
             ->when($request->has('fee_structure_id'), fn($q) => $q->where('fee_structure_id', $request->input('fee_structure_id')))
             ->when($request->has('is_fully_paid'), fn($q) => $q->where('is_fully_paid', filter_var($request->input('is_fully_paid'), FILTER_VALIDATE_BOOLEAN)))
             ->when($request->has('from_date'), fn($q) => $q->where('due_date', '>=', $request->input('from_date')))
             ->when($request->has('to_date'), fn($q) => $q->where('due_date', '<=', $request->input('to_date')))
-            ->with('student.user:id,name_bn,name_en')
+            ->with('student:id,name_bn,name_en')
             ->with('feeStructure:id,name_bn')
             ->orderBy('due_date', 'desc');
 
@@ -325,12 +325,13 @@ class FinanceController extends ApiController
         $validator = Validator::make($request->all(), [
             'student_id' => 'required|integer|exists:students,id',
             'fee_structure_id' => 'nullable|integer|exists:fee_structures,id',
+            'fee_type' => 'nullable|string|max:100',
             'total_amount' => 'required|numeric|min:0',
             'paid_amount' => 'nullable|numeric|min:0',
             'due_date' => 'nullable|date',
             'paid_date' => 'nullable|date',
             'payment_method' => 'nullable|in:নগদ,ব্যাংক,মোবাইল ব্যাংকিং,অনলাইন,অন্যান্য',
-            'transaction_reference' => 'nullable|string|max:100',
+            'transaction_ref' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
             'late_fee_charged' => 'nullable|numeric',
             'waiver_applied' => 'nullable|numeric',
