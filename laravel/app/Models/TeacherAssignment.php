@@ -27,6 +27,11 @@ class TeacherAssignment extends Model
         return $this->belongsTo(AcademicSubject::class);
     }
 
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(AcademicSection::class);
+    }
+
     public function class(): BelongsTo
     {
         return $this->belongsTo(AcademicClass::class, 'class_id');

@@ -40,7 +40,7 @@
             :class="{ active: isActive(item.path) }"
           >
             <span class="nav-icon">
-              <component :is="item.icon" />
+              <icon :name="item.icon" />
             </span>
             <span class="nav-label">{{ item.label }}</span>
           </NuxtLink>
@@ -95,6 +95,7 @@ const mainNavItems = [
   { path: '/attendance', label: 'হাজিরা', icon: 'attendance' },
   { path: '/academic', label: 'একাডেমিক', icon: 'academic' },
   { path: '/exams', label: 'পরীক্ষা', icon: 'exam' },
+  { path: '/teacher-assignments', label: 'শিক্ষক বরাদ্দ', icon: 'assignment' },
   { path: '/fees', label: 'ফি ও আয়-ব্যয়', icon: 'fees' },
   { path: '/donors', label: 'দাতা ও অনুদান', icon: 'donor' },
   { path: '/notice', label: 'বিজ্ঞপ্তি ও ঘোষণা', icon: 'notice' },

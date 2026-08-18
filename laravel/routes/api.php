@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\FinanceController;
 use App\Http\Controllers\Api\V1\NoticeController;
 use App\Http\Controllers\Api\V1\DashboardController;
+use App\Http\Controllers\Api\V1\AcademicController;
 use App\Http\Controllers\Api\V1\HostelController;
 use App\Http\Controllers\Api\V1\TransportController;
 use App\Http\Controllers\Api\V1\PropertyController;
@@ -41,6 +42,11 @@ Route::prefix('v1')->group(function () {
 
         // Dashboard
         Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+
+        // Academic (read-only lookups for dropdowns)
+        Route::get('/academic/classes', [AcademicController::class, 'classes']);
+        Route::get('/academic/sections', [AcademicController::class, 'sections']);
+        Route::get('/academic/subjects', [AcademicController::class, 'subjects']);
 
         // Tenants (super_admin only for create/delete, admin for view/update)
         Route::get('/tenants', [TenantController::class, 'index']);
