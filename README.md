@@ -147,6 +147,15 @@ docker compose up --build
 
 ---
 
+## UI / Design system
+
+The frontend is a custom, dependency-free **premium design system** (no UI library):
+
+- **Global tokens** — `nuxt/app/assets/css/main.css` defines the full theme (brand green `#145032`, gold accent `#d4af37`, semantic colors, shadows, radii, layout vars) and shared component styles (buttons, cards, tables, forms, badges, alerts).
+- **Loaded globally** via the `css:` key in `nuxt.config.js` (previously the file existed but was never imported — that was the "plain text / no style" bug).
+- **Bengali-first typography** — Noto Sans Bengali + Inter from Google Fonts in `nuxt.config.js` `app.head`; applied via `app.vue` (`<NuxtLayout>` wraps every page so the sidebar/topbar chrome renders) and `body.font-bn`.
+- **Auth screens** use a branded gradient + centered card. Fully **responsive**.
+
 After `migrate:fresh --seed`:
 
 | Role | Email | Password |

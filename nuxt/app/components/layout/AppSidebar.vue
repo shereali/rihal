@@ -74,7 +74,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 
-const { user, logout } = useAuth()
+const { currentUser, logout } = useAuth()
 const showSidebar = ref(true)
 const currentLanguage = ref('bn')
 
@@ -89,7 +89,7 @@ const tenant = ref({
 })
 
 // Navigation items (role-aware)
-const role = computed(() => (user.value as any)?.role)
+const role = computed(() => (currentUser.value as any)?.role)
 const mainNavItems = computed(() => {
   const items = [
     { path: '/dashboard', label: 'ড্যাশবোর্ড', icon: 'dashboard' },

@@ -1,4 +1,5 @@
 <template>
+  <div class="page-login">
   <div class="auth-container">
     <div class="auth-header">
       <div class="brand-logo">
@@ -61,6 +62,7 @@
     <div class="auth-footer">
       <NuxtLink to="/register">অ্যাকাউন্ট খুলুন</NuxtLink>
     </div>
+  </div>
   </div>
 </template>
 
