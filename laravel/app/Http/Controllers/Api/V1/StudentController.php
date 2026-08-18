@@ -24,7 +24,7 @@ class StudentController extends ApiController
                         ->orWhere('admission_number', 'like', "%{$search}%");
                 });
             })
-            ->when($request->has('class_id'), fn($q) => $q->where('class_id', $request->input('class_id')))
+            ->when($request->has('class_id'), fn($q) => $q->whereHas('enrollments', fn($e) => $e->where('class_id', $request->input('class_id'))))
             ->when($request->has('is_active'), fn($q) => $q->where('is_active', filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN)))
             ->with('user')
             ->orderBy('created_at', 'desc');

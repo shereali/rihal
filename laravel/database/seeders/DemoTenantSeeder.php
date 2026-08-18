@@ -304,6 +304,25 @@ class DemoTenantSeeder extends Seeder
                     'has_app' => true,
                 ]
             );
+
+            // Enrollment — links the student (via user_id) to a class so the
+            // class-based views (bulk attendance, class lists) have data.
+            $enrollClass = \App\Models\AcademicClass::where('tenant_id', $tenant->id)
+                ->skip(($i - 1) % 5)
+                ->first();
+            if ($enrollClass) {
+                \App\Models\Enrollment::firstOrCreate(
+                    ['tenant_id' => $tenant->id, 'student_id' => $studentUser->id, 'class_id' => $enrollClass->id],
+                    [
+                        'tenant_id' => $tenant->id,
+                        'student_id' => $studentUser->id,
+                        'class_id' => $enrollClass->id,
+                        'enrollment_number' => 'ENR-' . str_pad($i, 4, '0', STR_PAD_LEFT),
+                        'enrollment_date' => Carbon::now()->subMonths(rand(0, 12)),
+                        'status' => 'enrolled',
+                    ]
+                );
+            }
         }
 
         // Guardian (demo) — linked to student 1 so the parent portal is demoable

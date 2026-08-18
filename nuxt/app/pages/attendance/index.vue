@@ -11,6 +11,7 @@
         </p>
       </div>
       <div class="header-actions">
+        <NuxtLink to="/attendance/bulk" class="btn btn-secondary btn-sm"><icon name="account-group" /> বাল্ক হাজিরা</NuxtLink>
         <NuxtLink to="/attendance/create" class="btn btn-primary btn-sm"><icon name="plus" /> নতুন হাজিরা</NuxtLink>
         <select v-model="filter.dateFilter" class="form-select form-select-sm mr-2" @change="applyFilter">
           <option value="today">আজ</option>
