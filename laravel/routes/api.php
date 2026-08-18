@@ -82,10 +82,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/exams/{id}', [ExamController::class, 'show']);
         Route::put('/exams/{id}', [ExamController::class, 'update']);
         Route::delete('/exams/{id}', [ExamController::class, 'destroy']);
-        Route::get('/exams/{id}/results', [ExamController::class, 'results']);
-        Route::post('/exam-results', [ExamController::class, 'storeResult']);
-        Route::put('/exam-results/{id}', [ExamController::class, 'updateResult']);
-        Route::delete('/exam-results/{id}', [ExamController::class, 'destroyResult']);
+        Route::get('/exams/{id}/results', [ExamResultController::class, 'index']);
+        Route::post('/exam-results', [ExamResultController::class, 'store']);
+        Route::get('/exam-results/{id}', [ExamResultController::class, 'show']);
+        Route::put('/exam-results/{id}', [ExamResultController::class, 'update']);
+        Route::delete('/exam-results/{id}', [ExamResultController::class, 'destroy']);
+        Route::patch('/exam-results/{id}/publish', [ExamResultController::class, 'publish']);
+        Route::patch('/exam-results/{id}/unpublish', [ExamResultController::class, 'unpublish']);
 
         // ─── Attendance ───────────────────────────────────────────────────────
         Route::get('/attendance', [AttendanceController::class, 'index']);

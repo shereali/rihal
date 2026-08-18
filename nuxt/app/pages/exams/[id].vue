@@ -2,14 +2,14 @@
   <div class="exam-show">
     <div class="page-header">
       <NuxtLink to="/exams" class="btn btn-outline btn-sm">
-        <icon :name="mdiArrowLeft" /> ফিরে যান
+        <icon name="arrow-left" /> ফিরে যান
       </NuxtLink>
       <div class="header-actions">
         <NuxtLink :to="`/exams/${exam?.id}/edit`" class="btn btn-primary btn-sm">
-          <icon :name="mdiPencil" /> সম্পাদনা
+          <icon name="pencil" /> সম্পাদনা
         </NuxtLink>
         <button class="btn btn-outline-danger btn-sm" @click="confirmDelete">
-          <icon :name="mdiDelete" /> মুছুন
+          <icon name="delete" /> মুছুন
         </button>
       </div>
     </div>
@@ -33,27 +33,27 @@
           <div class="detail-grid">
             <div class="detail-item">
               <label class="detail-label">নাম (বাংলা)</label>
-              <h3 class="detail-value detail-title">{{ exam.title_bn }}</h3>
+              <h3 class="detail-value detail-title">{{ exam.name_bn }}</h3>
             </div>
             <div class="detail-item">
               <label class="detail-label">নাম (ইংরেজি)</label>
-              <p class="detail-value">{{ exam.title_en || '-' }}</p>
+              <p class="detail-value">{{ exam.name_en || '-' }}</p>
             </div>
             <div class="detail-item">
               <label class="detail-label">পরীক্ষার ধরন</label>
-              <span class="badge" :class="getTypeBadge(exam.type)">{{ exam.type || 'নিয়মিত' }}</span>
+              <span class="badge" :class="getTypeBadge(exam.exam_type)">{{ exam.exam_type || 'নিয়মিত' }}</span>
             </div>
             <div class="detail-item">
-              <label class="detail-label">শ্রেণি</label>
-              <p class="detail-value">{{ exam.class?.name_bn || exam.class_name || '-' }}</p>
+              <label class="detail-label">শ্রেণি আইডি</label>
+              <p class="detail-value">{{ exam.class_id || '-' }}</p>
             </div>
             <div class="detail-item">
-              <label class="detail-label">অংশ</label>
-              <p class="detail-value">{{ exam.section?.name_bn || exam.section_name || '-' }}</p>
+              <label class="detail-label">সেকশন আইডি</label>
+              <p class="detail-value">{{ exam.section_id || '-' }}</p>
             </div>
             <div class="detail-item">
-              <label class="detail-label">বিষয়</label>
-              <p class="detail-value">{{ exam.subject?.name_bn || exam.subject_name || '-' }}</p>
+              <label class="detail-label">বিষয় আইডি</label>
+              <p class="detail-value">{{ exam.subject_id || '-' }}</p>
             </div>
             <div class="detail-item">
               <label class="detail-label">শুরুর তারিখ</label>
@@ -62,14 +62,6 @@
             <div class="detail-item">
               <label class="detail-label">শেষ তারিখ</label>
               <p class="detail-value">{{ formatDate(exam.end_date) }}</p>
-            </div>
-            <div class="detail-item">
-              <label class="detail-label">শুরুর সময়</label>
-              <p class="detail-value">{{ formatDateTime(exam.start_time) }}</p>
-            </div>
-            <div class="detail-item">
-              <label class="detail-label">শেষের সময়</label>
-              <p class="detail-value">{{ formatDateTime(exam.end_time) }}</p>
             </div>
             <div class="detail-item">
               <label class="detail-label">মোট নম্বর</label>
@@ -86,6 +78,61 @@
           </div>
         </div>
       </div>
+
+      <!-- Results section -->
+      <div class="card">
+        <div class="card-header results-header">
+          <h3>ফলাফল তালিকা</h3>
+          <NuxtLink :to="`/marks/create`" class="btn btn-outline btn-sm">নতুন মার্ক এন্ট্রি</NuxtLink>
+        </div>
+        <div class="card-body">
+          <div v-if="resultsLoading" class="loading-state"><div class="spinner" /></div>
+          <div v-else-if="(results?.data?.data || []).length === 0" class="empty-state">
+            <p>এই পরীক্ষার কোনো ফলাফল নেই</p>
+          </div>
+          <div v-else class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>ছাত্র</th>
+                  <th>প্রাপ্ত</th>
+                  <th>মোট</th>
+                  <th>শতকরা</th>
+                  <th>অবস্থা</th>
+                  <th>কার্যক্রম</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in (results?.data?.data || [])" :key="r.id">
+                  <td>{{ r.student?.name_bn || r.student?.name_en || '-' }}</td>
+                  <td>{{ r.marks_obtained ?? '-' }}</td>
+                  <td>{{ r.total_marks ?? '-' }}</td>
+                  <td>{{ r.percentage ?? '-' }}%</td>
+                  <td>
+                    <span class="badge" :class="r.is_published ? 'badge-success' : 'badge-warning'">
+                      {{ r.is_published ? 'প্রকাশিত' : 'অপ্রকাশিত' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      v-if="!r.is_published"
+                      class="btn btn-sm btn-primary"
+                      :disabled="publishingId === r.id"
+                      @click="togglePublish(r)"
+                    >প্রকাশ করুন</button>
+                    <button
+                      v-else
+                      class="btn btn-sm btn-outline"
+                      :disabled="publishingId === r.id"
+                      @click="togglePublish(r)"
+                    >সরান</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -99,12 +146,16 @@ const route = useRoute()
 const api = useApiClient()
 const loading = ref(true)
 const exam = ref<any>(null)
+const results = ref<any>(null)
+const resultsLoading = ref(false)
+const publishingId = ref<number | null>(null)
 
 async function loadExam() {
   loading.value = true
   try {
     const res = await api.get(`/exams/${route.params.id}`)
     exam.value = res.data.data
+    await loadResults()
   } catch (error) {
     console.error('Failed to load exam:', error)
   } finally {
@@ -112,8 +163,34 @@ async function loadExam() {
   }
 }
 
+async function loadResults() {
+  resultsLoading.value = true
+  try {
+    const res = await api.get(`/exam-results?exam_id=${route.params.id}`)
+    results.value = res.data
+  } catch (error) {
+    console.error('Failed to load results:', error)
+  } finally {
+    resultsLoading.value = false
+  }
+}
+
+async function togglePublish(r: any) {
+  publishingId.value = r.id
+  try {
+    const path = r.is_published ? 'unpublish' : 'publish'
+    await api.patch(`/exam-results/${r.id}/${path}`)
+    r.is_published = !r.is_published
+    r.published_at = r.is_published ? new Date().toISOString() : null
+  } catch (error: any) {
+    alert(error?.response?.data?.message ?? 'ফলাফল আপডেট করা যায়নি')
+  } finally {
+    publishingId.value = null
+  }
+}
+
 const confirmDelete = () => {
-  if (confirm(`"${exam.value?.title_bn}" পরীক্ষাটি মুছে ফেলতে চান?`)) {
+  if (confirm(`"${exam.value?.name_bn}" পরীক্ষাটি মুছে ফেলতে চান?`)) {
     api.delete(`/exams/${exam.value?.id}`).then(() => navigateTo('/exams'))
   }
 }
@@ -121,11 +198,6 @@ const confirmDelete = () => {
 const formatDate = (date: string | null | undefined): string => {
   if (!date) return '-'
   return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' })
-}
-
-const formatDateTime = (datetime: string | null | undefined): string => {
-  if (!datetime) return '-'
-  return new Date(datetime).toLocaleString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 const getTypeBadge = (type: string): string => {
@@ -145,4 +217,5 @@ onMounted(() => { loadExam() })
 .detail-label { font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; }
 .detail-value { font-size: 0.9375rem; color: var(--color-text); margin: 0; }
 .detail-title { font-size: 1.25rem; }
+.results-header { display: flex; justify-content: space-between; align-items: center; }
 </style>
