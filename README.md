@@ -194,7 +194,8 @@ All routes are under `/api/v1` and require a Sanctum bearer token
 | Settings | `/settings` (profile, language, logout) |
 | Reports (API) | `GET /reports/attendance` (class × date-range matrix), `GET /reports/results` (per-exam marks), `GET /reports/attendance/export` + `GET /reports/results/export` (CSV) |
 | Guardian (API) | `GET /guardian/portal` (linked students' attendance/results/fees) |
-| Reports | `/reports` (attendance matrix + exam results, CSV export + print) |
+| Notifications (API) | `GET /notifications` (guardian sees own / admin sees all), `POST /notifications/absence`, `POST /notifications/fee-due`, `POST /notifications/{id}/read` |
+| Notifications | `/notifications` (admin: send absence/fee-due, view sent); guardian portal shows received |
 | Notices | `/notice`, `/notice/create`, `/notice/[id]`, `/notice/[id]/edit` |
 | Auth | `/login`, `/register` |
 

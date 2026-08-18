@@ -57,6 +57,16 @@
         </div>
       </div>
     </div>
+
+    <div v-if="notifications.length" class="notif-card">
+      <h4>নোটিফিকেশন</h4>
+      <ul class="notif-list">
+        <li v-for="n in notifications" :key="n.id" :class="{ unread: !n.is_read }">
+          <span class="badge" :class="n.type === 'absence' ? 'badge-warning' : 'badge-danger'">{{ n.type === 'absence' ? 'অনুপস্থিতি' : 'ফি-বকেয়া' }}</span>
+          <span>{{ n.body_bn }}</span>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -67,11 +77,14 @@ import { useApiClient } from '~/utils/api'
 const api = useApiClient()
 const loading = ref(true)
 const data = ref<any>(null)
+const notifications = ref<any[]>([])
 
 onMounted(async () => {
   try {
     const res = await api.get('/guardian/portal')
     data.value = res.data
+    const n = await api.get('/notifications?per_page=20')
+    notifications.value = n.data?.data?.data || []
   } catch (e) { console.error(e) }
   finally { loading.value = false }
 })
@@ -100,5 +113,11 @@ onMounted(async () => {
 .text-muted { color: var(--color-text-light); font-family: 'Noto Sans Bengali', sans-serif; }
 .loading-state, .empty-state { padding: 3rem; text-align: center; color: var(--color-text-light); font-family: 'Noto Sans Bengali', sans-serif; }
 .spinner { width: 28px; height: 28px; border: 3px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+.notif-card { background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 12px; padding: 1.25rem; }
+.notif-card h4 { font-family: 'Noto Sans Bengali', sans-serif; margin: 0 0 0.75rem; }
+.notif-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.notif-list li { display: flex; gap: 0.6rem; align-items: center; font-family: 'Noto Sans Bengali', sans-serif; padding: 0.5rem 0.75rem; border-radius: 8px; background: var(--color-bg-muted); }
+.notif-list li.unread { background: #fff4e0; }
+.badge-danger { background: #fce4e4; color: var(--color-error); }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>

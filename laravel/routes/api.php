@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\NoticeController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\AcademicController;
 use App\Http\Controllers\Api\V1\GuardianController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\HostelController;
 use App\Http\Controllers\Api\V1\TransportController;
@@ -52,6 +53,12 @@ Route::prefix('v1')->group(function () {
 
         // Guardian portal
         Route::get('/guardian/portal', [GuardianController::class, 'portal']);
+
+        // Notifications
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications/absence', [NotificationController::class, 'sendAbsence']);
+        Route::post('/notifications/fee-due', [NotificationController::class, 'sendFeeDue']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
 
         // Reports (attendance matrix + exam results, with CSV export)
         Route::get('/reports/attendance', [ReportController::class, 'attendance']);
