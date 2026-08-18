@@ -10,7 +10,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function ($middleware) {
-        $middleware->statefulApi();
+        // Stateless API: clients authenticate with Bearer tokens from
+        // localStorage (see nuxt/app/utils/api.ts + plugins/api.client.ts).
+        // Sanctum's stateful (cookie + CSRF) SPA mode is NOT used, so the
+        // frontend origins must stay OUT of SANCTUM_STATEFUL_DOMAINS.
 
         $middleware->alias([
             'auth.token' => \App\Http\Middleware\AuthenticateWithToken::class,
