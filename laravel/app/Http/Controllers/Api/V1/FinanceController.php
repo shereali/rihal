@@ -606,8 +606,52 @@ class FinanceController extends ApiController
         return $this->successResponse($transaction, 'স্টক লেনদেন তৈরি সফল', 201);
     }
 
-    // ─── Summary ──────────────────────────────────────────────────────────────
+    // ─── Detail endpoints (single resource) ──────────────────────────────────
 
+    public function showFund(Request $request, int $id): JsonResponse
+    {
+        $fund = Fund::where('tenant_id', $request->user()->tenant_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$fund) {
+            return $this->errorResponse('ফান্ড পাওয়া যায়নি', 404);
+        }
+
+        return $this->successResponse($fund, 'ফান্ড বিবরণ');
+    }
+
+    public function showDonation(Request $request, int $id): JsonResponse
+    {
+        $donation = Donation::where('tenant_id', $request->user()->tenant_id)
+            ->where('id', $id)
+            ->with('donor:id,name_bn,name_en')
+            ->with('fund:id,name_bn')
+            ->first();
+
+        if (!$donation) {
+            return $this->errorResponse('দান পাওয়া যায়নি', 404);
+        }
+
+        return $this->successResponse($donation, 'দান বিবরণ');
+    }
+
+    public function showExpense(Request $request, int $id): JsonResponse
+    {
+        $expense = Expense::where('tenant_id', $request->user()->tenant_id)
+            ->where('id', $id)
+            ->with('vendor:id,name_bn,name_en')
+            ->with('fund:id,name_bn')
+            ->first();
+
+        if (!$expense) {
+            return $this->errorResponse('ব্যয় পাওয়া যায়নি', 404);
+        }
+
+        return $this->successResponse($expense, 'ব্যয় বিবরণ');
+    }
+
+    // ─── Summary ──────────────────────────────────────────────────────────────
     public function summary(Request $request): JsonResponse
     {
         $user = $request->user();

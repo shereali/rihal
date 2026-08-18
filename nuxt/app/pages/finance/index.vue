@@ -9,31 +9,36 @@
 
     <div class="stats-row">
       <div class="stat-card stat-revenue">
-        <div class="stat-icon"><icon :name="mdiCashMultiple" /></div>
+        <div class="stat-icon"><icon name="cash-multiple" /></div>
         <div class="stat-info"><p class="stat-value">৳{{ summary?.total_donations || 0 }}</p><p class="stat-label">মোট দান</p></div>
       </div>
       <div class="stat-card stat-expense">
-        <div class="stat-icon"><icon :name="mdiCashMinus" /></div>
+        <div class="stat-icon"><icon name="cash-minus" /></div>
         <div class="stat-info"><p class="stat-value">৳{{ summary?.total_expenses || 0 }}</p><p class="stat-label">মোট ব্যয়</p></div>
       </div>
       <div class="stat-card stat-balance">
-        <div class="stat-icon"><icon :name="mdi-cash-plus" /></div>
+        <div class="stat-icon"><icon name="cash-plus" /></div>
         <div class="stat-info"><p class="stat-value">৳{{ summary?.net_balance || 0 }}</p><p class="stat-label">স্যুট ব্যালেন্স</p></div>
       </div>
       <div class="stat-card stat-donations">
-        <div class="stat-icon"><icon :name="mdi-heart-multiple" /></div>
+        <div class="stat-icon"><icon name="heart-multiple" /></div>
         <div class="stat-info"><p class="stat-value">৳{{ summary?.total_fee_collected || 0 }}</p><p class="stat-label">ফি আয়</p></div>
       </div>
     </div>
 
     <div class="tabs">
       <button v-for="tab in tabs" :key="tab.id" :class="['tab-btn', { active: activeTab === tab.id }]" @click="activeTab = tab.id">{{ tab.label }}</button>
+      <div class="tab-actions">
+        <NuxtLink v-if="activeTab === 'funds'" to="/finance/funds/create" class="btn btn-primary btn-sm"><icon name="plus" /> নতুন ফান্ড</NuxtLink>
+        <NuxtLink v-if="activeTab === 'donations'" to="/finance/donations/create" class="btn btn-primary btn-sm"><icon name="plus" /> নতুন দান</NuxtLink>
+        <NuxtLink v-if="activeTab === 'expenses'" to="/finance/expenses/create" class="btn btn-primary btn-sm"><icon name="plus" /> নতুন ব্যয়</NuxtLink>
+      </div>
     </div>
 
     <div class="tab-content">
       <!-- Funds -->
       <div v-show="activeTab === 'funds'" class="table-section">
-        <div class="table-actions"><NuxtLink to="/finance" class="btn btn-outline btn-sm"><icon :name="mdiRefresh" /> রিফ্রেশ</NuxtLink></div>
+        <div class="table-actions"><NuxtLink to="/finance" class="btn btn-outline btn-sm"><icon name="refresh" /> রিফ্রেশ</NuxtLink></div>
         <div class="table-responsive">
           <table class="table table-hover table-striped">
             <thead>
@@ -47,7 +52,7 @@
                 <td>৳{{ fund.target_amount || 0 }}</td>
                 <td>৳{{ fund.collected_amount || 0 }}</td>
                 <td><span class="badge" :class="fund.is_active ? 'badge-success' : 'badge-secondary'">{{ fund.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span></td>
-                <td><NuxtLink :to="`/finance/funds/${fund.id}`" class="btn btn-sm btn-outline"><icon :name="mdiEye" /></NuxtLink></td>
+                <td><NuxtLink :to="`/finance/funds/${fund.id}`" class="btn btn-sm btn-outline"><icon name="eye" /></NuxtLink></td>
               </tr>
             </tbody>
           </table>
@@ -70,7 +75,7 @@
                 <td><span class="badge badge-outline">{{ donation.method || 'নগদ' }}</span></td>
                 <td>{{ formatDate(donation.donation_date) }}</td>
                 <td><p class="text-muted text-sm">{{ donation.notes || '-' }}</p></td>
-                <td><NuxtLink :to="`/finance/donations/${donation.id}`" class="btn btn-sm btn-outline"><icon :name="mdiEye" /></NuxtLink></td>
+                <td><NuxtLink :to="`/finance/donations/${donation.id}`" class="btn btn-sm btn-outline"><icon name="eye" /></NuxtLink></td>
               </tr>
             </tbody>
           </table>
@@ -87,13 +92,13 @@
             <tbody>
               <tr v-for="expense in expenses?.data || []" :key="expense.id">
                 <td>{{ expense.id }}</td>
-                <td><p class="font-weight-medium">{{ expense.title_bn }}</p><p class="text-muted text-sm" v-if="expense.notes">{{ truncate(expense.notes, 40) }}</p></td>
+                <td><p class="font-weight-medium">{{ expense.description_bn }}</p><p class="text-muted text-sm" v-if="expense.notes">{{ truncate(expense.notes, 40) }}</p></td>
                 <td><span class="badge badge-outline">{{ expense.category || 'অন্যান্য' }}</span></td>
                 <td>৳{{ expense.amount }}</td>
-                <td>{{ formatDate(expense.expense_date) }}</td>
+                <td>{{ formatDate(expense.transaction_date) }}</td>
                 <td><span class="badge badge-outline">{{ expense.method || 'নগদ' }}</span></td>
                 <td>{{ expense.vendor?.name_bn || expense.payee_name || '-' }}</td>
-                <td><NuxtLink :to="`/finance/expenses/${expense.id}`" class="btn btn-sm btn-outline"><icon :name="mdiEye" /></NuxtLink></td>
+                <td><NuxtLink :to="`/finance/expenses/${expense.id}`" class="btn btn-sm btn-outline"><icon name="eye" /></NuxtLink></td>
               </tr>
             </tbody>
           </table>

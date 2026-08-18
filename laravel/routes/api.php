@@ -98,12 +98,15 @@ Route::prefix('v1')->group(function () {
         // ─── Finance ──────────────────────────────────────────────────────────
         Route::get('/finance/funds', [FinanceController::class, 'funds']);
         Route::post('/finance/funds', [FinanceController::class, 'storeFund']);
+        Route::get('/finance/funds/{id}', [FinanceController::class, 'showFund']);
         Route::get('/finance/donors', [FinanceController::class, 'donors']);
         Route::post('/finance/donors', [FinanceController::class, 'storeDonor']);
         Route::get('/finance/donations', [FinanceController::class, 'donations']);
         Route::post('/finance/donations', [FinanceController::class, 'storeDonation']);
+        Route::get('/finance/donations/{id}', [FinanceController::class, 'showDonation']);
         Route::get('/finance/expenses', [FinanceController::class, 'expenses']);
         Route::post('/finance/expenses', [FinanceController::class, 'storeExpense']);
+        Route::get('/finance/expenses/{id}', [FinanceController::class, 'showExpense']);
         Route::get('/finance/vendors', [FinanceController::class, 'vendors']);
         Route::post('/finance/vendors', [FinanceController::class, 'storeVendor']);
         Route::get('/finance/fee-structures', [FinanceController::class, 'feeStructures']);
