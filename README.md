@@ -161,7 +161,10 @@ All routes are under `/api/v1` and require a Sanctum bearer token
 | Marks / Enrollment | `/marks/create`, `/enrollments/create` |
 | Attendance | `/attendance`, `/attendance/create` |
 | Teacher Assignments | `/teacher-assignments`, `/teacher-assignments/create` |
-| Finance | `/finance`, `/finance/funds|donations|expenses` (+ `/create`, `/[id]`) |
+| Academic | `/academic` (classes / sections / subjects) |
+| Fees | `/fees`, `/fees/collect` |
+| Finance | `/finance`, `/finance/funds|donations|expenses` (+ `/create`, `/[id]`), `/finance/donors` |
+| Settings | `/settings` (profile, language, logout) |
 | Notices | `/notice`, `/notice/create`, `/notice/[id]`, `/notice/[id]/edit` |
 | Auth | `/login`, `/register` |
 

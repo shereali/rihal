@@ -97,7 +97,7 @@ const mainNavItems = [
   { path: '/exams', label: 'পরীক্ষা', icon: 'exam' },
   { path: '/teacher-assignments', label: 'শিক্ষক বরাদ্দ', icon: 'assignment' },
   { path: '/fees', label: 'ফি ও আয়-ব্যয়', icon: 'fees' },
-  { path: '/donors', label: 'দাতা ও অনুদান', icon: 'donor' },
+  { path: '/finance/donors', label: 'দাতা ও অনুদান', icon: 'donor' },
   { path: '/notice', label: 'বিজ্ঞপ্তি ও ঘোষণা', icon: 'notice' },
   { path: '/settings', label: 'সিস্টেম সেটিংস', icon: 'settings' },
 ]
