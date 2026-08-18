@@ -99,6 +99,7 @@ const mainNavItems = [
   { path: '/fees', label: 'ফি ও আয়-ব্যয়', icon: 'fees' },
   { path: '/finance/donors', label: 'দাতা ও অনুদান', icon: 'donor' },
   { path: '/notice', label: 'বিজ্ঞপ্তি ও ঘোষণা', icon: 'notice' },
+  { path: '/reports', label: 'রিপোর্ট ও এক্সপোর্ট', icon: 'chart' },
   { path: '/portal', label: 'অভিভাবক পোর্টাল', icon: 'users' },
   { path: '/settings', label: 'সিস্টেম সেটিংস', icon: 'settings' },
 ]

@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\NoticeController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\AcademicController;
 use App\Http\Controllers\Api\V1\GuardianController;
+use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\HostelController;
 use App\Http\Controllers\Api\V1\TransportController;
 use App\Http\Controllers\Api\V1\PropertyController;
@@ -51,6 +52,12 @@ Route::prefix('v1')->group(function () {
 
         // Guardian portal
         Route::get('/guardian/portal', [GuardianController::class, 'portal']);
+
+        // Reports (attendance matrix + exam results, with CSV export)
+        Route::get('/reports/attendance', [ReportController::class, 'attendance']);
+        Route::get('/reports/results', [ReportController::class, 'results']);
+        Route::get('/reports/attendance/export', [ReportController::class, 'exportAttendanceCsv']);
+        Route::get('/reports/results/export', [ReportController::class, 'exportResultsCsv']);
 
         // Tenants (super_admin only for create/delete, admin for view/update)
         Route::get('/tenants', [TenantController::class, 'index']);

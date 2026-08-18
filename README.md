@@ -192,7 +192,9 @@ All routes are under `/api/v1` and require a Sanctum bearer token
 | Fees | `/fees`, `/fees/collect` |
 | Finance | `/finance`, `/finance/funds|donations|expenses` (+ `/create`, `/[id]`), `/finance/donors` |
 | Settings | `/settings` (profile, language, logout) |
-| Portal | `/portal` (guardian: linked students' attendance, results, fees) |
+| Reports (API) | `GET /reports/attendance` (class × date-range matrix), `GET /reports/results` (per-exam marks), `GET /reports/attendance/export` + `GET /reports/results/export` (CSV) |
+| Guardian (API) | `GET /guardian/portal` (linked students' attendance/results/fees) |
+| Reports | `/reports` (attendance matrix + exam results, CSV export + print) |
 | Notices | `/notice`, `/notice/create`, `/notice/[id]`, `/notice/[id]/edit` |
 | Auth | `/login`, `/register` |
 
