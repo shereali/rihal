@@ -16,7 +16,8 @@ export function useAuth() {
       const response = await apiClient.post('/auth/register', data)
       const { user, token } = response.data.data
       store.setAuth({ user: user as User, token })
-      try { navigateTo('/dashboard') } catch { /* SSR-safe */ }
+      // NOTE: we deliberately do NOT auto-redirect here — the register page
+      // shows a success message and sends the user to /login.
       return { user, token }
     } finally {
       store.setLoading(false)
@@ -59,7 +60,11 @@ export function useAuth() {
   }
 
   async function restoreSession(): Promise<boolean> {
+    if (!import.meta.client) return false
+    // Hydrate token/user from localStorage first (synchronous).
+    store.restoreAuth()
     if (!store.token) return false
+    // Re-validate the token against the server and refresh user data.
     try {
       const user = await fetchMe()
       return user !== null
