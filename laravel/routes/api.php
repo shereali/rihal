@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\FinanceController;
 use App\Http\Controllers\Api\V1\NoticeController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\AcademicController;
+use App\Http\Controllers\Api\V1\GuardianController;
 use App\Http\Controllers\Api\V1\HostelController;
 use App\Http\Controllers\Api\V1\TransportController;
 use App\Http\Controllers\Api\V1\PropertyController;
@@ -47,6 +48,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/academic/classes', [AcademicController::class, 'classes']);
         Route::get('/academic/sections', [AcademicController::class, 'sections']);
         Route::get('/academic/subjects', [AcademicController::class, 'subjects']);
+
+        // Guardian portal
+        Route::get('/guardian/portal', [GuardianController::class, 'portal']);
 
         // Tenants (super_admin only for create/delete, admin for view/update)
         Route::get('/tenants', [TenantController::class, 'index']);

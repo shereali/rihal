@@ -120,7 +120,7 @@ After `migrate:fresh --seed`:
 | Platform Admin (super_admin) | `admin@rihal.app` | *(set in `PlatformAdminSeeder`)* |
 | Tenant Admin | `admin@demo.bd` | `admin123` |
 | Teacher | `teacher1@demo.bd` … `teacher4@demo.bd` | `teacher123` |
-| Student | `student1@demo.bd` … `student15@demo.bd` | `student123` |
+| Guardian | `guardian@demo.bd` | `guardian123` |
 
 ---
 
@@ -165,6 +165,7 @@ All routes are under `/api/v1` and require a Sanctum bearer token
 | Fees | `/fees`, `/fees/collect` |
 | Finance | `/finance`, `/finance/funds|donations|expenses` (+ `/create`, `/[id]`), `/finance/donors` |
 | Settings | `/settings` (profile, language, logout) |
+| Portal | `/portal` (guardian: linked students' attendance, results, fees) |
 | Notices | `/notice`, `/notice/create`, `/notice/[id]`, `/notice/[id]/edit` |
 | Auth | `/login`, `/register` |
 

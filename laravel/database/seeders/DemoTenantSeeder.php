@@ -306,6 +306,37 @@ class DemoTenantSeeder extends Seeder
             );
         }
 
+        // Guardian (demo) — linked to student 1 so the parent portal is demoable
+        $guardianUser = User::firstOrCreate(
+            ['email' => 'guardian@demo.bd'],
+            [
+                'tenant_id' => $tenant->id,
+                'name_bn' => 'অভিভাবক ১',
+                'name_en' => 'Guardian 1',
+                'password' => Hash::make('guardian123'),
+                'role' => 'guardian',
+                'is_active' => true,
+            ]
+        );
+        $guardianRole = \App\Models\Role::where('name', 'guardian')->first();
+        if ($guardianRole && !$guardianUser->roles()->where('role_id', $guardianRole->id)->exists()) {
+            $guardianUser->roles()->attach($guardianRole->id, ['tenant_id' => $tenant->id]);
+        }
+        $firstStudent = Student::where('tenant_id', $tenant->id)->orderBy('id')->first();
+        if ($firstStudent) {
+            StudentGuardian::updateOrCreate(
+                ['student_id' => $firstStudent->id, 'user_id' => $guardianUser->id],
+                [
+                    'student_id' => $firstStudent->id,
+                    'user_id' => $guardianUser->id,
+                    'relationship' => 'পিতা',
+                    'is_primary' => true,
+                    'phone' => '+8801700000001',
+                    'has_app' => true,
+                ]
+            );
+        }
+
         // Donor
         Donor::firstOrCreate(
             ['tenant_id' => $tenant->id, 'name_en' => 'HM Dar'],
