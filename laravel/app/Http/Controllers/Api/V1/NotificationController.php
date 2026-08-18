@@ -78,6 +78,20 @@ class NotificationController extends ApiController
     }
 
     /**
+     * Mark all of the current guardian's notifications as read.
+     */
+    public function markAllRead(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $updated = AppNotification::where('recipient_id', $user->id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return $this->successResponse(['updated' => $updated], 'সব নোটিফিকেশন পঠিত হিসেবে চিহ্নিত করা হয়েছে');
+    }
+
+    /**
      * Mark a notification as read (guardian only, own record).
      */
     public function markRead(Request $request, int $id): JsonResponse

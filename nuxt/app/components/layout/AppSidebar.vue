@@ -88,22 +88,40 @@ const tenant = ref({
   name: 'দারুল কিরাত মজিদিয়া ফুলতলী ট্রাস্ট',
 })
 
-// Navigation items
-const mainNavItems = [
-  { path: '/dashboard', label: 'ড্যাশবোর্ড', icon: 'dashboard' },
-  { path: '/students', label: 'ছাত্র ব্যবস্থাপনা', icon: 'students' },
-  { path: '/attendance', label: 'হাজিরা', icon: 'attendance' },
-  { path: '/academic', label: 'একাডেমিক', icon: 'academic' },
-  { path: '/exams', label: 'পরীক্ষা', icon: 'exam' },
-  { path: '/teacher-assignments', label: 'শিক্ষক বরাদ্দ', icon: 'assignment' },
-  { path: '/fees', label: 'ফি ও আয়-ব্যয়', icon: 'fees' },
-  { path: '/finance/donors', label: 'দাতা ও অনুদান', icon: 'donor' },
-  { path: '/notice', label: 'বিজ্ঞপ্তি ও ঘোষণা', icon: 'notice' },
-  { path: '/reports', label: 'রিপোর্ট ও এক্সপোর্ট', icon: 'chart' },
-  { path: '/notifications', label: 'নোটিফিকেশন', icon: 'bell' },
-  { path: '/portal', label: 'অভিভাবক পোর্টাল', icon: 'users' },
-  { path: '/settings', label: 'সিস্টেম সেটিংস', icon: 'settings' },
-]
+// Navigation items (role-aware)
+const role = computed(() => (user.value as any)?.role)
+const mainNavItems = computed(() => {
+  const items = [
+    { path: '/dashboard', label: 'ড্যাশবোর্ড', icon: 'dashboard' },
+    { path: '/notice', label: 'বিজ্ঞপ্তি ও ঘোষণা', icon: 'notice' },
+  ]
+  if (role.value === 'student') {
+    items.push({ path: '/student/me', label: 'আমার তথ্য', icon: 'students' })
+  } else if (role.value === 'teacher') {
+    items.push({ path: '/teacher/assignments', label: 'আমার বরাদ্দ', icon: 'assignment' })
+    items.push(
+      { path: '/attendance', label: 'হাজিরা', icon: 'attendance' },
+      { path: '/exams', label: 'পরীক্ষা', icon: 'exam' },
+      { path: '/academic', label: 'একাডেমিক', icon: 'academic' },
+    )
+  } else {
+    // admin / super_admin
+    items.push(
+      { path: '/students', label: 'ছাত্র ব্যবস্থাপনা', icon: 'students' },
+      { path: '/attendance', label: 'হাজিরা', icon: 'attendance' },
+      { path: '/academic', label: 'একাডেমিক', icon: 'academic' },
+      { path: '/exams', label: 'পরীক্ষা', icon: 'exam' },
+      { path: '/teacher-assignments', label: 'শিক্ষক বরাদ্দ', icon: 'assignment' },
+      { path: '/fees', label: 'ফি ও আয়-ব্যয়', icon: 'fees' },
+      { path: '/finance/donors', label: 'দাতা ও অনুদান', icon: 'donor' },
+      { path: '/reports', label: 'রিপোর্ট ও এক্সপোর্ট', icon: 'chart' },
+      { path: '/notifications', label: 'নোটিফিকেশন', icon: 'bell' },
+      { path: '/portal', label: 'অভিভাবক পোর্টাল', icon: 'users' },
+    )
+  }
+  items.push({ path: '/settings', label: 'সিস্টেম সেটিংস', icon: 'settings' })
+  return items
+})
 
 function isActive(path: string): boolean {
   return useRoute().path.startsWith(path)

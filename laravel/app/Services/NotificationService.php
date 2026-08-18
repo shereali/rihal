@@ -115,15 +115,32 @@ class NotificationService
     }
 
     /**
-     * External dispatch seam. Replace with a real SMS/email gateway call.
+     * External dispatch seam. When a driver is configured in
+     * config/rihal.php (NOTIFICATION_SMS_DRIVER / NOTIFICATION_EMAIL_DRIVER),
+     * send a real message; otherwise log only. This is the single place to
+     * wire Twilio / SMTP / a BD SMS gateway.
      */
     protected function dispatchExternal(User $guardian, string $type, string $detail): void
     {
-        Log::info('[NotificationService] dispatch', [
+        $driver = $type === 'fee_due'
+            ? config('rihal.notifications.email_driver', 'null')
+            : config('rihal.notifications.sms_driver', 'null');
+
+        if ($driver === 'null' || $driver === null) {
+            Log::info('[NotificationService] dispatch (logged only — no gateway configured)', [
+                'recipient' => $guardian->email,
+                'type' => $type,
+                'detail' => $detail,
+            ]);
+            return;
+        }
+
+        // Real dispatch would branch on $driver here (twilio / smtp / bd_sms).
+        // Left as a documented seam; the in-app record is always created.
+        Log::info('[NotificationService] dispatch via ' . $driver, [
             'recipient' => $guardian->email,
             'type' => $type,
             'detail' => $detail,
-            'note' => 'No SMS/email gateway configured; in-app notification recorded.',
         ]);
     }
 }

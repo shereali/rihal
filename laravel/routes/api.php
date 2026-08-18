@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\V1\AcademicController;
 use App\Http\Controllers\Api\V1\GuardianController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ReportController;
+use App\Http\Controllers\Api\V1\SelfServiceController;
 use App\Http\Controllers\Api\V1\HostelController;
 use App\Http\Controllers\Api\V1\TransportController;
 use App\Http\Controllers\Api\V1\PropertyController;
@@ -35,7 +36,7 @@ use App\Http\Controllers\Api\V1\HomeworkController;
 Route::prefix('v1')->group(function () {
     // Auth routes
     Route::post('/auth/register', [AuthController::class, 'register']);
-    Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
     // Protected routes (require token)
     Route::middleware('auth:sanctum')->group(function () {
@@ -56,9 +57,14 @@ Route::prefix('v1')->group(function () {
 
         // Notifications
         Route::get('/notifications', [NotificationController::class, 'index']);
-        Route::post('/notifications/absence', [NotificationController::class, 'sendAbsence']);
-        Route::post('/notifications/fee-due', [NotificationController::class, 'sendFeeDue']);
+        Route::post('/notifications/absence', [NotificationController::class, 'sendAbsence'])->middleware('throttle:20,1');
+        Route::post('/notifications/fee-due', [NotificationController::class, 'sendFeeDue'])->middleware('throttle:20,1');
+        Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
         Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
+
+        // Self-service (role-scoped)
+        Route::get('/student/me', [SelfServiceController::class, 'studentMe']);
+        Route::get('/teacher/assignments', [SelfServiceController::class, 'teacherAssignments']);
 
         // Reports (attendance matrix + exam results, with CSV export)
         Route::get('/reports/attendance', [ReportController::class, 'attendance']);

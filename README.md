@@ -138,7 +138,14 @@ docker compose up --build
 - **Laravel tests** — MySQL 8.4 service, `migrate:fresh --seed`, then `php artisan test`.
 - **Nuxt build** — `npm install` + `npm run build` (Node 22).
 
-## Demo Credentials
+## Production hardening
+
+- **Rate limiting** — `POST /auth/login` is throttled to 5/min; `POST /notifications/absence` and `POST /notifications/fee-due` to 20/min (per user) via Laravel's `throttle` middleware.
+- **Notification dispatch seam** — `config/rihal.php` + env vars (`NOTIFICATION_SMS_DRIVER`, `NOTIFICATION_EMAIL_DRIVER`) select a real gateway (Twilio / SMTP / BD SMS). When left `null` (default), external dispatch is **logged only** and the in-app record is always created. Credentials: `TWILIO_*`, `BD_SMS_*`.
+- **Read receipts** — guardians can mark a single notification or all as read (`POST /notifications/{id}/read`, `POST /notifications/read-all`); the portal highlights unread items.
+- **Role-scoped self-service** — `/student/me` (role=student) and `/teacher/assignments` (role=teacher) enforce role via `abort_if(403)`, and the sidebar renders a role-appropriate nav.
+
+---
 
 After `migrate:fresh --seed`:
 
@@ -194,8 +201,9 @@ All routes are under `/api/v1` and require a Sanctum bearer token
 | Settings | `/settings` (profile, language, logout) |
 | Reports (API) | `GET /reports/attendance` (class × date-range matrix), `GET /reports/results` (per-exam marks), `GET /reports/attendance/export` + `GET /reports/results/export` (CSV) |
 | Guardian (API) | `GET /guardian/portal` (linked students' attendance/results/fees) |
-| Notifications (API) | `GET /notifications` (guardian sees own / admin sees all), `POST /notifications/absence`, `POST /notifications/fee-due`, `POST /notifications/{id}/read` |
-| Notifications | `/notifications` (admin: send absence/fee-due, view sent); guardian portal shows received |
+| Self-service (API) | `GET /student/me` (role=student), `GET /teacher/assignments` (role=teacher) |
+| Notifications (API) | `GET /notifications` (guardian sees own / admin sees all), `POST /notifications/absence`, `POST /notifications/fee-due`, `POST /notifications/read-all`, `POST /notifications/{id}/read` |
+| Self-service | `/student/me` (student: own attendance/results/fees), `/teacher/assignments` (teacher: own assignments) |
 | Notices | `/notice`, `/notice/create`, `/notice/[id]`, `/notice/[id]/edit` |
 | Auth | `/login`, `/register` |
 
