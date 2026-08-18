@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Models\AcademicSession;
 use App\Models\AcademicClass;
+use App\Models\AcademicSection;
 use App\Models\AcademicSubject;
 use App\Models\Teacher;
 use App\Models\Student;
@@ -95,6 +96,29 @@ class DemoTenantSeeder extends Seeder
                     'student_count' => rand(20, 40),
                 ]
             );
+        }
+
+        // Sections (one per class: ক, খ, গ)
+        $sectionNames = [
+            ['bn' => 'ক', 'en' => 'A'],
+            ['bn' => 'খ', 'en' => 'B'],
+            ['bn' => 'গ', 'en' => 'C'],
+        ];
+        foreach (AcademicClass::where('tenant_id', $tenant->id)->get() as $class) {
+            foreach ($sectionNames as $sec) {
+                AcademicSection::firstOrCreate(
+                    ['tenant_id' => $tenant->id, 'class_id' => $class->class_id, 'name_en' => $sec['en']],
+                    [
+                        'tenant_id' => $tenant->id,
+                        'class_id' => $class->class_id,
+                        'name_bn' => $sec['bn'],
+                        'name_en' => $sec['en'],
+                        'section_type' => 'regular',
+                        'student_count' => 0,
+                        'room_name' => $class->name_bn . ' ' . $sec['bn'] . ' ঘর',
+                    ]
+                );
+            }
         }
 
         // Subjects

@@ -55,6 +55,17 @@ return new class extends Migration
             $table->date('end_date')->nullable()->change();
         });
 
+        // ─── enrollments: controller validates admission_type / previous_* / remarks / documents ─
+        Schema::table('enrollments', function (Blueprint $table) {
+            $table->string('admission_type')->nullable()->after('status');
+            $table->string('previous_school')->nullable()->after('admission_type');
+            $table->string('previous_board')->nullable()->after('previous_school');
+            $table->integer('passing_year')->nullable()->after('previous_board');
+            $table->text('remarks_bn')->nullable()->after('passing_year');
+            $table->text('remarks_en')->nullable()->after('remarks_bn');
+            $table->json('documents')->nullable()->after('remarks_en');
+        });
+
         // ─── mark_entries: controller sets tenant_id but migration lacks it ────────
         Schema::table('mark_entries', function (Blueprint $table) {
             $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();

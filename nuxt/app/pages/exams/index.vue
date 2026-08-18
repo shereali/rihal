@@ -5,9 +5,12 @@
         <h1>পরীক্ষা তালিকা</h1>
         <p class="text-muted">{{ exams?.data?.meta?.total || 0 }}টি পরীক্ষা</p>
       </div>
-      <NuxtLink to="/exams/create" class="btn btn-primary">
-        <icon :name="mdiPlus" /> নতুন পরীক্ষা
-      </NuxtLink>
+      <div class="header-actions">
+        <NuxtLink to="/marks/create" class="btn btn-outline">নতুন মার্ক এন্ট্রি</NuxtLink>
+        <NuxtLink to="/exams/create" class="btn btn-primary">
+          <icon name="plus" /> নতুন পরীক্ষা
+        </NuxtLink>
+      </div>
     </div>
 
     <div class="card">
@@ -60,7 +63,7 @@
                 </td>
                 <td>
                   <div v-if="exam.has_results" class="result-indicator">
-                    <span class="badge badge-success"><icon :name="mdiCheckCircle" /> ফলাফল প্রকাশিত</span>
+                    <span class="badge badge-success"><icon name="check-circle" /> ফলাফল প্রকাশিত</span>
                   </div>
                   <div v-else-if="exam.is_published" class="result-indicator">
                     <span class="badge badge-primary">প্রকাশিত</span>
@@ -72,10 +75,10 @@
                 <td>
                   <div class="btn-group btn-group-sm">
                     <NuxtLink :to="`/exams/${exam.id}`" class="btn btn-outline">
-                      <icon :name="mdiEye" />
+                      <icon name="eye" />
                     </NuxtLink>
                     <NuxtLink :to="`/exams/${exam.id}/edit`" class="btn btn-outline">
-                      <icon :name="mdiPencil" />
+                      <icon name="pencil" />
                     </NuxtLink>
                   </div>
                 </td>
@@ -127,6 +130,7 @@ loadExams()
 <style scoped>
 .exam-page { padding: 1.5rem; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.header-actions { display: flex; gap: 0.75rem; align-items: center; }
 .header-left h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
 .table-responsive { overflow-x: auto; }
 .pagination { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; }

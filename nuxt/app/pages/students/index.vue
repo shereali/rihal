@@ -5,9 +5,12 @@
         <h1>ছাত্র তালিকা</h1>
         <p class="text-muted">{{ students?.data?.meta?.total || 0 }} জন ছাত্র</p>
       </div>
-      <NuxtLink to="/students/create" class="btn btn-primary">
-        <icon :name="mdiPlus" /> নতুন ছাত্র
-      </NuxtLink>
+      <div class="header-actions">
+        <NuxtLink to="/enrollments/create" class="btn btn-outline">নতুন ভর্তি</NuxtLink>
+        <NuxtLink to="/students/create" class="btn btn-primary">
+          <icon name="plus" /> নতুন ছাত্র
+        </NuxtLink>
+      </div>
     </div>
 
     <div class="card">
@@ -139,6 +142,7 @@ loadStudents()
 <style scoped>
 .students-page { padding: 1.5rem; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.header-actions { display: flex; gap: 0.75rem; align-items: center; }
 .header-left h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
 .table-responsive { overflow-x: auto; }
 .student-avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid var(--color-border); }
