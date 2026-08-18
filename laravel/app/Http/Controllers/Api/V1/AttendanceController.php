@@ -18,18 +18,17 @@ class AttendanceController extends ApiController
         $query = AttendanceRecord::where('tenant_id', $user->tenant_id)
             ->when($request->has('search'), function ($q) use ($request) {
                 $search = $request->input('search');
-                $q->whereHas('student', fn($s) => $s->whereHas('user', fn($u) => $u->where('name_bn', 'like', "%{$search}%")))
-                    ->orWhereHas('teacher', fn($t) => $t->whereHas('user', fn($u) => $u->where('name_bn', 'like', "%{$search}%")));
+                $q->whereHas('student', fn($s) => $s->where('name_bn', 'like', "%{$search}%"))
+                    ->orWhereHas('teacher', fn($t) => $t->where('name_bn', 'like', "%{$search}%"));
             })
             ->when($request->has('student_id'), fn($q) => $q->where('student_id', $request->input('student_id')))
             ->when($request->has('teacher_id'), fn($q) => $q->where('teacher_id', $request->input('teacher_id')))
             ->when($request->has('date'), fn($q) => $q->where('date', $request->input('date')))
             ->when($request->has('from_date'), fn($q) => $q->where('date', '>=', $request->input('from_date')))
             ->when($request->has('to_date'), fn($q) => $q->where('date', '<=', $request->input('to_date')))
-            ->when($request->has('is_present'), fn($q) => $q->where('is_present', filter_var($request->input('is_present'), FILTER_VALIDATE_BOOLEAN)))
-            ->when($request->has('is_late'), fn($q) => $q->where('is_late', filter_var($request->input('is_late'), FILTER_VALIDATE_BOOLEAN)))
-            ->with('student.user')
-            ->with('teacher.user')
+            ->when($request->has('status'), fn($q) => $q->where('status', $request->input('status')))
+            ->with('student:id,name_bn,name_en')
+            ->with('teacher:id,name_bn,name_en')
             ->orderBy('date', 'desc')
             ->orderBy('created_at', 'desc');
 
@@ -44,8 +43,8 @@ class AttendanceController extends ApiController
 
         $record = AttendanceRecord::where('tenant_id', $user->tenant_id)
             ->where('id', $id)
-            ->with('student.user')
-            ->with('teacher.user')
+            ->with('student:id,name_bn,name_en')
+            ->with('teacher:id,name_bn,name_en')
             ->first();
 
         if (!$record) {
@@ -62,11 +61,13 @@ class AttendanceController extends ApiController
             'teacher_id' => 'nullable|integer|exists:users,id',
             'device_id' => 'nullable|integer|exists:attendance_devices,id',
             'date' => 'required|date',
+            'status' => 'nullable|in:present,absent,late,half_day,leave',
+            'method' => 'nullable|in:manual,fingerprint,biometric,qr,online',
             'check_in_time' => 'nullable|date',
             'check_out_time' => 'nullable|date',
-            'is_present' => 'nullable|boolean',
-            'is_late' => 'nullable|boolean',
-            'is_half_day' => 'nullable|boolean',
+            'late_minutes' => 'nullable|integer',
+            'absence_reason' => 'nullable|string',
+            'notes' => 'nullable|string',
             'parent_notified' => 'nullable|boolean',
             'device_data' => 'nullable|array',
         ]);
@@ -77,11 +78,12 @@ class AttendanceController extends ApiController
 
         $data = $validator->validated();
         $data['tenant_id'] = $request->user()->tenant_id;
-        $data['is_present'] = $data['is_present'] ?? true;
+        $data['status'] = $data['status'] ?? 'present';
+        $data['method'] = $data['method'] ?? 'manual';
 
         $record = AttendanceRecord::create($data);
 
-        $record->load('student.user');
+        $record->load('student:id,name_bn,name_en');
 
         return $this->successResponse($record, 'উপস্থিতি রেকর্ড তৈরি সফল', 201);
     }

@@ -11,6 +11,7 @@
         </p>
       </div>
       <div class="header-actions">
+        <NuxtLink to="/attendance/create" class="btn btn-primary btn-sm"><icon name="plus" /> নতুন হাজিরা</NuxtLink>
         <select v-model="filter.dateFilter" class="form-select form-select-sm mr-2" @change="applyFilter">
           <option value="today">আজ</option>
           <option value="this_week">এই সপ্তাহ</option>
@@ -26,19 +27,19 @@
 
     <div class="stats-row" v-if="summaryData">
       <div class="stat-card stat-present">
-        <div class="stat-icon"><icon :name="mdiCheckCircle" /></div>
+        <div class="stat-icon"><icon name="check-circle" /></div>
         <div class="stat-info"><p class="stat-value">{{ summaryData.present }}</p><p class="stat-label">উপস্থিত</p></div>
       </div>
       <div class="stat-card stat-absent">
-        <div class="stat-icon"><icon :name="mdiCloseCircle" /></div>
+        <div class="stat-icon"><icon name="close-circle" /></div>
         <div class="stat-info"><p class="stat-value">{{ summaryData.absent }}</p><p class="stat-label">অনুপস্থিত</p></div>
       </div>
       <div class="stat-card stat-late">
-        <div class="stat-icon"><icon :name="mdiClockOutline" /></div>
+        <div class="stat-icon"><icon name="clock-outline" /></div>
         <div class="stat-info"><p class="stat-value">{{ summaryData.late }}</p><p class="stat-label">দেরি</p></div>
       </div>
       <div class="stat-card stat-total">
-        <div class="stat-icon"><icon :name="mdiAccountGroup" /></div>
+        <div class="stat-icon"><icon name="account-group" /></div>
         <div class="stat-info"><p class="stat-value">{{ summaryData.total }}</p><p class="stat-label">মোট</p></div>
       </div>
     </div>
@@ -58,19 +59,19 @@
             <tbody>
               <tr v-for="record in paginatedRecords" :key="record.id">
                 <td>
-                  <p class="font-weight-medium">{{ record.student?.user?.name_bn || record.student?.name_bn }}</p>
-                  <p class="text-muted text-sm" v-if="record.student?.user?.name_en">{{ record.student.user.name_en }}</p>
+                  <p class="font-weight-medium">{{ record.student?.name_bn || record.student?.name_en }}</p>
+                  <p class="text-muted text-sm" v-if="record.student?.name_en">{{ record.student.name_en }}</p>
                 </td>
-                <td><span class="badge badge-outline">{{ record.student?.class?.name_bn || record.student?.class_name }}</span></td>
+                <td><span class="badge badge-outline">{{ record.student?.class?.name_bn || record.student?.class_name || '-' }}</span></td>
                 <td>
                   <strong>{{ formatDate(record.date) }}</strong>
                   <span v-if="record.date === todayDate" class="badge badge-success badge-sm ml-1">আজ</span>
                 </td>
                 <td>
-                  <span v-if="record.status === 'present'" class="status-badge status-present"><icon :name="mdiCheck" /> উপস্থিত</span>
-                  <span v-else-if="record.status === 'absent'" class="status-badge status-absent"><icon :name="mdiClose" /> অনুপস্থিত</span>
-                  <span v-else-if="record.status === 'late'" class="status-badge status-late"><icon :name="mdiClock" /> দেরি</span>
-                  <span v-else class="text-muted">{{ record.status }}</span>
+                  <span v-if="record.is_present && !record.is_late && !record.is_half_day" class="status-badge status-present"><icon name="check" /> উপস্থিত</span>
+                  <span v-else-if="record.is_present && record.is_late" class="status-badge status-late"><icon name="clock" /> দেরি</span>
+                  <span v-else-if="record.is_present && record.is_half_day" class="status-badge status-late"><icon name="clock" /> অর্ধদিবস</span>
+                  <span v-else class="status-badge status-absent"><icon name="close" /> অনুপস্থিত</span>
                 </td>
                 <td><span class="badge badge-outline" :class="getMethodBadge(record.method)">{{ formatMethod(record.method) }}</span></td>
                 <td>{{ record.check_in_time ? formatTime(record.check_in_time) : '-' }}</td>
@@ -82,8 +83,8 @@
                 </td>
                 <td>
                   <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline btn-sm" @click="editRecord(record)"><icon :name="mdiPencil" /></button>
-                    <button class="btn btn-outline-danger btn-sm" @click="confirmDelete(record)"><icon :name="mdiDelete" /></button>
+                    <button class="btn btn-outline btn-sm" @click="editRecord(record)"><icon name="pencil" /></button>
+                    <button class="btn btn-outline-danger btn-sm" @click="confirmDelete(record)"><icon name="delete" /></button>
                   </div>
                 </td>
               </tr>
