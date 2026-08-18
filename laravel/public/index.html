@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rihal Installer</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
+        .card { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h1 { color: #1a5c2a; margin-bottom: 8px; }
+        .step { margin: 16px 0; padding: 12px; border-left: 4px solid #1a5c2a; background: #f9f9f9; }
+        .step h3 { margin: 0 0 4px; font-size: 15px; }
+        .step p { margin: 0; color: #666; font-size: 13px; }
+        .btn { background: #1a5c2a; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 14px; margin: 8px 0; }
+        .btn:hover { background: #145032; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin: 4px 0; font-size: 14px; }
+        .note { font-size: 12px; color: #888; margin-top: 4px; }
+        .error { color: #c62828; font-size: 13px; }
+        .success { color: #2e7d32; font-size: 13px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>Rihal — Installation</h1>
+    <p style="color:#666; font-size:14px;">মাদ্রাসা ব্যবস্থাপনা প্ল্যাটফর্ম সেটআপ</p>
+
+    <div id="step1" class="step">
+        <h3>Step 1: Database Configuration</h3>
+        <p>Configure your MySQL database connection</p>
+        <input type="text" id="dbHost" class="input" placeholder="Database Host" value="127.0.0.1">
+        <input type="text" id="dbPort" class="input" placeholder="Port" value="3306">
+        <input type="text" id="dbName" class="input" placeholder="Database Name" value="rihal_next">
+        <input type="text" id="dbUser" class="input" placeholder="Username" value="root">
+        <input type="password" id="dbPass" class="input" placeholder="Password (leave empty for root)">
+        <button class="btn" onclick="testConnection()">Test Connection</button>
+        <p id="connResult" class="note"></p>
+    </div>
+
+    <div id="step2" class="hidden">
+        <h3>Step 2: Platform Settings</h3>
+        <input type="text" id="appName" class="input" placeholder="Application Name" value="Rihal">
+        <input type="text" id="appUrl" class="input" placeholder="Application URL" value="http://rihal.local">
+        <input type="text" id="adminEmail" class="input" placeholder="Admin Email" value="admin@rihal.local">
+        <input type="password" id="adminPass" class="input" placeholder="Admin Password" value="admin123">
+        <input type="text" id="adminName" class="input" placeholder="Admin Name" value="প্রধান কর্মকর্তা">
+        <p class="note">These will be used to create the initial super admin account.</p>
+    </div>
+
+    <div id="step3" class="hidden">
+        <h3>Step 3: Install</h3>
+        <p style="color:#666; font-size:13px;">Click install to set up the database, run migrations, and create the admin account.</p>
+        <button class="btn" id="installBtn" onclick="install()">Install Rihal</button>
+        <p id="installResult"></p>
+        <div id="progress" class="hidden" style="margin-top:12px;">
+            <div style="height:4px; background:#e0e0e0; border-radius:2px; overflow:hidden;">
+                <div id="progressBar" style="height:100%; width:0%; background:#1a5c2a; transition:width 0.3s;"></div>
+            </div>
+            <p id="progressText" style="font-size:12px; color:#666; margin-top:4px;"></p>
+        </div>
+    </div>
+
+    <div id="step4" class="hidden">
+        <h3 style="color:#2e7d32;">✓ Installation Complete</h3>
+        <p class="success">Rihal has been installed successfully!</p>
+        <p><a href="http://rihal.local" target="_blank" style="color:#1a5c2a;">Open Rihal Dashboard →</a></p>
+        <p class="note">Login with: <span id="loginInfo"></span></p>
+    </div>
+</div>
+
+<script>
+function testConnection() {
+    const host = document.getElementById('dbHost').value;
+    const port = document.getElementById('dbPort').value;
+    const db = document.getElementById('dbName').value;
+    const user = document.getElementById('dbUser').value;
+    const pass = document.getElementById('dbPass').value;
+    const result = document.getElementById('connResult');
+
+    result.textContent = 'Testing connection...';
+    result.className = 'note';
+
+    fetch('/api/install/test-db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ host, port, database: db, username: user, password: pass })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            result.textContent = '✓ Database connected successfully!';
+            result.className = 'success';
+            document.getElementById('step2').classList.remove('hidden');
+        } else {
+            result.textContent = '✗ ' + data.message;
+            result.className = 'error';
+        }
+    })
+    .catch(e => {
+        result.textContent = '✗ Connection failed: ' + e.message;
+        result.className = 'error';
+    });
+}
+
+function install() {
+    const btn = document.getElementById('installBtn');
+    const progress = document.getElementById('progress');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const result = document.getElementById('installResult');
+
+    btn.disabled = true;
+    btn.textContent = 'Installing...';
+    progress.classList.remove('hidden');
+
+    const settings = {
+        db_host: document.getElementById('dbHost').value,
+        db_port: document.getElementById('dbPort').value,
+        db_name: document.getElementById('dbName').value,
+        db_user: document.getElementById('dbUser').value,
+        db_pass: document.getElementById('dbPass').value,
+        app_name: document.getElementById('appName').value,
+        app_url: document.getElementById('appUrl').value,
+        admin_email: document.getElementById('adminEmail').value,
+        admin_password: document.getElementById('adminPass').value,
+        admin_name: document.getElementById('adminName').value,
+    };
+
+    const steps = [
+        { label: 'Creating database...', progress: 10 },
+        { label: 'Running migrations...', progress: 30 },
+        { label: 'Seeding initial data...', progress: 60 },
+        { label: 'Creating admin account...', progress: 80 },
+        { label: 'Finalizing...', progress: 95 },
+    ];
+
+    let stepIndex = 0;
+
+    function runStep() {
+        if (stepIndex >= steps.length) {
+            finish();
+            return;
+        }
+
+        progressText.textContent = steps[stepIndex].label;
+        progressBar.style.width = steps[stepIndex].progress + '%';
+        stepIndex++;
+
+        setTimeout(runStep, 800);
+    }
+
+    fetch('/api/install', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            runStep();
+            // After all steps complete via the async flow
+            setTimeout(() => {
+                progressBar.style.width = '100%';
+                progressText.textContent = 'Done!';
+                setTimeout(finish, 500);
+            }, steps.length * 800 + 200);
+        } else {
+            result.textContent = '✗ ' + data.message;
+            result.className = 'error';
+            btn.disabled = false;
+            btn.textContent = 'Install Rihal';
+            progress.classList.add('hidden');
+        }
+    })
+    .catch(e => {
+        result.textContent = '✗ Error: ' + e.message;
+        result.className = 'error';
+        btn.disabled = false;
+        btn.textContent = 'Install Rihal';
+        progress.classList.add('hidden');
+    });
+
+    function finish() {
+        document.getElementById('step3').classList.add('hidden');
+        document.getElementById('step4').classList.remove('hidden');
+        document.getElementById('loginInfo').textContent =
+            document.getElementById('adminEmail').value + ' / ' + document.getElementById('adminPass').value;
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "sabaaq-next",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter='@sabaaq/*' dev",
+    "build": "pnpm -r --filter='@sabaaq/*' build",
+    "test": "pnpm -r --filter='@sabaaq/*' test",
+    "clean": "pnpm -r exec rm -rf node_modules dist .next .expo"
+  }
+}

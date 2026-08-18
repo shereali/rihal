@@ -1,0 +1,30 @@
+/* Rihal — Global Styles */
+
+/* ---- CSS Variables / Design Tokens ---- */
+:root {
+  --color-primary: #145032;
+  --color-primary-dark: #0d3b24;
+  --color-primary-light: #186640;
+  --color-accent: #d4af37;
+  --color-accent-light: #f3e5ab;
+  --color-success: #2e7d32;
+  --color-warning: #f57c00;
+  --color-error: #c62828;
+  --color-info: #1565c0;
+
+  --color-bg: #f8f9fa;
+  --color-bg-card: #ffffff;
+  --color-bg-sidebar: #145032;
+  --color-bg-header: #ffffff;
+
+  --color-text: #333333;
+  --color-text-light: #666666;
+  --color-text-muted: #999999;
+  --color-text-on-primary: #ffffff;
+
+  --color-border: #e0e0e0;
+  --color-border-light: #f0f0f0;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);

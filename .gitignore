@@ -1,0 +1,62 @@
+# npm / node
+/node_modules
+/.pnpm-store
+/.pnpm-debug.log
+nuxt/node_modules
+nuxt/.output
+nuxt/.nuxt
+
+# Laravel
+laravel/vendor
+laravel/node_modules
+laravel/bootstrap/cache/*.php
+laravel/storage/*.key
+laravel/storage/framework/cache/*
+laravel/storage/framework/sessions/*
+laravel/storage/framework/views/*
+laravel/storage/framework/testing/*
+laravel/storage/logs/*.log
+laravel/storage/app/public/*
+laravel/storage/debugbar/*
+!laravel/storage/framework/cache/.gitignore
+!laravel/storage/framework/sessions/.gitignore
+!laravel/storage/framework/views/.gitignore
+!laravel/storage/framework/testing/.gitignore
+!laravel/storage/logs/.gitignore
+!laravel/storage/app/public/.gitignore
+
+# Build outputs
+/dist
+/.next
+/.expo
+/out
+
+# Environment
+.env
+.env.local
+.env.*.local
+laravel/.env
+laravel/.env.backup
+laravel/.env.production
+
+# IDE
+/.vscode
+/.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+/coverage
+.nyc_output
+
+# Temporary
+/tmp
+*.tmp
