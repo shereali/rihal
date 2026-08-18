@@ -8,7 +8,7 @@
     <div class="stats-grid">
       <div class="stat-card" v-for="stat in stats" :key="stat.label">
         <div class="stat-icon" :style="{ background: stat.bg }">
-          <component :is="stat.icon" />
+          <icon :name="stat.icon" />
         </div>
         <div class="stat-info">
           <p class="stat-value">{{ stat.value }}</p>
@@ -138,32 +138,39 @@ const recentExams = ref([])
 
 onMounted(async () => {
   try {
-    const [tenants, notices, attendance, students, exams] = await Promise.all([
-      api.get('/tenants/current'),
+    const [statsRes, notices, students, exams] = await Promise.all([
+      api.get('/dashboard/stats'),
       api.get('/notices?per_page=5'),
-      api.get('/attendance/summary'),
       api.get('/students?per_page=5'),
       api.get('/exams?per_page=5'),
     ])
 
+    const s = statsRes.data.data
+
     stats.value = [
-      { label: 'মোট ছাত্র', value: students.value?.data?.data?.length ?? 0, icon: 'users', bg: 'var(--color-primary-light)' },
-      { label: 'মোট শিক্ষক', value: 0, icon: 'users', bg: 'var(--color-accent)' },
-      { label: 'আয়তন (দিন)', value: 0, icon: 'calendar', bg: 'var(--color-success)' },
-      { label: 'ফি সংগ্রহ', value: '0 BDT', icon: 'money', bg: 'var(--color-warning)' },
+      { label: 'মোট ছাত্র', value: s.total_students, icon: 'users', bg: 'var(--color-primary-light)' },
+      { label: 'মোট শিক্ষক', value: s.total_teachers, icon: 'users', bg: 'var(--color-accent)' },
+      { label: 'মোট পরীক্ষা', value: s.total_exams, icon: 'book', bg: 'var(--color-success)' },
+      { label: 'অপ্রকাশিত ফলাফল', value: s.unpublished_results, icon: 'alert', bg: 'var(--color-warning)' },
+      { label: 'আজকের উপস্থিতি', value: `${s.attendance.attendance_rate}%`, icon: 'calendar', bg: 'var(--color-info)' },
+      { label: 'নিট ব্যালেন্স', value: `৳${Number(s.finance.net_balance).toLocaleString('bn-BD')}`, icon: 'money', bg: 'var(--color-primary)' },
     ]
 
-    recentNotices.value = notices.value?.data?.data ?? []
-    attendanceSummary.value = attendance.value?.data?.data ?? null
+    attendanceSummary.value = {
+      present: s.attendance.present,
+      absent: s.attendance.absent,
+      late: s.attendance.late,
+      attendance_rate: s.attendance.attendance_rate,
+    }
 
-    recentStudents.value = (students.value?.data?.data ?? []).map((s: any) => ({
-      ...s,
-      name_bn: s.user?.name_bn ?? s.name_bn ?? '-',
-      class_name: s.class_name ?? '-',
-      admission_number: s.admission_number ?? '-',
+    recentNotices.value = notices.data?.data ?? []
+    recentStudents.value = (students.data?.data ?? []).map((st: any) => ({
+      ...st,
+      name_bn: st.user?.name_bn ?? st.name_bn ?? '-',
+      class_name: st.class_name ?? '-',
+      admission_number: st.admission_number ?? '-',
     }))
-
-    recentExams.value = (exams.value?.data?.data ?? []).map((e: any) => ({
+    recentExams.value = (exams.data?.data ?? []).map((e: any) => ({
       ...e,
       title_bn: e.title_bn ?? e.title_en ?? '-',
       class_name: e.class?.name_bn ?? e.class?.name_en ?? '-',

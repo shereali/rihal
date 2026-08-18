@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\ExamController;
 use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\FinanceController;
 use App\Http\Controllers\Api\V1\NoticeController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\HostelController;
 use App\Http\Controllers\Api\V1\TransportController;
 use App\Http\Controllers\Api\V1\PropertyController;
@@ -37,6 +38,9 @@ Route::prefix('v1')->group(function () {
         // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/user', [AuthController::class, 'user']);
+
+        // Dashboard
+        Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 
         // Tenants (super_admin only for create/delete, admin for view/update)
         Route::get('/tenants', [TenantController::class, 'index']);
