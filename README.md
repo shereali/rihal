@@ -111,6 +111,33 @@ The frontend talks to `http://localhost:8000/api/v1` by default. Change it via
 
 ---
 
+## Docker (one-command local stack)
+
+A `docker-compose.yml` spins up the full stack — MySQL 8.4, the Laravel API
+(port 8000), and the Nuxt frontend (port 3000):
+
+```bash
+# from repo root
+docker compose up --build
+```
+
+- API: http://localhost:8000  ·  Frontend: http://localhost:3000
+- On startup the API container runs `migrate:fresh --seed`, so the database is
+  seeded with demo data automatically.
+- Override the API base the frontend calls with `NUXT_PUBLIC_API_BASE`
+  (defaults to `http://api:8000/api/v1` inside the compose network).
+
+> Images: `laravel/Dockerfile` (PHP 8.3 FPM + Composer) and `nuxt/Dockerfile`
+> (Node 22, production `nuxt build`).
+
+---
+
+## CI
+
+`.github/workflows/ci.yml` runs on every push/PR to `master`/`main`:
+- **Laravel tests** — MySQL 8.4 service, `migrate:fresh --seed`, then `php artisan test`.
+- **Nuxt build** — `npm install` + `npm run build` (Node 22).
+
 ## Demo Credentials
 
 After `migrate:fresh --seed`:

@@ -1,39 +1,32 @@
-FROM composer:2.7 AS composer
+# Laravel 11 API — PHP 8.3 FPM + Composer
+FROM php:8.3-fpm
 
-FROM php:8.3-fpm-alpine
+# System deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
+        libfreetype6-dev default-mysql-client \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install system dependencies
-RUN apk add --no-cache \
-    git \
-    curl \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    oniguruma-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    nodejs \
-    npm
+# PHP extensions required by Laravel 11
+RUN docker-php-ext-configure gd --with-freetype \
+    && docker-php-ext-install pdo_mysql mbstring bcmath xml zip gd pcntl
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+# Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Install composer
-COPY --from=composer /usr/bin/composer /usr/bin/composer
-
-# Set working directory
 WORKDIR /var/www/html
 
-# Create non-root user
-RUN addgroup -g 1000 -S www && \
-    adduser -u 1000 -S www -G www
+# Install dependencies first (better layer caching)
+COPY composer.json composer.lock* ./
+RUN composer install --no-interaction --prefer-dist --no-scripts --no-dev --optimize-autoloader || true
 
-# Set permissions
-RUN chown -R www:www /var/www/html
+# Copy application source
+COPY . .
 
-# Switch to non-root user
-USER www
+# Generate key + permissions at build (overridden at runtime if .env present)
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8000
+
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

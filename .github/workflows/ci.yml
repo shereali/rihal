@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  laravel-tests:
+    name: Laravel tests (PHP 8.3)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: rihal_next
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: rihal
+          MYSQL_PASSWORD: rihal123
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+
+    defaults:
+      run:
+        working-directory: laravel
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, mbstring, bcmath, xml, zip, gd
+          tools: composer:v2
+
+      - name: Cache composer deps
+        uses: actions/cache@v4
+        with:
+          path: laravel/vendor
+          key: composer-${{ hashFiles('laravel/composer.lock') }}
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-scripts
+
+      - name: Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run migrations + seed
+        run: php artisan migrate:fresh --seed --force
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: rihal_next
+          DB_USERNAME: rihal
+          DB_PASSWORD: rihal123
+
+      - name: Run tests
+        run: php artisan test
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: rihal_next
+          DB_USERNAME: rihal
+          DB_PASSWORD: rihal123
+
+  nuxt-build:
+    name: Nuxt build (Node 22)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nuxt
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: nuxt/package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+        env:
+          NUXT_PUBLIC_API_BASE: http://localhost:8000/api/v1
