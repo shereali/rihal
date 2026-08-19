@@ -49,9 +49,27 @@ const iconPaths: Record<string, string> = {
   mdiLock: 'M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2Z M7 11V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6',
   mdiCheck: 'M20 6L9 17l-5-5',
   mdiCancel: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
+  mdiBook: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V6a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 6.5Z',
 }
 
-const path = computed(() => iconPaths[props.name] || '')
+const aliases: Record<string, string> = {
+  arrowLeft: 'mdiArrowLeft', arrowRight: 'mdiOpenInNew',
+  pencil: 'mdiPencil', delete: 'mdiDelete', close: 'mdiClose',
+  save: 'mdiContentSave', loader: 'mdiLoad', eye: 'mdiEye',
+  pin: 'mdiPushPin', calendar: 'mdiCalendar', account: 'mdiAccount',
+  plus: 'mdiPlus', clock: 'mdiClock', external: 'mdiOpenInNew',
+  bell: 'mdiBell', notice: 'mdiAnnouncement', alert: 'mdiAlertCircle',
+  tag: 'mdiTag', lock: 'mdiLock', check: 'mdiCheck', cancel: 'mdiCancel',
+  search: 'mdiEye', refresh: 'mdiLoad', 'chevron-down': 'mdiArrowLeft',
+  'chevron-right': 'mdiOpenInNew', message: 'mdiAnnouncement',
+  sun: 'mdiPushPin', moon: 'mdiLock', mosque: 'mdiPushPin',
+  attendance: 'mdiCalendar', students: 'mdiAccount', users: 'mdiAccount',
+  exam: 'mdiAnnouncement', money: 'mdiTag', chart: 'mdiOpenInNew',
+  academic: 'mdiBook', book: 'mdiBook', 'user-plus': 'mdiPlus',
+  wallet: 'mdiTag',
+}
+
+const path = computed(() => iconPaths[props.name] || iconPaths[aliases[props.name]] || '')
 </script>
 
 <style scoped>

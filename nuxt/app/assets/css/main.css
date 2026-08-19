@@ -68,6 +68,21 @@
   --font-bn: 'Noto Sans Bengali', 'Inter', sans-serif;
 }
 
+:root[data-theme='dark'] {
+  --color-bg: #111a18;
+  --color-bg-card: #182521;
+  --color-bg-header: #182521;
+  --color-bg-muted: #20312b;
+  --color-text: #edf7f1;
+  --color-text-light: #b5c8bf;
+  --color-text-muted: #819a8f;
+  --color-border: #2d463b;
+  --color-border-light: #243a31;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.18);
+  --shadow-md: 0 6px 20px rgba(0,0,0,.24);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,.3);
+}
+
 /* ---- Reset / Base ---- */
 *,
 *::before,

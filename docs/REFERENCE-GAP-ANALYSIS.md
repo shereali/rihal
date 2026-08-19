@@ -101,7 +101,7 @@
 ## Implementation order
 
 1. Dashboard redesign and data density (started in `dashboard.vue`).
-2. Shell polish: themes, language selector, notification center, quick actions, responsive sidebar.
+2. Shell polish: themes, language selector, notification center, quick actions, responsive sidebar. **Theme switching (light/dark), language menu, notification popover, student search, user menu, and quick-create controls are now implemented in `AppTopBar.vue`.**
 3. CRUD pages for backend-backed operational modules (homework, lesson plans, hostel, transport, HR, property). **Homework list/create/detail is now implemented** (`/homework`, `/homework/:id`) and linked in the role-aware sidebar.
 4. Academic administration and promotion flows.
 5. Deep finance/receipt/sponsor/loan/boarding modules.
