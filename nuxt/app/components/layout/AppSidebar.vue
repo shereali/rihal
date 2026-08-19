@@ -111,6 +111,7 @@ const mainNavItems = computed(() => {
       { path: '/attendance', label: 'হাজিরা', icon: 'attendance' },
       { path: '/academic', label: 'একাডেমিক', icon: 'academic' },
       { path: '/exams', label: 'পরীক্ষা', icon: 'exam' },
+      { path: '/homework', label: 'বাড়ির কাজ', icon: 'book' },
       { path: '/teacher-assignments', label: 'শিক্ষক বরাদ্দ', icon: 'assignment' },
       { path: '/fees', label: 'ফি ও আয়-ব্যয়', icon: 'fees' },
       { path: '/finance/donors', label: 'দাতা ও অনুদান', icon: 'donor' },
