@@ -66,7 +66,7 @@ const aliases: Record<string, string> = {
   attendance: 'mdiCalendar', students: 'mdiAccount', users: 'mdiAccount',
   exam: 'mdiAnnouncement', money: 'mdiTag', chart: 'mdiOpenInNew',
   academic: 'mdiBook', book: 'mdiBook', 'user-plus': 'mdiPlus',
-  wallet: 'mdiTag',
+  wallet: 'mdiTag', bus: 'mdiCalendar', building: 'mdiBook',
 }
 
 const path = computed(() => iconPaths[props.name] || iconPaths[aliases[props.name]] || '')
