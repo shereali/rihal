@@ -103,6 +103,6 @@
 1. Dashboard redesign and data density (started in `dashboard.vue`).
 2. Shell polish: themes, language selector, notification center, quick actions, responsive sidebar. **Theme switching (light/dark), language menu, notification popover, student search, user menu, and quick-create controls are now implemented in `AppTopBar.vue`.**
 3. CRUD pages for backend-backed operational modules (homework, lesson plans, hostel, transport, HR, property). **Homework, lesson plans, hostel rooms, transport routes, staff, and properties are now implemented** (`/homework`, `/homework/:id`, `/lesson-plans`, `/hostel`, `/transport`, `/hr`, `/properties`) and linked in the role-aware sidebar.
-4. Academic administration and promotion flows. **Academic center UI plus tenant-scoped CRUD is now implemented**: `/academic` overview, `/academic/manage` setup, and API create/update/delete for classes, sections, and subjects; promotion/exam-administration depth remains.
+4. Academic administration and promotion flows. **Academic center UI plus tenant-scoped CRUD is now implemented**: `/academic` overview, `/academic/manage` setup, `/academic/timetable` weekly routine, and API create/update/delete for classes, sections, subjects, and timetable entries; promotion/exam-administration depth remains.
 5. Deep finance/receipt/sponsor/loan/boarding modules.
 6. End-to-end role UX, empty states, loading states, keyboard accessibility, mobile QA and visual regression.

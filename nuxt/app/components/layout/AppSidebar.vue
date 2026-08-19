@@ -111,6 +111,7 @@ const mainNavItems = computed(() => {
       { path: '/attendance', label: 'হাজিরা', icon: 'attendance' },
       { path: '/academic', label: 'একাডেমিক', icon: 'academic' },
       { path: '/academic/manage', label: 'একাডেমিক সেটআপ', icon: 'settings' },
+      { path: '/academic/timetable', label: 'ক্লাস রুটিন', icon: 'calendar' },
       { path: '/exams', label: 'পরীক্ষা', icon: 'exam' },
       { path: '/homework', label: 'বাড়ির কাজ', icon: 'book' },
       { path: '/lesson-plans', label: 'পাঠ পরিকল্পনা', icon: 'academic' },

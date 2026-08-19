@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\GuardianController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\SelfServiceController;
+use App\Http\Controllers\Api\V1\TimetableController;
 use App\Http\Controllers\Api\V1\HostelController;
 use App\Http\Controllers\Api\V1\TransportController;
 use App\Http\Controllers\Api\V1\PropertyController;
@@ -48,6 +49,10 @@ Route::prefix('v1')->group(function () {
         Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 
         // Academic lookups + CRUD
+        Route::get('/timetable', [TimetableController::class, 'index']);
+        Route::post('/timetable', [TimetableController::class, 'store']);
+        Route::put('/timetable/{id}', [TimetableController::class, 'update']);
+        Route::delete('/timetable/{id}', [TimetableController::class, 'destroy']);
         Route::get('/academic/classes', [AcademicController::class, 'classes']);
         Route::post('/academic/classes', [AcademicController::class, 'storeClass']);
         Route::put('/academic/classes/{id}', [AcademicController::class, 'updateClass']);
