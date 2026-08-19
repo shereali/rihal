@@ -115,6 +115,8 @@ const mainNavItems = computed(() => {
       { path: '/lesson-plans', label: 'পাঠ পরিকল্পনা', icon: 'academic' },
       { path: '/hostel', label: 'হোস্টেল', icon: 'building' },
       { path: '/transport', label: 'পরিবহন', icon: 'bus' },
+      { path: '/hr', label: 'স্টাফ ও কর্মী', icon: 'users' },
+      { path: '/properties', label: 'সম্পত্তি ও সম্পদ', icon: 'building' },
       { path: '/teacher-assignments', label: 'শিক্ষক বরাদ্দ', icon: 'assignment' },
       { path: '/fees', label: 'ফি ও আয়-ব্যয়', icon: 'fees' },
       { path: '/finance/donors', label: 'দাতা ও অনুদান', icon: 'donor' },
