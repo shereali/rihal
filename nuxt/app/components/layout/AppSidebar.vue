@@ -113,6 +113,7 @@ const mainNavItems = computed(() => {
       { path: '/academic/manage', label: 'একাডেমিক সেটআপ', icon: 'settings' },
       { path: '/academic/timetable', label: 'ক্লাস রুটিন', icon: 'calendar' },
       { path: '/exams', label: 'পরীক্ষা', icon: 'exam' },
+      { path: '/exams/routine', label: 'পরীক্ষা রুটিন', icon: 'calendar' },
       { path: '/homework', label: 'বাড়ির কাজ', icon: 'book' },
       { path: '/lesson-plans', label: 'পাঠ পরিকল্পনা', icon: 'academic' },
       { path: '/hostel', label: 'হোস্টেল', icon: 'building' },
