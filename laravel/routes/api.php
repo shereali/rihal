@@ -47,10 +47,19 @@ Route::prefix('v1')->group(function () {
         // Dashboard
         Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 
-        // Academic (read-only lookups for dropdowns)
+        // Academic lookups + CRUD
         Route::get('/academic/classes', [AcademicController::class, 'classes']);
+        Route::post('/academic/classes', [AcademicController::class, 'storeClass']);
+        Route::put('/academic/classes/{id}', [AcademicController::class, 'updateClass']);
+        Route::delete('/academic/classes/{id}', [AcademicController::class, 'destroyClass']);
         Route::get('/academic/sections', [AcademicController::class, 'sections']);
+        Route::post('/academic/sections', [AcademicController::class, 'storeSection']);
+        Route::put('/academic/sections/{id}', [AcademicController::class, 'updateSection']);
+        Route::delete('/academic/sections/{id}', [AcademicController::class, 'destroySection']);
         Route::get('/academic/subjects', [AcademicController::class, 'subjects']);
+        Route::post('/academic/subjects', [AcademicController::class, 'storeSubject']);
+        Route::put('/academic/subjects/{id}', [AcademicController::class, 'updateSubject']);
+        Route::delete('/academic/subjects/{id}', [AcademicController::class, 'destroySubject']);
 
         // Guardian portal
         Route::get('/guardian/portal', [GuardianController::class, 'portal']);
