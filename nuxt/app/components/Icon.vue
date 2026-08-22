@@ -39,6 +39,8 @@ const iconPaths: Record<string, string> = {
   mdiPushPin: 'M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V18a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7Z M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V18a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7Z',
   mdiCalendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z',
   mdiAccount: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
+  mdiSeat: 'M4 7h5v9H4M15 7h5v9h-5M7 11h10v2M7 14h10v2M5 6v2M19 6v2',
+  mdiPrinter: 'M19 11h-3v3h-2v-3H8v-2h3V4h2v3h3v2Z M6 10h2v8H6Z',
   mdiPlus: 'M12 5v14M5 12h14',
   mdiClock: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z M12 6v6l4 2',
   mdiOpenInNew: 'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 13H4v6',

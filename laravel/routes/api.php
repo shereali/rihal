@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\StudentController;
 use App\Http\Controllers\Api\V1\TeacherController;
 use App\Http\Controllers\Api\V1\ExamController;
+use App\Http\Controllers\Api\V1\ExamSeatsController;
 use App\Http\Controllers\Api\V1\AttendanceController;
 use App\Http\Controllers\Api\V1\FinanceController;
 use App\Http\Controllers\Api\V1\NoticeController;
@@ -137,6 +138,11 @@ Route::prefix('v1')->group(function () {
         Route::delete('/exam-results/{id}', [ExamResultController::class, 'destroy']);
         Route::patch('/exam-results/{id}/publish', [ExamResultController::class, 'publish']);
         Route::patch('/exam-results/{id}/unpublish', [ExamResultController::class, 'unpublish']);
+        Route::get('/exams/{exam}/seats', [ExamSeatsController::class, 'show']);
+        Route::post('/exams/{exam}/seats/allocate', [ExamSeatsController::class, 'allocateSeat']);
+        Route::get('/exams/{exam}/seats/plan', [ExamSeatsController::class, 'seatPlan']);
+        Route::post('/exams/{exam}/seats/plan', [ExamSeatsController::class, 'storeSeatPlan']);
+        Route::get('/exams/{exam}/admit-cards/{student}', [ExamSeatsController::class, 'generateAdmitCard']);
 
         // ─── Attendance ───────────────────────────────────────────────────────
         Route::get('/attendance', [AttendanceController::class, 'index']);

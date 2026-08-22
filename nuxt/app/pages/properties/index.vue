@@ -1,4 +1,338 @@
-<template><div class="module-page"><div class="page-header-row"><div><span class="eyebrow">সম্পদ ও অবকাঠামো</span><h1>সম্পত্তি ও সম্পদ</h1><p>জমি, ভবন, সম্পদ, মূল্য ও রক্ষণাবেক্ষণ তথ্য রাখুন</p></div><button class="btn btn-primary" @click="showForm=!showForm"><icon name="plus" /> নতুন সম্পত্তি</button></div><div class="toolbar card"><div class="search-box"><icon name="search" /><input v-model="search" placeholder="সম্পত্তি খুঁজুন..." @keyup.enter="load" /></div><select v-model="status" class="form-control compact" @change="load"><option value="">সব অবস্থা</option><option value="owned">নিজস্ব</option><option value="rented">ভাড়া</option><option value="under_maintenance">রক্ষণাবেক্ষণে</option></select><button class="btn btn-outline btn-sm" @click="load"><icon name="refresh" /> রিফ্রেশ</button></div><form v-if="showForm" class="create-panel card" @submit.prevent="createProperty"><div class="form-heading"><h2>নতুন সম্পত্তি</h2><button type="button" class="close-btn" @click="showForm=false">×</button></div><div v-if="error" class="alert alert-error">{{ error }}</div><div class="form-grid"><div class="form-group wide"><label>সম্পত্তির নাম *</label><input v-model="form.property_name_bn" class="form-control" required placeholder="যেমন: প্রধান মাদ্রাসা ভবন" /></div><div class="form-group"><label>ধরণ</label><input v-model="form.property_type" class="form-control" placeholder="ভবন/জমি/যানবাহন" /></div><div class="form-group"><label>অবস্থা</label><select v-model="form.status" class="form-control"><option value="owned">নিজস্ব</option><option value="rented">ভাড়া</option><option value="under_maintenance">রক্ষণাবেক্ষণে</option></select></div><div class="form-group"><label>বর্তমান মূল্য</label><input v-model.number="form.current_market_value" type="number" class="form-control" /></div><div class="form-group wide"><label>ঠিকানা</label><input v-model="form.location_address_bn" class="form-control" /></div></div><div class="form-actions"><button class="btn btn-primary" :disabled="saving">{{ saving?'সংরক্ষণ হচ্ছে...':'সম্পত্তি যোগ করুন' }}</button><button type="button" class="btn btn-ghost" @click="showForm=false">বাতিল</button></div></form><div v-if="loading" class="loading-state"><div class="spinner" /></div><div v-else-if="!properties.length" class="empty-card"><div class="empty-icon"><icon name="building" /></div><h3>কোনো সম্পত্তি নেই</h3><p>মাদ্রাসার জমি, ভবন ও সম্পদের তথ্য যোগ করুন</p></div><div v-else class="property-grid"><article v-for="property in properties" :key="property.id" class="property-card"><div class="property-image"><icon name="building" /></div><div class="property-copy"><div class="property-top"><span class="type-chip">{{ property.property_type || 'সম্পত্তি' }}</span><span class="status" :class="property.status">{{ statusLabel(property.status) }}</span></div><h3>{{ property.property_name_bn || property.property_name_en }}</h3><p>{{ property.location_address_bn || 'ঠিকানা যোগ করা হয়নি' }}</p><div class="property-value"><span>বর্তমান মূল্য</span><strong>৳{{ Number(property.current_market_value||0).toLocaleString('bn-BD') }}</strong></div></div></article></div></div></template>
-<script setup lang="ts">import{onMounted,reactive,ref}from'vue';import{useApiClient}from'~/utils/api';const api=useApiClient();const properties=ref<any[]>([]);const loading=ref(true);const saving=ref(false);const showForm=ref(false);const error=ref('');const search=ref('');const status=ref('');const form=reactive({property_name_bn:'',property_type:'',status:'owned',current_market_value:0,location_address_bn:''});async function load(){loading.value=true;try{const q=new URLSearchParams();if(search.value)q.set('search',search.value);if(status.value)q.set('status',status.value);const r=await api.get(`/properties?${q}`);properties.value=r.data?.data?.data||r.data?.data||[]}catch(e){console.error(e)}finally{loading.value=false}}async function createProperty(){saving.value=true;error.value='';try{await api.post('/properties',form);showForm.value=false;form.property_name_bn='';form.property_type='';form.location_address_bn='';await load()}catch(e:any){error.value=e?.response?.data?.message||'সম্পত্তি তৈরি করা যায়নি'}finally{saving.value=false}}function statusLabel(v:string){return({owned:'নিজস্ব',rented:'ভাড়া',under_maintenance:'রক্ষণাবেক্ষণে',completed:'সম্পন্ন'}as any)[v]||v||'অজানা'}onMounted(load)</script>
-<style scoped>.module-page{max-width:1400px;margin:0 auto;padding-bottom:2rem}.page-header-row{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;margin-bottom:1.4rem}.eyebrow{color:var(--color-primary);font:600 .78rem var(--font-bn)}.page-header-row h1{margin:.25rem 0;color:var(--color-primary);font:700 1.65rem var(--font-bn)}.page-header-row p{color:var(--color-text-light);font:.88rem var(--font-bn)}.toolbar{display:flex;gap:.7rem;padding:.7rem;margin-bottom:1rem}.search-box{display:flex;align-items:center;gap:.5rem;flex:1;padding:0 .75rem;background:var(--color-bg-muted);border-radius:10px}.search-box input{width:100%;padding:.65rem 0;border:0;outline:0;background:transparent;font:.86rem var(--font-bn)}.form-control.compact{width:180px}.create-panel{padding:1.2rem;margin-bottom:1rem}.form-heading{display:flex;justify-content:space-between;margin-bottom:1rem}.form-heading h2{font:700 1rem var(--font-bn)}.close-btn{border:0;background:transparent;font-size:1.5rem;color:var(--color-text-muted);cursor:pointer}.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:.7rem}.form-group.wide{grid-column:span 2}.form-group label{display:block;margin-bottom:.3rem;font:600 .78rem var(--font-bn)}.form-actions{display:flex;gap:.6rem;margin-top:1rem}.property-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}.property-card{overflow:hidden;background:#fff;border:1px solid var(--color-border-light);border-radius:17px;box-shadow:var(--shadow-sm);transition:.2s}.property-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}.property-image{display:grid;place-items:center;height:125px;color:#7857a9;background:linear-gradient(135deg,#f1eafb,#e5dcf5);font-size:2.5rem}.property-copy{padding:1rem}.property-top{display:flex;justify-content:space-between;align-items:center}.type-chip,.status{padding:.24rem .6rem;border-radius:99px;font:.68rem var(--font-bn)}.type-chip{color:#7857a9;background:#f0eafb}.status.owned{color:#19724a;background:#e6f4ec}.status.rented{color:#236c9b;background:#e3f2fa}.status.under_maintenance{color:#a05c35;background:#fff0e4}.property-copy h3{margin:.9rem 0 .3rem;color:var(--color-text);font:700 1rem var(--font-bn)}.property-copy p{min-height:34px;color:var(--color-text-light);font:.75rem var(--font-bn)}.property-value{display:flex;justify-content:space-between;align-items:center;padding-top:.8rem;margin-top:.8rem;border-top:1px solid var(--color-border-light)}.property-value span{color:var(--color-text-muted);font:.7rem var(--font-bn)}.property-value strong{color:var(--color-primary);font:700 1rem var(--font-sans)}.empty-card{padding:3rem;text-align:center;background:#fff;border:1px dashed var(--color-border);border-radius:18px}.empty-icon{display:grid;place-items:center;width:54px;height:54px;margin:0 auto 1rem;border-radius:16px;color:#7857a9;background:#f0eafb;font-size:1.4rem}.empty-card h3{font:700 1rem var(--font-bn)}.empty-card p{color:var(--color-text-light);font:.8rem var(--font-bn)}@media(max-width:950px){.property-grid{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:repeat(2,1fr)}.form-group.wide{grid-column:span 2}}@media(max-width:650px){.page-header-row{align-items:flex-start;flex-direction:column}.toolbar{flex-wrap:wrap}.search-box{min-width:100%}.property-grid,.form-grid{grid-template-columns:1fr}.form-group.wide{grid-column:auto}.form-control.compact{width:100%}}
+<template>
+  <div class="page-wrapper">
+    <div class="page-header-row">
+      <div>
+        <h1>সম্পত্তি ও সম্পদ</h1>
+        <p class="page-subtitle">মাদ্রাসার জমি, ভবন, যানবাহন, সরঞ্জাম — তালিকা, মূল্য ও অবস্থান</p>
+      </div>
+      <div class="header-actions">
+        <NuxtLink to="/properties/create" class="btn btn-primary">
+          <icon name="plus" /> নতুন সম্পত্তি
+        </NuxtLink>
+      </div>
+    </div>
+
+    <div v-if="loading" class="loading-overlay">
+      <div class="spinner" />
+      <p>সম্পত্তি লোড হচ্ছে...</p>
+    </div>
+
+    <div v-else-if="!properties.length" class="empty-state">
+      <div class="empty-icon"><icon name="building" /></div>
+      <h3>কোনো সম্পত্তি নেই</h3>
+      <p>নতুন সম্পত্তি যোগ করে শুরু করুন</p>
+      <NuxtLink to="/properties/create" class="btn btn-primary">প্রথম সম্পত্তি যোগ করুন</NuxtLink>
+    </div>
+
+    <div v-else class="properties-grid">
+      <article v-for="prop in properties" :key="prop.id" class="property-card">
+        <div class="property-card-header">
+          <div class="property-type-badge" :class="prop.status?.toLowerCase().replace(/[^a-z]/g, '-') || 'type-default'">
+            {{ prop.status || 'অন্যান্য' }}
+          </div>
+          <div class="property-value-badge" v-if="prop.current_market_value">
+            <icon name="money" />
+            {{ prop.current_market_value.toLocaleString('bn-BD') }} টাকা
+          </div>
+        </div>
+        <h3 class="property-name">{{ prop.property_name_bn || prop.property_name_en }}</h3>
+        <p v-if="prop.location_address_bn" class="property-address">{{ prop.location_address_bn }}</p>
+        <div class="property-attributes">
+          <div class="attr-item">
+            <icon name="tag" />
+            <span>{{ prop.property_type || 'নির্ধারিত নয়' }}</span>
+          </div>
+          <div class="attr-item" v-if="prop.acquired_date">
+            <icon name="calendar" />
+            <span>{{ formatDate(prop.acquired_date) }}</span>
+          </div>
+        </div>
+        <div class="property-footer">
+          <NuxtLink :to="`/properties/${prop.id}`" class="view-link">
+            বিস্তারিত <icon name="arrow-right" />
+          </NuxtLink>
+        </div>
+      </article>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useApiClient } from '~/utils/api'
+
+const api = useApiClient()
+const properties = ref<any[]>([])
+const loading = ref(true)
+
+onMounted(async () => {
+  try {
+    const r = await api.get('/properties')
+    properties.value = r.data?.data?.data || r.data?.data || []
+  } catch (e) {
+    console.error('Failed to load properties:', e)
+  } finally {
+    loading.value = false
+  }
+})
+
+function formatDate(date: string | null) {
+  if (!date) return '-'
+  try {
+    return new Date(date).toLocaleDateString('bn-BD', {
+      day: 'numeric', month: 'short', year: 'numeric'
+    })
+  } catch {
+    return '-'
+  }
+}
+</script>
+
+<style scoped>
+.page-wrapper {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.page-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+h1 {
+  font-size: 1.7rem;
+  color: var(--color-primary);
+  font-family: var(--font-bn);
+  margin: 0 0 0.3rem;
+}
+
+.page-subtitle {
+  color: var(--color-text-light);
+  font-family: var(--font-bn);
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-family: var(--font-bn);
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.empty-icon {
+  width: 56px;
+  height: 56px;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state h3 {
+  font-family: var(--font-bn);
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.empty-state p {
+  color: var(--color-text-muted);
+  font-family: var(--font-bn);
+  margin: 0;
+}
+
+.properties-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.property-card {
+  background: white;
+  border: 1px solid var(--color-border-light);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.property-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.property-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  background: rgba(0,0,0,0.02);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.property-type-badge {
+  padding: 0.18rem 0.55rem;
+  border-radius: 99px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.property-type-badge.owned {
+  background: #e6f4ec;
+  color: #19724a;
+}
+
+.property-type-badge.rented {
+  background: #fff0e4;
+  color: #a05c35;
+}
+
+.property-type-badge.under_maintenance {
+  background: #fef3e2;
+  color: #a07035;
+}
+
+.property-type-badge.completed {
+  background: #e3f2fa;
+  color: #1a5276;
+}
+
+.property-type-badge.donated {
+  background: #f0eafb;
+  color: #7857a9;
+}
+
+.property-type-badge.type-default {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.property-value-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  background: rgba(212, 175, 55, 0.15);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: var(--color-primary-700);
+  font-weight: 600;
+  font-family: var(--font-bn);
+}
+
+.property-value-badge icon {
+  width: 13px;
+  height: 13px;
+}
+
+.property-name {
+  padding: 0.8rem 1rem 0.4rem;
+  font-family: var(--font-bn);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.property-address {
+  padding: 0 1rem 0.4rem;
+  font-family: var(--font-bn);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.property-attributes {
+  padding: 0.4rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.attr-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-bn);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.attr-item icon {
+  width: 12px;
+  height: 12px;
+}
+
+.property-footer {
+  padding: 0.5rem 1rem 0.7rem;
+}
+
+.view-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-family: var(--font-bn);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.view-link:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .page-header-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
 </style>

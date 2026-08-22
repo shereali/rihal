@@ -5,6 +5,12 @@
         <icon name="arrow-left" /> ফিরে যান
       </NuxtLink>
       <div class="header-actions">
+        <NuxtLink :to="`/exams/${exam?.id}/seats`" class="btn btn-outline btn-sm">
+          <icon name="seat" /> আসন বরাদ্দ
+        </NuxtLink>
+        <NuxtLink :to="`/exams/${exam?.id}/admit-cards`" class="btn btn-outline btn-sm">
+          <icon name="document" /> ভরণা কার্ড
+        </NuxtLink>
         <NuxtLink :to="`/exams/${exam?.id}/edit`" class="btn btn-primary btn-sm">
           <icon name="pencil" /> সম্পাদনা
         </NuxtLink>

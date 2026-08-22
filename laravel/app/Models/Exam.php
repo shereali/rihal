@@ -25,6 +25,11 @@ class Exam extends Model
         'grade_distribution' => 'array',
         'seat_plan' => 'array',
         'attendance_required' => 'boolean',
+        'seat_hall_rows' => 'integer',
+        'seat_hall_cols' => 'integer',
+        'seat_venue' => 'string',
+        'seat_generated' => 'boolean',
+        'seat_generated_at' => 'datetime',
     ];
 
     public function tenant(): BelongsTo
