@@ -345,5 +345,43 @@ Route::prefix('v1')->group(function () {
         Route::put('/teacher-assignments/{id}', [TeacherAssignmentController::class, 'update']);
         Route::delete('/teacher-assignments/{id}', [TeacherAssignmentController::class, 'destroy']);
         Route::get('/teachers/{teacherId}/schedule', [TeacherAssignmentController::class, 'teacherSchedule']);
+
+        // ─── Leave Management ──────────────────────────────────────────────
+        Route::get('/leave-applications', [LeaveManagementController::class, 'index']);
+        Route::post('/leave-applications', [LeaveManagementController::class, 'store']);
+        Route::get('/leave-applications/{id}', [LeaveManagementController::class, 'show']);
+        Route::put('/leave-applications/{id}', [LeaveManagementController::class, 'update']);
+        Route::delete('/leave-applications/{id}', [LeaveManagementController::class, 'destroy']);
+        Route::get('/leave-applications/my', [LeaveManagementController::class, 'myLeave']);
+
+        // ─── Digital Attendance ──────────────────────────────────────────────
+        Route::get('/digital-attendance/devices', [DigitalAttendanceController::class, 'devices']);
+        Route::post('/digital-attendance/devices', [DigitalAttendanceController::class, 'storeDevice']);
+        Route::get('/digital-attendance/devices/{id}', [DigitalAttendanceController::class, 'showDevice']);
+        Route::put('/digital-attendance/devices/{id}', [DigitalAttendanceController::class, 'updateDevice']);
+        Route::delete('/digital-attendance/devices/{id}', [DigitalAttendanceController::class, 'destroyDevice']);
+        Route::get('/digital-attendance/sync-status', [DigitalAttendanceController::class, 'syncStatus']);
+        Route::get('/digital-attendance/sync-report', [DigitalAttendanceController::class, 'syncReport']);
+
+        // ─── Promotions ──────────────────────────────────────────────────────
+        Route::get('/promotions', [PromotionController::class, 'index']);
+        Route::post('/promotions', [PromotionController::class, 'store']);
+        Route::get('/promotions/{id}', [PromotionController::class, 'show']);
+        Route::put('/promotions/{id}/approve', [PromotionController::class, 'approve']);
+        Route::delete('/promotions/{id}', [PromotionController::class, 'destroy']);
+
+        // ─── Certificate Templates & Issuance ────────────────────────────────
+        Route::get('/certificate-templates', [CertificateController::class, 'templates']);
+        Route::post('/certificate-templates', [CertificateController::class, 'store']);
+        Route::put('/certificate-templates/{id}', [CertificateController::class, 'update']);
+        Route::delete('/certificate-templates/{id}', [CertificateController::class, 'destroy']);
+        Route::get('/certificates', [CertificateController::class, 'index']);
+        Route::post('/certificates', [CertificateController::class, 'store']);
+        Route::get('/certificates/{id}', [CertificateController::class, 'show']);
+        Route::get('/reminder-tasks', [ReminderTaskController::class, 'index']);
+        Route::post('/reminder-tasks', [ReminderTaskController::class, 'store']);
+        Route::get('/reminder-tasks/{id}', [ReminderTaskController::class, 'show']);
+        Route::put('/reminder-tasks/{id}', [ReminderTaskController::class, 'update']);
+        Route::delete('/reminder-tasks/{id}', [ReminderTaskController::class, 'destroy']);
     });
 });
