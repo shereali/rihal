@@ -1,108 +1,140 @@
-# Sabaq Reference Gap Analysis — Dashboard and Admin Surface
+# Sabaq Reference Gap Analysis — Dashboard and Admin Surface (2026-08-21, updated)
 
-> Captured from the authenticated `demo.sabaaq.com/dashboard` HTML and compared with the Rihal repository on 2026-08-19. This is an implementation inventory, not a claim that every reference route is production-ready.
+> Captured from authenticated `demo.sabaaq.com/dashboard` (Microsoft Edge, Super Admin) and compared with Rihal
+> (Nuxt 4, 58 Vue pages, 67 routes, ‖localhost:3000‖ returning 200 across the full built surface). This
+> document is a **verified implementation inventory**, not a claim that every reference route is built.
 
-## Reference dashboard — visual and interaction inventory
+## Reference app — live inventory
 
-### Global shell
-- Bengali RTL-capable admin shell with branded logo, favicon, tenant label, collapsible sidebar, overlay for mobile, top navigation, footer.
-- Multi-level sidebar tree navigation with active states and parent-module routes.
-- Topbar: AI shortcut, notifications dropdown, theme switcher, language switcher (Bangla/English/Arabic), logout.
-- Four themes: default, Islamic, professional, dark.
-- Responsive/mobile sidebar toggle and mobile-specific sizing.
-- PWA manifest, installable app metadata, mobile status-bar metadata.
-- Font stack: Bengali font plus Latin fallback; Font Awesome icons.
-- Toast/dropdown/modal interaction patterns.
-- Floating quick actions: invoice search, student search, SMS balance, quick-actions launcher.
-- Chatbot/AI floating control.
+### Sabaq main menus → sub-menus → Rihal status
 
-### Dashboard sections
-1. **Institution banner** — madrasa name, support note, phone/contact box, support hours, WhatsApp emergency note, decorative Islamic emblem.
-2. **Period filter** — all time, today, this week, this month, this year, last year.
-3. **License status** — active badge, remaining days, expiry date, modal with total/used days, progress bar, renewal instructions, WhatsApp CTA.
-4. **Primary metrics** — total students, total collection, total expense, current balance, total teachers, inactive students.
-5. **All funds** — repeated fund cards with balance, fund category, icon and positive/negative values.
-6. **Dashboard analysis**:
-   - Current-month class-wise due card with empty/success state.
-   - Monthly collection vs expense bar chart.
-   - Monthly due bar chart.
-   - Class-wise student distribution with ranked progress bars.
-   - Class-wise present/absent/late/leave summary.
-   - Daily class attendance taken vs pending split metric.
-   - Student gender ratio visualization.
-   - Top three funds by balance with ranked percentage bars.
-7. **Footer** — copyright, policy warning, vendor/developer branding.
+All labels below are as rendered in the authenticated Sabaq admin UI.
 
-### Reference modules / navigation inventory
-- Module dashboard
-- System settings: site, invoice design, attendance, SMS settings/status, users, roles, global/additional admission fees, session, class, section, subjects, subject assignment, data delete, license, blank forms, cache manager, parent info settings, needy students, signatures, average-mark result settings.
-- Digital attendance: attendance machine, device tools, biometric sync, ADMS commands, RFID cards, fingerprint verification.
-- Student management: admission, student list, roll arrangement, dhakhela arrangement, inactive students, ID cards, fee management, homework, student attendance.
-- Academic: exam creation, global/subject/exam grades, exam routine, seat numbers, admit cards, results, GPA/percentage summaries, teacher-wise results, comments, certificates, syllabus, books/curriculum, attestation/clearance certificates, admission register.
-- Promotion/graduation: promotion, special promotion, pending fee, failed/success lists, graduation, foreign graduates, jobless, employed graduates, higher studies.
-- Teacher management: list, IDs, salary, attendance, class routines, leave.
-- Administration: staff, staff IDs, attendance, salary/raises, responsibilities, responsibility assignment, events, leave applications, complaints/suggestions, activity log, teacher discharge.
-- Accounting: funds, expense types, expenses, general deposits/withdrawals, needy fund, daily balance, income/expense balance sheet, event/mahfil income/expense, annual report, properties/assets, audit report, collection-by-user, user-wise cashbook.
-- Receipt management: stock, distribution, collection.
-- Sponsors/donations: donor types, donors, donor payments, donation types, donations, monthly donors/payments.
-- Loans/dues/shop: loans given/taken, shop, dues received/given.
-- Orphan sponsorship: sponsors, sponsor payments, due/advance.
-- Boarding: market purchases, boarding expenses.
-- Notices: group, single, class, all notices, notice announcements.
-- Changelog.
+| # | Sabaq main menu | Sub-menus (captured) | Rihal route(s) present | Status |
+|---|----------------|----------------------|------------------------|--------|
+| 1 | ড্যাশবোর্ড (Dashboard) | রিপোর্ট ও এক্সপোর্ট, আজকের হাজিরা, আর্থিক সারাংশ, সাম্প্রতিক ঘোষণা | `/dashboard` (200), `/reports` (200), `/attendance` (200), `/finance` (200), `/notice` (200) | ✅ Core parity |
+| 2 | মডিউল ড্যাশবোর্ড (Module Dashboard) | (expandable) | not in Sabaq reference list as sub-menu; likely module overview | ⚠️ Not mapped; no Rihal page |
+| 3 | রিমাইন্ডার টাস্ক (Reminder Task) | — | none | ❌ Missing |
+| 4 | ছুটি ব্যবস্থাপনা (Leave Management) | — | none | ❌ Missing |
+| 5 | সিস্টেম সেটিংস (System Settings) | — | `/settings` (200, stub) | ❌ Partial / stub |
+| 6 | ডিজিটাল হাজিরা (Digital Attendance) | — | none | ❌ Missing |
+| 7 | শিক্ষার্থী ব্যবস্থাপনা (Student Management) | — | `/students` (200), `/students/create` (200), `/students/:id` (200), `/students/:id/edit` (200), `/student/me` (200) | ✅ Core parity |
+| 8 | একাডেমিক বিভাগ (Academic Department) | — | `/academic` (200), `/academic/manage` (200), `/academic/timetable` (200), `/enrollments/create` (200) | ✅ Partial |
+| 9 | প্রমোশন এবং গ্রাজুয়েশন (Promotion & Graduation) | — | none | ❌ Missing |
+| 10 | শিক্ষক ব্যবস্থাপনা (Teacher Management) | — | none | ❌ Missing |
+| 11 | প্রশাসনিক বিভাগ (Administration) | — | `/hr` (200, stub), `/properties` (200, stub) | ❌ Partial / stub |
+| 12 | হিসাব ও অর্থ বিভাগ (Accounting) | — | `/finance` (200), `/finance/funds/create` (200), `/finance/funds/:id` (200), `/finance/donors` (200), `/finance/donations/create` (200), `/finance/donations/:id` (200), `/finance/expenses/create` (200), `/finance/expenses/:id` (200) | ✅ Partial (funds/donors/donations/expenses only; no expense types, daily balance, annual/audit reports, receipt stock/distribution/collection, collection-by-user, user-wise cashbook) |
+| 13 | রশিদ ব্যবস্থাপনা (Receipt Management) | — | none | ❌ Missing |
+| 14 | স্পনসর এবং অনুদান বিভাগ (Sponsors & Donations) | — | `/finance/donors` (200), `/finance/donations` (200) | ⚠️ Partial (donor types + monthly donors + sponsor payments missing) |
+| 15 | ঋণ এবং বকেয়া ব্যবস্থাপনা (Loans & Dues) | — | none | ❌ Missing |
+| 16 | এতিম স্পনসর বিভাগ (Orphan Sponsorship) | — | none | ❌ Missing |
+| 17 | বোর্ডিং ব্যবস্থাপনা (Boarding) | — | none | ❌ Missing |
+| 18 | নোটিশ এবং ঘোষণা (Notices) | — | `/notice` (200), `/notice/create` (200), `/notice/:id` (200), `/notice/:id/edit` (200) | ✅ Core parity (targeting — group/single/class/all — missing) |
+| 19 | চেঞ্জলগ (Changelog) | — | none | ❌ Missing |
 
-## Rihal comparison
+### Sabaq sub-pages captured on the authenticated dashboard (not main-menu sub-menus)
 
-### Already implemented in Rihal
-- Auth, tenant-aware admin/teacher/student/guardian roles.
-- Student/teacher CRUD and profiles.
-- Attendance entry, bulk attendance, summaries.
-- Exams, marks, publish/unpublish result workflow.
-- Teacher assignments.
-- Academic lookup page.
-- Finance: funds, donors, donations, expenses, fee structures/payments, stocks, journal/cash book/summary APIs.
-- Notices.
-- Guardian portal and student/teacher self-service.
-- Reports: attendance matrix, results, CSV exports and print views.
-- Notifications: absence/fee-due in-app dispatch, read receipts and rate limits.
-- Docker + CI, stateless Bearer authentication, Bengali-first global CSS, role-aware sidebar.
+These are dashboard in-page shortcut links, not left-sidebar sub-menus — but they reveal Sabaq's feature surface:
 
-### Missing or incomplete versus reference
-#### P0 — product shell and dashboard
-- Reference-grade dashboard analytics: fund cards, period-aware dashboard data, class distribution, gender ratio, class attendance, monthly charts, top funds, due insight.
-- Reference-grade global shell: theme switcher, language switcher, notification dropdown, AI/quick-action controls, support banner, polished responsive sidebar behavior.
-- License/subscription status UX and renewal modal (backend status exists on tenants but no UI).
-- Audit/activity log.
+| Shortcut label | Sabaq links to | Rihal route | Status |
+|----------------|----------------|-------------|--------|
+| সম্পূর্ণ হিসাব (Complete Accounts) | accounts summary | `/finance` | ✅ |
+| নতুন ভর্তি শিক্ষার্থী যোগ করুন | add new student | `/students/create` | ✅ |
+| বাল্ক হাজিরা একসাথে হাজিরা নিন | bulk attendance | `/attendance/bulk` | ✅ |
+| ফি সংগ্রহ পেমেন্ট রেকর্ড করুন | fee collection payment record | `/fees/collect` | ✅ |
+| রিপোর্ট তৈরি রিপোর্ট ও CSV এক্সপোর্ট | reports & CSV export | `/reports` | ✅ |
 
-#### P1 — operational modules with backend routes already present
-- Homework assignments and submissions UI.
-- Lesson plans UI.
-- Hostel rooms/visitors UI.
-- Transport routes/buses UI.
-- HR staff/recruitment/applications/holidays/events/registrations UI.
-- Property/assets UI.
-- Inventory/stock transactions UI beyond current finance page.
-- User and role administration UI.
+### Sabaq topbar items (authenticated)
 
-#### P2 — academic administration
-- Sessions, classes, sections, subjects and subject assignment CRUD screens.
-- Exam routine, seats, admit cards, GPA/percentage summaries.
-- Certificates, clearance/attestation, syllabus/books/curriculum.
-- Promotion/graduation workflows.
+| Item | Rihal | Status |
+|------|-------|--------|
+| বাংলা language selector | language switcher not present | ❌ |
+| লগ আউট (logout) | logout works | ✅ |
+| সর্বকাল / আজ / এই সপ্তাহ / এই মাস / এই বছর / গত বছর period filter | period filter not present | ❌ |
+| হাজিরা নিন (Take Attendance) quick action | takes to `/attendance` | ✅ |
+| সব দেখুন (View All) notices quick action | takes to `/notice` | ✅ |
+| Toggle Nuxt DevTools (Rihal dev only, not a Sabaq feature) | n/a | n/a |
 
-#### P3 — finance and communication depth
-- Expense types, general deposits/withdrawals, needy fund, daily balance, annual reports, audit reports, user-wise collection/cashbook.
-- Receipt stock/distribution/collection.
-- Donor types and monthly donors.
-- Loans, shop, dues, orphan sponsorship, boarding purchases/expenses.
-- Group/single/class notice targeting.
-- Real SMS/email gateway adapters (current code has the safe dispatch seam).
+## Rihal built surface (verified, 2026-08-21)
 
-## Implementation order
+### Routes returning 200
 
-1. Dashboard redesign and data density (started in `dashboard.vue`).
-2. Shell polish: themes, language selector, notification center, quick actions, responsive sidebar. **Theme switching (light/dark), language menu, notification popover, student search, user menu, and quick-create controls are now implemented in `AppTopBar.vue`.**
-3. CRUD pages for backend-backed operational modules (homework, lesson plans, hostel, transport, HR, property). **Homework, lesson plans, hostel rooms, transport routes, staff, and properties are now implemented** (`/homework`, `/homework/:id`, `/lesson-plans`, `/hostel`, `/transport`, `/hr`, `/properties`) and linked in the role-aware sidebar.
-4. Academic administration and promotion flows. **Academic center UI plus tenant-scoped CRUD is now implemented**: `/academic` overview, `/academic/manage` setup, `/academic/timetable` weekly routine, and API create/update/delete for classes, sections, subjects, and timetable entries; **exam routine view is now implemented at `/exams/routine`**; promotion/admit-card/result-summary depth remains.
-5. Deep finance/receipt/sponsor/loan/boarding modules.
-6. End-to-end role UX, empty states, loading states, keyboard accessibility, mobile QA and visual regression.
+`/` · `/login` · `/register` · `/dashboard` · `/students` · `/students/create` · `/students/:id` · `/students/:id/edit` · `/student/me` · `/attendance` · `/attendance/create` · `/attendance/bulk` · `/attendance/:id` · `/attendance/:id/edit` · `/exams` · `/exams/create` · `/exams/routine` · `/exams/:id` · `/exams/:id/edit` · `/exams/:id/seats` · `/exams/:id/admit-cards` · `/exams/:id/admit-cards/:studentId` · `/exams/:id/results` · `/academic` · `/academic/manage` · `/academic/timetable` · `/enrollments/create` · `/notice` · `/notice/create` · `/notice/:id` · `/notice/:id/edit` · `/portal` · `/reports` · `/notifications` · `/settings` · `/fees` · `/fees/collect` · `/finance` · `/finance/funds/create` · `/finance/funds/:id` · `/finance/donors` · `/finance/donations/create` · `/finance/donations/:id` · `/finance/expenses/create` · `/finance/expenses/:id` · `/homework` · `/homework/:id` · `/lesson-plans` · `/teacher-assignments` · `/teacher-assignments/create` · `/teacher/my-assignments` · `/hr` · `/hostel` · `/transport` · `/properties` · `/results` · `/results/gpa` · `/marks/create` · `/academic/index`
+
+### Routes returning 404 (API exists, no Nuxt page yet)
+
+`/exam-results` · `/mark-entries` · `/finance/funds` · `/finance/expenses` · `/teacher`
+
+## Verified gaps (reference vs Rihal)
+
+### P0 — product shell and dashboard
+
+| Sabaq feature | Rihal status | Priority |
+|---------------|--------------|----------|
+| Dashboard: fund cards, period-aware data, class distribution, gender ratio, class attendance, monthly charts, top funds, due insight | Not at reference density | P0 |
+| Global shell: theme switcher, language switcher, notification dropdown, AI/quick-action controls, support banner, polished responsive sidebar | Partial | P0 |
+| License/subscription status UX and renewal modal | No UI (backend tenant status exists) | P0 |
+| Audit/activity log | No UI | P0 |
+
+### P1 — operational modules (backend routes present, UI missing/partial)
+
+| Sabaq feature | Rihal status | Priority |
+|---------------|--------------|----------|
+| Reminder tasks | No page | P1 |
+| Leave management | No page | P1 |
+| Digital attendance (machine, device tools, biometric sync, ADMS, RFID, fingerprint) | No page | P1 |
+| Homework assignments + submissions UI | Pages exist (`/homework`, `/homework/:id`) but submission flow thin | P1 |
+| Lesson plans UI | Page exists (`/lesson-plans`) | P1 |
+| Hostel rooms/visitors UI | Stub (`/hostel`) | P1 |
+| Transport routes/buses UI | Stub (`/transport`) | P1 |
+| HR: staff, recruitment, applications, holidays, events, registrations | Stub (`/hr`) | P1 |
+| Properties/assets UI | Stub (`/properties`) | P1 |
+| Inventory/stock transactions UI beyond finance page | No page | P1 |
+| User and role administration UI | No page | P1 |
+| System settings depth (sessions/classes/sections/subjects CRUD, subject assignment, exam grades, invoice design, attendance settings, SMS settings, global/additional fees, needy students, signatures, average-mark settings, data delete, cache manager, parent info, blank forms) | Stub (`/settings`) | P1 |
+
+### P2 — academic administration
+
+| Sabaq feature | Rihal status | Priority |
+|---------------|--------------|----------|
+| Sessions, classes, sections, subjects, subject assignment CRUD screens | No page | P2 |
+| Exam routine, seats, admit cards, GPA/percentage summaries | Done (routine/seats/admit-cards/results/GPA pages) | ✅ Done this session |
+| Certificates, clearance/attestation, syllabus/books/curriculum | No page | P2 |
+| Promotion/graduation workflows | No page | P2 |
+| Teacher management (list, ID card, salary, attendance, class routine, leave) | No page | P2 |
+| Administration depth (staff, staff ID, staff attendance, salary/raises, responsibilities, responsibility assignment, events, leave applications, complaints/suggestions, activity log, teacher discharge) | Stub | P2 |
+
+### P3 — finance and communication depth
+
+| Sabaq feature | Rihal status | Priority |
+|---------------|--------------|----------|
+| Expense types, general deposits/withdrawals, needy fund, daily balance, annual report, audit report, collection-by-user, user-wise cashbook | No page | P3 |
+| Receipt stock/distribution/collection | No page | P3 |
+| Donor types, monthly donors | Partial (donors list + donations CRUD only) | P3 |
+| Loans given/taken, shop, dues received/given | No page | P3 |
+| Orphan sponsorship: sponsors, sponsor payments, due/advance | No page | P3 |
+| Boarding: market purchases, boarding expenses | No page | P3 |
+| Notice targeting (group/single/class/all) + announcements | Pages exist, targeting missing | P3 |
+| Real SMS/email gateway adapters | Dispatch seam exists, adapters not wired | P3 |
+
+## Cross-check summary
+
+- Sabaq has **19 main menus** in the admin sidebar. Rihal mirrors the top-level sidebar labels for the modules it has built, but **~9 of Sabaq's main menus have no Rihal page at all** (রিমাইন্ডার টাস্ক, ছুটি ব্যবস্থাপনা, ডিজিটাল হাজিরা, প্রমোশন এবং গ্রাজুয়েশন, শিক্ষক ব্যবস্থাপনা, রশিদ ব্যবস্থাপনা, ঋণ এবং বকেয়া, এতিম স্পনসর, বোর্ডিং, চেঞ্জলগ).
+- The Sabaq reference does **not** expose a deep multi-level sub-menu tree under each main menu in the captured dashboard view (the sidebar labels are flat hyperlinks); the sub-pages are accessible from dashboard shortcut links and in-page navigation. Rihal's built surface already covers the dashboard shortcut links that Sabaq exposes (add student, bulk attendance, fee collection, reports/CSV, accounts).
+- Rihal's built surface is **solid for the core operational modules**: students, attendance, exams (including seats/admit-cards/results/GPA done this session), notices, portal, reports, notifications, finance (funds/donors/donations/expenses), fees, homework, lesson plans, teacher assignments.
+- Rihal's **long tail** — reminder tasks, leave, digital attendance hardware, promotion/graduation, certificates, syllabus/books, administration depth, full accounting depth, receipts, donor types/monthly donors, loans/dues/shop, orphan sponsorship, boarding, notice targeting, changelog, system settings depth, shell polish — remains unbuilt.
+
+## Plan (Option A complete, Option B next)
+
+Option A (live reference audit) is now complete: every Sabaq main menu labeled, every dashboard shortcut link captured, cross-checked against Rihal's 58 Vue pages and route map.
+
+Option B (build the missing pieces) — recommended sequence:
+
+1. **P0 first** — dashboard analytics parity + global shell polish + license UX + activity log. This is what a visitor/admin sees immediately and where the visual gap is largest.
+2. **P1 next** — the stub modules that already have a route: settings depth, HR, hostel, transport, properties, homework submissions, lesson plans.
+3. **P2 next** — academic administration depth: sessions/classes/sections/subjects CRUD, teacher management, promotion/graduation, certificates/syllabus/books.
+4. **P3 last** — finance depth + receipt/sponsor/loan/boarding modules + notice targeting + SMS/email adapters.
+
+Within each priority, build module by module: backend route/controller → model/relationship → seeder → Nuxt page(s) → sidebar link → verify (curl 200 + dev log clean + browser check).
+
+Would you like me to start executing the P0 items now, or adjust the order?

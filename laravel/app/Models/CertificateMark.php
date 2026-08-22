@@ -7,15 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AttendanceDevice extends Model
+class CertificateMark extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $guarded = [];
-    protected $casts = [
-        'is_active' => 'boolean',
-        'port' => 'integer',
-    ];
+    public $timestamps = false;
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
+    public function certificate(): BelongsTo { return $this->belongsTo(IssuedCertificate::class); }
+    public function subject(): BelongsTo { return $this->belongsTo(AcademicSubject::class); }
 }

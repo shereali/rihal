@@ -11,6 +11,9 @@
         <NuxtLink :to="`/exams/${exam?.id}/admit-cards`" class="btn btn-outline btn-sm">
           <icon name="document" /> ভরণা কার্ড
         </NuxtLink>
+        <NuxtLink :to="`/exams/${exam?.id}/results`" class="btn btn-outline btn-sm">
+          <icon name="chart" /> ফলাফল
+        </NuxtLink>
         <NuxtLink :to="`/exams/${exam?.id}/edit`" class="btn btn-primary btn-sm">
           <icon name="pencil" /> সম্পাদনা
         </NuxtLink>

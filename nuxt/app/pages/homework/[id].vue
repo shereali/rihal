@@ -1,6 +1,273 @@
 <template>
-  <div class="detail-page"><NuxtLink to="/homework" class="back-link">← গৃহকাজে ফিরে যান</NuxtLink><div v-if="loading" class="loading-state"><div class="spinner" /></div><article v-else-if="item" class="detail-card"><div class="detail-top"><span class="subject-chip">{{ item.subject?.name_bn || 'সাধারণ' }}</span><span class="status" :class="item.is_active ? 'active' : 'inactive'">{{ item.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span></div><h1>{{ item.title_bn || item.title_en }}</h1><p class="lead">{{ item.description_bn || 'কোনো নির্দেশনা নেই' }}</p><div class="facts"><div><span>শ্রেণি</span><b>{{ item.class?.name_bn || 'সব শ্রেণি' }}</b></div><div><span>বিষয়</span><b>{{ item.subject?.name_bn || 'সাধারণ' }}</b></div><div><span>জমার তারিখ</span><b>{{ formatDate(item.due_date) }}</b></div><div><span>সর্বোচ্চ নম্বর</span><b>{{ item.max_score || '—' }}</b></div></div><div class="submission-section"><div class="section-title"><h2>জমা দেওয়ার অবস্থা</h2><span>{{ submissions.length }} জমা</span></div><div v-if="!submissions.length" class="empty-inline">এখনও কোনো জমা নেই</div><div v-else class="submission-list"><div v-for="s in submissions" :key="s.id" class="submission"><span class="avatar">{{ (s.student?.user?.name_bn || 'শি').charAt(0) }}</span><div><b>{{ s.student?.user?.name_bn || 'শিক্ষার্থী' }}</b><small>{{ s.is_graded ? `নম্বর: ${s.score ?? '—'}` : 'মূল্যায়ন অপেক্ষমাণ' }}</small></div><span class="submission-status" :class="s.is_graded ? 'graded' : 'pending'">{{ s.is_graded ? 'মূল্যায়িত' : 'অপেক্ষমাণ' }}</span></div></div></div></article><div v-else class="empty-card">গৃহকাজ পাওয়া যায়নি</div></div>
+  <div class="module-page">
+    <div class="breadcrumb">
+      <NuxtLink to="/homework">বাড়ির কাজ</NuxtLink>
+      <icon name="chevron-right" class="breadcrumb-sep" />
+      <span>{{ assignment?.title_bn || assignment?.title_en }}</span>
+    </div>
+
+    <div class="page-header-row">
+      <div>
+        <span class="eyebrow">একাডেমিক কার্যক্রম</span>
+        <h1>গৃহকাজের বিবরণী</h1>
+        <p>{{ assignment?.title_bn || assignment?.title_en }} — নির্দেশনা, সময়সীমা ও জমা তথ্য</p>
+      </div>
+      <NuxtLink to="/homework" class="btn btn-ghost">
+        <icon name="arrow-left" /> সব গৃহকাজে ফিরে যান
+      </NuxtLink>
+    </div>
+
+    <div v-if="loading" class="loading-state"><div class="spinner" /></div>
+    <div v-else-if="!assignment" class="empty-card">
+      <div class="empty-icon"><icon name="book" /></div>
+      <h3>এই গৃহকাজটি পাওয়া যায়নি</h3>
+      <NuxtLink to="/homework" class="btn btn-primary">সব গৃহকাজ দেখুন</NuxtLink>
+    </div>
+
+    <div v-else class="detail-layout">
+      <div class="card detail-card">
+        <div class="detail-header">
+          <h2 class="detail-title">{{ assignment.title_bn || assignment.title_en }}</h2>
+          <span class="status-badge" :class="assignment.is_active ? 'active' : 'inactive'">
+            {{ assignment.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}
+          </span>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-block">
+            <label>বিষয়</label>
+            <p>{{ assignment.subject?.name_bn || assignment.subject?.name_en || 'সাধারণ' }}</p>
+          </div>
+          <div class="info-block">
+            <label>শ্রেণি</label>
+            <p>{{ assignment.class?.name_bn || assignment.class?.name_en || 'সব শ্রেণি' }}</p>
+          </div>
+          <div class="info-block">
+            <label>জমার শেষ তারিখ</label>
+            <p>{{ assignment.due_date ? formatDate(assignment.due_date) : 'নির্ধারিত নয়' }}</p>
+          </div>
+          <div class="info-block">
+            <label>সর্বোচ্চ নম্বর</label>
+            <p>{{ assignment.max_score ?? '-' }}</p>
+          </div>
+          <div class="info-block wide">
+            <label>শিক্ষক</label>
+            <p>{{ assignment.teacher?.user?.name_bn || assignment.teacher?.user?.name_en || 'নির্ধারিত নয়' }}</p>
+          </div>
+          <div class="info-block wide">
+            <label>ক্রিয়েটর</label>
+            <p v-if="assignment.created_by">শিক্ষক #{{ assignment.created_by }}</p>
+            <p v-else class="text-muted">নেই</p>
+          </div>
+        </div>
+
+        <div class="description-section">
+          <span class="section-label">বিস্তারিত নির্দেশনা</span>
+          <p class="description-text">{{ assignment.description_bn || 'কোনো নির্দেশনা যোগ করা হয়নি' }}</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>জমা তথ্য ({{ submissions?.length ?? 0 }})</h3>
+          <button class="btn btn-primary btn-sm" @click="loadSubmissions" :disabled="submitLoading">
+            <icon name="refresh" /> রিফ্রেশ
+          </button>
+        </div>
+        <div class="card-body">
+          <div v-if="submitLoading && !submissionData?.data?.data?.length" class="loading-state">
+            <div class="spinner" />
+          </div>
+          <div v-else-if="!submissions || submissions.length === 0" class="empty-slate">
+            <icon name="file-text" class="empty-icon-slate" />
+            <p class="text-muted">এখনও কোনো জমা নেই</p>
+          </div>
+          <div v-else class="submissions-table">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>শিক্ষার্থী</th>
+                    <th>জমার তারিখ</th>
+                    <th>ফাইল/লিংক</th>
+                    <th>সম্ভাব্য নম্বর</th>
+                    <th>অবস্থা</th>
+                    <th>কর্ম</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="sub in submissions" :key="sub.id">
+                    <td class="student-cell">
+                      <span v-if="sub.student?.user">{{ sub.student.user.name_bn || sub.student.user.name_en }}</span>
+                      <span v-else class="text-muted">অজ্ঞাত</span>
+                    </td>
+                    <td class="text-center">{{ sub.submitted_at ? formatDate(sub.submitted_at) : '-' }}</td>
+                    <td class="text-center">
+                      <span v-if="sub.submission_file_url">
+                        <a :href="sub.submission_file_url" target="_blank" rel="noopener">
+                          <icon name="file-download" /> ডাউনলোড
+                        </a>
+                      </span>
+                      <span v-else class="text-muted">নেই</span>
+                    </td>
+                    <td class="text-center">{{ sub.score ?? '-' }}</td>
+                    <td>
+                      <span class="status-badge" :class="statusClass(sub.status)">
+                        {{ statusLabel(sub.status) }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn btn-outline btn-sm" @click="gradeSubmission(sub)">
+                        <icon name="pencil" /> নম্বর দিন
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="submitLoading" class="card">
+        <div class="card-header"><h3>নতুন জমা দেওয়া হচ্ছে...</h3></div>
+        <div class="card-body">
+          <div class="loading-state"><div class="spinner" /></div>
+        </div>
+      </div>
+      <div v-else-if="newSubmissionSuccess" class="card success-card">
+        <div class="card-body text-center">
+          <icon name="check-circle" class="success-icon" />
+          <p>জমা সফলভাবে গ্রহণ করা হয়েছে</p>
+          <NuxtLink to="/homework" class="btn btn-primary">ফিরে যান</NuxtLink>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
-<script setup lang="ts">import { onMounted, ref } from 'vue'; import { useRoute } from 'vue-router'; import { useApiClient } from '~/utils/api'; const api=useApiClient(); const route=useRoute(); const loading=ref(true); const item=ref<any>(null); const submissions=ref<any[]>([]); onMounted(async()=>{try{const r=await api.get(`/homework-assignments/${route.params.id}`); item.value=r.data?.data; const s=await api.get(`/homework-assignments/${route.params.id}/submissions`); submissions.value=s.data?.data?.data||s.data?.data||[]}catch(e){console.error(e)}finally{loading.value=false}}); function formatDate(v:string){return v?new Date(v).toLocaleDateString('bn-BD',{day:'numeric',month:'long',year:'numeric'}):'তারিখ নেই'}</script>
-<style scoped>.detail-page{max-width:1000px;margin:0 auto;padding-bottom:2rem}.back-link{display:inline-block;margin-bottom:1rem;font:600 .82rem var(--font-bn)}.detail-card,.empty-card{background:#fff;border:1px solid var(--color-border-light);border-radius:20px;box-shadow:var(--shadow-sm);padding:1.6rem}.detail-top{display:flex;justify-content:space-between}.subject-chip,.status,.submission-status{padding:.25rem .65rem;border-radius:99px;font:.72rem var(--font-bn)}.subject-chip{color:#6f52a2;background:#f0eafb}.status.active,.submission-status.graded{color:#19724a;background:#e6f4ec}.status.inactive,.submission-status.pending{color:#a05c35;background:#fff0e4}.detail-card h1{margin:1rem 0 .5rem;color:var(--color-primary);font:700 1.6rem var(--font-bn)}.lead{color:var(--color-text-light);font: .92rem/1.7 var(--font-bn)}.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;margin:1.5rem 0;padding:1rem;background:var(--color-bg-muted);border-radius:14px}.facts span,.facts b{display:block}.facts span{color:var(--color-text-muted);font:.72rem var(--font-bn)}.facts b{margin-top:.2rem;font:.85rem var(--font-bn)}.submission-section{border-top:1px solid var(--color-border-light);padding-top:1.2rem}.section-title{display:flex;justify-content:space-between;align-items:center}.section-title h2{font:700 1rem var(--font-bn)}.section-title span{color:var(--color-text-muted);font:.75rem var(--font-bn)}.submission-list{display:grid;gap:.4rem;margin-top:.8rem}.submission{display:flex;align-items:center;gap:.7rem;padding:.65rem;border-bottom:1px solid var(--color-border-light)}.avatar{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;color:#fff;background:var(--color-primary);font:700 .75rem var(--font-bn)}.submission b,.submission small{display:block}.submission b{font:.82rem var(--font-bn)}.submission small{color:var(--color-text-muted);font:.7rem var(--font-bn)}.submission-status{margin-left:auto}.empty-inline,.empty-card{text-align:center;color:var(--color-text-muted);font:.82rem var(--font-bn)}@media(max-width:700px){.facts{grid-template-columns:repeat(2,1fr)}}
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { useApiClient } from '~/utils/api'
+
+const route = useRoute()
+const api = useApiClient()
+const loading = ref(true)
+const submitLoading = ref(false)
+const newSubmissionSuccess = ref(false)
+const assignment = ref<any>(null)
+const submissions = ref<any[]>([])
+
+async function load() {
+  loading.value = true
+  const id = Number(route.params.id)
+  try {
+    const [assignmentRes, submissionsRes] = await Promise.all([
+      api.get(`/homework-assignments/${id}`),
+      api.get(`/homework-assignments/${id}/submissions`),
+    ])
+    assignment.value = assignmentRes.data?.data
+    submissions.value = submissionsRes.data?.data?.data || submissionsRes.data?.data || []
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadSubmissions() {
+  submitLoading.value = true
+  const id = Number(route.params.id)
+  try {
+    const r = await api.get(`/homework-assignments/${id}/submissions`)
+    submissions.value = r.data?.data?.data || r.data?.data || []
+  } catch (e) { console.error(e) }
+  finally { submitLoading.value = false }
+}
+
+function formatDate(v: string) {
+  return v ? new Date(v).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'
+}
+
+function statusLabel(s: string) {
+  const map: Record<string, string> = {
+    pending: 'মুলতুবি',
+    submitted: 'জমা দেওয়া হয়েছে',
+    graded: 'মূল্যায়ন করা হয়েছে',
+    rejected: 'প্রত্যাখ্যাত',
+  }
+  return map[s] || s || '-'
+}
+
+function statusClass(s: string) {
+  if (s === 'graded') return 'status-graded'
+  if (s === 'submitted') return 'status-submitted'
+  if (s === 'rejected') return 'status-rejected'
+  return 'status-pending'
+}
+
+function gradeSubmission(sub: any) {
+  const newScore = prompt('নম্বর লিখুন:', String(sub.score ?? ''))
+  if (newScore !== null && newScore !== '') {
+    api.put(`/homework-submissions/${sub.id}`, { score: Number(newScore) })
+      .then(() => { loadSubmissions() })
+      .catch(() => {})
+  }
+}
+
+onMounted(load)
+</script>
+
+<style scoped>
+.module-page { max-width: 1000px; margin: 0 auto; padding-bottom: 2rem }
+.breadcrumb { display:flex; align-items:center; gap:.4rem; margin-bottom:.7rem; font:.82rem var(--font-bn); color:var(--color-text-muted) }
+.breadcrumb-sep { color:var(--color-text-muted) }
+.page-header-row { display:flex; justify-content:space-between; align-items:flex-end; gap:1rem; margin-bottom:1.4rem }
+.eyebrow { color:var(--color-primary); font:600 .78rem var(--font-bn) }
+.page-header-row h1 { margin:.25rem 0; color:var(--color-primary); font:700 1.5rem var(--font-bn) }
+.page-header-row p { color:var(--color-text-light); font:.88rem var(--font-bn) }
+.header-actions { display:flex; gap:.5rem }
+.loading-state { text-align:center; padding:3rem 0; display:flex; justify-content:center; gap:.5rem }
+.empty-card { text-align:center; padding:3rem 0; display:flex; flex-direction:column; align-items:center; gap:.7rem }
+.empty-icon { width:56px; height:56px; color:var(--color-text-muted); margin-bottom:.3rem }
+.empty-icon-slate { width:34px; height:34px; color:var(--color-text-muted) }
+.detail-layout { display:flex; flex-direction:column; gap:.7rem }
+.detail-card { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:15px; overflow:hidden }
+.detail-header { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; padding:1.1rem; border-bottom:1px solid var(--color-border-light); background:rgba(0,0,0,0.02) }
+.detail-title { margin:0; font:700 1.3rem var(--font-bn); color:var(--color-primary) }
+.status-badge { padding:.2rem .6rem; border-radius:99px; font:.7rem var(--font-bn); font-weight:600; white-space:nowrap }
+.status-badge.active { background:#e6f4ec; color:#19724a }
+.status-badge.inactive { background:#fde8e8; color:#a03030 }
+.info-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:.8rem; padding:1.1rem }
+.info-block { display:flex; flex-direction:column; gap:.2rem }
+.info-block.wide { grid-column:span 2 }
+.info-block label { font:600 .72rem var(--color-text-muted); font-family:var(--font-bn) }
+.info-block p { margin:0; font:.88rem var(--font-bn) }
+.description-section { padding:1.1rem; border-top:1px solid var(--color-border-light); background:#fafbfc }
+.section-label { display:block; font:600 .78rem var(--font-bn); color:var(--color-text-muted); margin-bottom:.4rem }
+.description-text { margin:0; font:.88rem var(--font-bn); line-height:1.5 }
+.card { background:var(--color-bg-card); border:1px solid var(--color-border-light); border-radius:15px; overflow:hidden }
+.card-header { padding:.85rem 1.1rem; border-bottom:1px solid var(--color-border-light); background:rgba(0,0,0,0.02); display:flex; justify-content:space-between; align-items:center }
+.card-header h3 { margin:0; font:700 1rem var(--font-bn); color:var(--color-text) }
+.card-body { padding:1.1rem }
+.btn-sm { padding:.3rem .7rem; font:.72rem var(--font-bn); }
+.success-card { border-color:#19724a; }
+.success-icon { width:48px; height:48px; color:#19724a; margin-bottom:.5rem }
+.submissions-table { display:grid; grid-template-columns:1fr; }
+.table-responsive { overflow-x:auto }
+.table { width:100%; border-collapse:collapse; font:.82rem var(--font-bn) }
+.table th { background:rgba(0,0,0,0.03); padding:.7rem 1rem; text-align:left; font:600 .75rem var(--font-bn); color:var(--color-text-muted); border-bottom:1px solid var(--color-border-light); white-space:nowrap }
+.table td { padding:.6rem 1rem; border-bottom:1px solid var(--color-border-light); vertical-align:middle }
+.table tr:last-child td { border-bottom:0 }
+.table tr:hover td { background:#fafbfc }
+.text-center { text-align:center }
+.student-cell { font-weight:600; color:var(--color-text) }
+.text-muted { color:var(--color-text-muted) }
+.status-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.15rem .5rem; border-radius:99px; font:.65rem var(--font-bn); font-weight:600 }
+.status-pending { background:#fff0e4; color:#a05c35 }
+.status-submitted { background:#e3f2fa; color:#1a5276 }
+.status-graded { background:#e6f4ec; color:#19724a }
+.status-rejected { background:#fde8e8; color:#a03030 }
+@media(max-width:650px){ .info-grid { grid-template-columns:1fr } .info-block.wide { grid-column:auto } .page-header-row { flex-direction:column; align-items:flex-start } }
 </style>

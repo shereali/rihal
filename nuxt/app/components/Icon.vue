@@ -68,8 +68,12 @@ const aliases: Record<string, string> = {
   attendance: 'mdiCalendar', students: 'mdiAccount', users: 'mdiAccount',
   exam: 'mdiAnnouncement', money: 'mdiTag', chart: 'mdiOpenInNew',
   academic: 'mdiBook', book: 'mdiBook', 'user-plus': 'mdiPlus',
-  wallet: 'mdiTag', bus: 'mdiCalendar', building: 'mdiBook', layers: 'mdiBook',
-}
+ wallet: 'mdiTag', bus: 'mdiCalendar', building: 'mdiBook', layers: 'mdiBook',
+ chat: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+ bot: 'M12 2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H12z M12 14a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-4z M12 11a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-2z',
+ invoice: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8',
+ whatsapp: 'M22 4H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Z M6 10V8a4 4 0 0 1 4-4h.5A4 4 0 1 1 11 14.5V17l-2 2v-2h-2l-2 2H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-2l-2-2v2l-2-2Z',
+ }
 
 const path = computed(() => iconPaths[props.name] || iconPaths[aliases[props.name]] || '')
 </script>
