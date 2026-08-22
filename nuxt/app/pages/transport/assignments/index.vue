@@ -210,15 +210,15 @@ async function createAssignment() {
   saving.value = true
   error.value = ''
   try {
-    const payload = {
-      student_id: form.student_id,
-      bus_id: form.bus_id,
-      route_id: form.route_id,
+    const payload: any = {
+      student_id: parseInt(form.student_id),
+      bus_id: parseInt(form.bus_id),
+      route_id: parseInt(form.route_id),
       pickup_point: form.pickup_point,
       drop_point: form.drop_point,
       pickup_time: form.pickup_time,
-      drop_time: form.drop_time,
-      fare_amount: form.fare_amount,
+      dropoff_time: form.dropoff_time,
+      monthly_fee: form.fare_amount || 0,
       status: form.status,
     }
     await api.post('/transport/assignments', payload)

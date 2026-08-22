@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\V1\MarkEntryController;
 use App\Http\Controllers\Api\V1\EnrollmentController;
 use App\Http\Controllers\Api\V1\TeacherAssignmentController;
 use App\Http\Controllers\Api\V1\HomeworkController;
+use App\Http\Controllers\Api\V1\ActivityLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -182,6 +183,8 @@ Route::prefix('v1')->group(function () {
 
         // ─── Homework ─────────────────────────────────────────────────────────
         Route::get('/homework-assignments', [HomeworkController::class, 'index']);
+        Route::get('/activity-log', [ActivityLogController::class, 'index']);
+        Route::get('/activity-log/{id}', [ActivityLogController::class, 'show']);
         Route::post('/homework-assignments', [HomeworkController::class, 'store']);
         Route::get('/homework-assignments/{id}', [HomeworkController::class, 'show']);
         Route::put('/homework-assignments/{id}', [HomeworkController::class, 'update']);
@@ -240,12 +243,75 @@ Route::prefix('v1')->group(function () {
         Route::get('/hr/events/{id}/registrations', [HRController::class, 'registrations']);
         Route::post('/hr/registrations', [HRController::class, 'storeRegistration']);
 
-        // ─── Property ─────────────────────────────────────────────────────────
-        Route::get('/properties', [PropertyController::class, 'index']);
-        Route::post('/properties', [PropertyController::class, 'store']);
-        Route::get('/properties/{id}', [PropertyController::class, 'show']);
-        Route::put('/properties/{id}', [PropertyController::class, 'update']);
-        Route::delete('/properties/{id}', [PropertyController::class, 'destroy']);
+        // ─── Transport Assignments ────────────────────────────────────────────
+        Route::get('/transport/assignments', [TransportAssignmentController::class, 'index']);
+        Route::post('/transport/assignments', [TransportAssignmentController::class, 'store']);
+        Route::get('/transport/assignments/{id}', [TransportAssignmentController::class, 'show']);
+        Route::put('/transport/assignments/{id}', [TransportAssignmentController::class, 'update']);
+        Route::delete('/transport/assignments/{id}', [TransportAssignmentController::class, 'destroy']);
+
+        // ─── Property Documents ────────────────────────────────────────────────
+        Route::get('/properties/{propertyId}/documents', [PropertyDocumentController::class, 'index']);
+        Route::post('/properties/{propertyId}/documents', [PropertyDocumentController::class, 'store']);
+        Route::get('/properties/{propertyId}/documents/{id}', [PropertyDocumentController::class, 'show']);
+        Route::delete('/properties/{propertyId}/documents/{id}', [PropertyDocumentController::class, 'destroy']);
+
+        // ─── Property Maintenance ──────────────────────────────────────────────
+        Route::get('/properties/{propertyId}/maintenance', [PropertyMaintenanceController::class, 'index']);
+        Route::post('/properties/{propertyId}/maintenance', [PropertyMaintenanceController::class, 'store']);
+        Route::get('/properties/{propertyId}/maintenance/{id}', [PropertyMaintenanceController::class, 'show']);
+        Route::put('/properties/{propertyId}/maintenance/{id}', [PropertyMaintenanceController::class, 'update']);
+        Route::delete('/properties/{propertyId}/maintenance/{id}', [PropertyMaintenanceController::class, 'destroy']);
+
+        // ─── Property Visitors ─────────────────────────────────────────────────
+        Route::get('/properties/{propertyId}/visitors', [PropertyVisitorController::class, 'index']);
+        Route::post('/properties/{propertyId}/visitors', [PropertyVisitorController::class, 'store']);
+        Route::get('/properties/{propertyId}/visitors/{id}', [PropertyVisitorController::class, 'show']);
+        Route::put('/properties/{propertyId}/visitors/{id}', [PropertyVisitorController::class, 'update']);
+        Route::delete('/properties/{propertyId}/visitors/{id}', [PropertyVisitorController::class, 'destroy']);
+
+        // ─── Settings ──────────────────────────────────────────────────────────
+        // Admin Users & Roles
+        Route::get('/settings/admin-users', [SettingsController::class, 'adminUsers']);
+        Route::post('/settings/admin-users', [SettingsController::class, 'storeAdminUser']);
+        Route::get('/settings/admin-users/{id}', [SettingsController::class, 'showAdminUser']);
+        Route::put('/settings/admin-users/{id}', [SettingsController::class, 'updateAdminUser']);
+        Route::delete('/settings/admin-users/{id}', [SettingsController::class, 'destroyAdminUser']);
+
+        // Academic Sessions
+        Route::get('/settings/sessions', [SettingsController::class, 'sessions']);
+        Route::post('/settings/sessions', [SettingsController::class, 'storeSession']);
+        Route::get('/settings/sessions/{id}', [SettingsController::class, 'showSession']);
+        Route::put('/settings/sessions/{id}', [SettingsController::class, 'updateSession']);
+        Route::delete('/settings/sessions/{id}', [SettingsController::class, 'destroySession']);
+
+        // Classes
+        Route::get('/settings/classes', [SettingsController::class, 'classes']);
+        Route::post('/settings/classes', [SettingsController::class, 'storeClass']);
+        Route::get('/settings/classes/{id}', [SettingsController::class, 'showClass']);
+        Route::put('/settings/classes/{id}', [SettingsController::class, 'updateClass']);
+        Route::delete('/settings/classes/{id}', [SettingsController::class, 'destroyClass']);
+
+        // Sections
+        Route::get('/settings/sections', [SettingsController::class, 'sections']);
+        Route::post('/settings/sections', [SettingsController::class, 'storeSection']);
+        Route::get('/settings/sections/{id}', [SettingsController::class, 'showSection']);
+        Route::put('/settings/sections/{id}', [SettingsController::class, 'updateSection']);
+        Route::delete('/settings/sections/{id}', [SettingsController::class, 'destroySection']);
+
+        // Subjects
+        Route::get('/settings/subjects', [SettingsController::class, 'subjects']);
+        Route::post('/settings/subjects', [SettingsController::class, 'storeSubject']);
+        Route::get('/settings/subjects/{id}', [SettingsController::class, 'showSubject']);
+        Route::put('/settings/subjects/{id}', [SettingsController::class, 'updateSubject']);
+        Route::delete('/settings/subjects/{id}', [SettingsController::class, 'destroySubject']);
+
+        // Subject Assignment (Teacher-Subject-Class-Section)
+        Route::get('/settings/subject-assignment', [SettingsController::class, 'subjectAssignment']);
+        Route::post('/settings/subject-assignment', [SettingsController::class, 'storeSubjectAssignment']);
+        Route::get('/settings/subject-assignment/{id}', [SettingsController::class, 'showSubjectAssignment']);
+        Route::put('/settings/subject-assignment/{id}', [SettingsController::class, 'updateSubjectAssignment']);
+        Route::delete('/settings/subject-assignment/{id}', [SettingsController::class, 'destroySubjectAssignment']);
 
         // ─── Exam Results ──────────────────────────────────────────────────────
         Route::get('/exam-results', [ExamResultController::class, 'index']);
