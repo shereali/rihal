@@ -136,7 +136,8 @@ const mainNavItems = computed(() => {
       { path: '/finance/stocks', label: 'রিসেপ্ট স্টক', icon: 'document', tooltip: 'অর্থ রশিদ, স্টক ও বিতরণ' },
 
       // প্রশাসনিক
-      { path: '/hr', label: 'স্টাফ ও কর্মী', icon: 'users', tooltip: 'কর্মকর্তা, বেতন, দায়িত্ব, আয়োজন, ছুটি, ভিজিটর ও নিয়োগ' },
+      { path: '/administration', label: 'প্রশাসনিক ড্যাশবোর্ড', icon: 'dashboard', tooltip: 'কর্মকর্তা, আয়োজন, ছুটি ও নিয়োগ এক নজরে' },
+      { path: '/hr', label: 'স্টাফ ও কর্মী', icon: 'users', tooltip: 'কর্মকর্তা, বেতন, দায়ি�্ব, আয়োজন, ছুটি, ভিজিটর ও নিয়োগ' },
       { path: '/hr/events', label: 'আয়োজন', icon: 'calendar', tooltip: 'আয়োজন তৈরি, নাম নিবন্ধন ও নিবন্ধন ব্যবস্থাপনা' },
       { path: '/hr/holidays', label: 'ছুটির দিন', icon: 'calendar', tooltip: 'ছুটি, ছুটির প্রকার ও বার্ষিক ছুটি হিসাব' },
       { path: '/hr/recruitments', label: 'নিয়োগ', icon: 'users', tooltip: 'নিয়োগ বিজ্ঞপ্তি, আবেদন ও নিয়োগ প্রক্রিয়া' },
