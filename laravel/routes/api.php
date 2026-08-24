@@ -41,8 +41,8 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
-    // Protected routes (require token)
-    Route::middleware('auth:sanctum')->group(function () {
+    // Protected routes (require Bearer token)
+    Route::middleware('auth.token')->group(function () {
         // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/user', [AuthController::class, 'user']);
@@ -356,10 +356,10 @@ Route::prefix('v1')->group(function () {
 
         // ─── Digital Attendance ──────────────────────────────────────────────
         Route::get('/digital-attendance/devices', [DigitalAttendanceController::class, 'devices']);
-        Route::post('/digital-attendance/devices', [DigitalAttendanceController::class, 'storeDevice']);
-        Route::get('/digital-attendance/devices/{id}', [DigitalAttendanceController::class, 'showDevice']);
-        Route::put('/digital-attendance/devices/{id}', [DigitalAttendanceController::class, 'updateDevice']);
-        Route::delete('/digital-attendance/devices/{id}', [DigitalAttendanceController::class, 'destroyDevice']);
+        Route::post('/digital-attendance/devices', [DigitalAttendanceController::class, 'store']);
+        Route::get('/digital-attendance/devices/{id}', [DigitalAttendanceController::class, 'show']);
+        Route::put('/digital-attendance/devices/{id}', [DigitalAttendanceController::class, 'update']);
+        Route::delete('/digital-attendance/devices/{id}', [DigitalAttendanceController::class, 'destroy']);
         Route::get('/digital-attendance/sync-status', [DigitalAttendanceController::class, 'syncStatus']);
         Route::get('/digital-attendance/sync-report', [DigitalAttendanceController::class, 'syncReport']);
 
@@ -375,9 +375,15 @@ Route::prefix('v1')->group(function () {
         Route::post('/certificate-templates', [CertificateController::class, 'store']);
         Route::put('/certificate-templates/{id}', [CertificateController::class, 'update']);
         Route::delete('/certificate-templates/{id}', [CertificateController::class, 'destroy']);
-        Route::get('/certificates', [CertificateController::class, 'index']);
-        Route::post('/certificates', [CertificateController::class, 'store']);
-        Route::get('/certificates/{id}', [CertificateController::class, 'show']);
+        Route::get('/certificates', [CertificateController::class, 'issueList']);
+        Route::post('/certificates', [CertificateController::class, 'issueCertificate']);
+        Route::get('/certificates/{id}', [CertificateController::class, 'issueDetails']);
+        Route::delete('/certificates/{id}', [CertificateController::class, 'destroyIssue']);
+        Route::get('/certificates/marks', [CertificateController::class, 'markList']);
+        Route::post('/certificates/marks', [CertificateController::class, 'storeMark']);
+        Route::delete('/certificates/marks/{id}', [CertificateController::class, 'destroyMark']);
+        Route::get('/certificates/syllabus', [CertificateController::class, 'syllabusList']);
+        Route::get('/certificates/books', [CertificateController::class, 'bookList']);
         Route::get('/reminder-tasks', [ReminderTaskController::class, 'index']);
         Route::post('/reminder-tasks', [ReminderTaskController::class, 'store']);
         Route::get('/reminder-tasks/{id}', [ReminderTaskController::class, 'show']);

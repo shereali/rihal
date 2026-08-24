@@ -11,14 +11,28 @@ class Promotion extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
-    protected $casts = [
-        'is_approved' => 'boolean',
-        'promoted_at' => 'datetime',
+    protected $fillable = [
+        'student_id', 'from_class_id', 'to_class_id',
+        'academic_year', 'promotion_date', 'status',
+        'comments', 'promoted_by', 'tenant_id',
     ];
 
-    public function student(): BelongsTo { return $this->belongsTo(Student::class); }
-    public function fromClass(): BelongsTo { return $this->belongsTo(AcademicClass::class, 'from_class_id'); }
-    public function toClass(): BelongsTo { return $this->belongsTo(AcademicClass::class, 'to_class_id'); }
-    public function session(): BelongsTo { return $this->belongsTo(AcademicSession::class); }
+    protected $casts = [
+        'promotion_date' => 'date',
+    ];
+
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    public function fromClass(): BelongsTo
+    {
+        return $this->belongsTo(AcademicClass::class, 'from_class_id');
+    }
+
+    public function toClass(): BelongsTo
+    {
+        return $this->belongsTo(AcademicClass::class, 'to_class_id');
+    }
 }

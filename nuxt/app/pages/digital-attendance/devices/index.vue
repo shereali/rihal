@@ -1,150 +1,424 @@
 <template>
-  <div class="module-page">
+  <div class="page-wrapper">
     <div class="page-header-row">
       <div>
-        <h1>ডিজিটাল হাজিরা ডিভাইস</h1>
-        <p class="page-subtitle">বায়োমেট্রিক ও আইডি কার্ড ডিভাইস ব্যবস্থাপনা — লিস্ট, যোগ, সম্পাদনা, সক্রিয়/নিষ্ক্রিয়</p>
+        <span class="eyebrow">ডিজিটাল হাজিরা</span>
+        <h1>হাজিরা ডিভাইস</h1>
+        <p>বায়োমেট্রিক ও আইডি কার্ড ডিভাইস পরিচালনা করুন</p>
       </div>
-      <div class="header-actions">
-        <NavLink to="/digital-attendance/devices/create"><Icon name="plus" /> ডিভাইস যোগ করুন</NavLink>
+      <div class="page-actions">
+        <button class="btn btn-primary" @click="showCreate = true">
+          <Icon name="plus" /> নতুন ডিভাইস
+        </button>
       </div>
     </div>
-    <div class="module-stats card-grid" v-if="stats">
-      <div class="stat-card"><div class="stat-icon"><Icon name="devices" /></div><div><span class="stat-value">{{ stats?.total || 0 }}</span><span class="stat-label">মোট ডিভাইস</span></div></div>
-      <div class="stat-card"><div class="stat-icon stat-icon-success"><Icon name="check" /></div><div><span class="stat-value">{{ stats?.active_count || 0 }}</span><span class="stat-label">সক্রিয়</span></div></div>
-      <div class="stat-card"><div class="stat-icon stat-icon-danger"><Icon name="close" /></div><div><span class="stat-value">{{ stats?.inactive_count || 0 }}</span><span class="stat-label">নিষ্ক্রিয়</span></div></div>
-    </div>
-    <div class="module-empty-state" v-if="!devices?.length">
-      <Icon name="devices" class="empty-icon" />
-      <h3>কোনো ডিভাইস নেই</h3>
-      <p>হাজিরা ডিভাইস যোগ করতে নিচের বাটনে ক্লিক করুন।</p>
-      <NavLink to="/digital-attendance/devices/create"><Icon name="plus" /> ডিভাইস যোগ করুন</NavLink>
-    </div>
-    <div v-else class="module-table-wrap card">
-      <div class="module-table-toolbar">
-        <div class="search-box"><Icon name="search" /><input v-model="filters.search" placeholder="ডিভাইস খুঁজুন..." /></div>
-        <select v-model="filters.type" class="form-control">
-          <option value="">সব ধরন</option>
-          <option value="bio">বায়োমেট্রিক</option>
-          <option value="gateway">গেটওয়ে</option>
-          <option value="software">সফটওয়্যার</option>
-        </select>
-        <select v-model="filters.is_active" class="form-control">
-          <option value="">সব অবস্থা</option>
-          <option :value="true">সক্রিয়</option>
-          <option :value="false">নিষ্ক্রিয়</option>
-        </select>
-      </div>
-      <table class="data-table">
-        <thead><tr>
-          <th>নাম</th><th>ধরন</th><th>আইপি</th><th>পোর্ট</th><th>অবস্থা</th><th>সর্বশেষ সিঙ্ক</th>
-          <th></th>
-        </tr></thead>
-        <tbody>
-          <tr v-for="d in devices" :key="d.id">
-            <td>{{ d.device_name }}</td>
-            <td><Badge :type="d.device_type === 'bio' ? 'primary' : d.device_type === 'gateway' ? 'warning' : 'info'">{{ d.device_type }}</Badge></td>
-            <td class="mono">{{ d.ip_address || '—' }}</td>
-            <td>{{ d.port ? d.port : '—' }}</td>
-            <td><StatusBadge :active="d.is_active" /></td>
-            <td class="dimmed">{{ d.last_synced_at || 'কখনো না' }}</td>
-            <td>
-              <div class="row-actions">
-                <NavLink :to="`/digital-attendance/devices/${d.id}/edit`" class="btn-ghost btn-sm">
-                  <Icon name="edit" />
-                </NavLink>
-                <button class="btn-ghost btn-sm text-danger" @click="destroy(d)" :disabled="destroying === d.id">
-                  <Icon name="delete" />
+
+    <div class="card">
+      <div class="card-inner">
+        <div slot="header" class="card-header-inner">
+          <div class="search-bar">
+            <Icon name="search" />
+            <input
+              v-model="search"
+              type="text"
+              placeholder="ডিভাইস খুঁজুন..."
+              @input="debounceSearch"
+              class="search-input"
+            />
+          </div>
+          <div class="filter-row">
+            <select v-model="statusFilter" class="form-select sm">
+              <option value="">সব অবস্থা</option>
+              <option value="active">সক্রিয়</option>
+              <option value="inactive">নিষ্ক্রিয়</option>
+              <option value="syncing">সিঙ্ক করছে</option>
+              <option value="error">ত্রুটি</option>
+            </select>
+          </div>
+        </div>
+
+        <div v-if="loading" class="loading-state">
+          <div class="spinner"></div>
+          <p>ডিভাইস লোড হচ্ছে...</p>
+        </div>
+
+        <table v-else-if="devices.data?.length" class="data-table">
+          <thead>
+            <tr>
+              <th>নাম</th>
+              <th>সিরিয়াল নম্বর</th>
+              <th>ধরন</th>
+              <th>আইপি ঠিকানা</th>
+              <th>অবস্থা</th>
+              <th>সর্বশেষ সিঙ্ক</th>
+              <th>কর্ম</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="d in devices.data" :key="d.id">
+              <td><strong>{{ d.name }}</strong></td>
+              <td><code class="mono">{{ d.serial_number }}</code></td>
+              <td>
+                <span :class="`badge badge-${deviceTypeClass(d.device_type)}`">
+                  {{ formatDeviceType(d.device_type) }}
+                </span>
+              </td>
+              <td>
+                <span v-if="d.ip_address" class="mono text-muted">{{ d.ip_address }}</span>
+                <span v-else class="text-muted">—</span>
+              </td>
+              <td>
+                <span :class="`status-dot status-${d.status}`" :title="formatStatus(d.status)"></span>
+                <span class="ml-1">{{ formatStatus(d.status) }}</span>
+              </td>
+              <td>
+                <span v-if="d.last_synced_at">{{ formatDate(d.last_synced_at) }}</span>
+                <span v-else class="text-muted">কখনো নয়</span>
+              </td>
+              <td class="actions-cell">
+                <button class="btn btn-icon btn-sm" @click="editDevice(d)" title="সম্পাদনা">
+                  <Icon name="pencil" />
                 </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-if="meta" class="table-footer">
-        <span v-if="meta.current_page > 1"><button class="btn btn-sm btn-outline" @click="goPage(meta.current_page - 1)">পূর্বে</button></span>
-        <span>পৃষ্ঠা {{ meta.current_page }} / {{ meta.last_page }}</span>
-        <span v-if="meta.current_page < meta.last_page"><button class="btn btn-sm btn-outline" @click="goPage(meta.current_page + 1)">পরে</button></span>
+                <button class="btn btn-icon btn-sm text-danger" @click="deleteDevice(d)" title="মুছে ফেলুন">
+                  <Icon name="trash" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div v-else class="empty-state">
+          <Icon name="table" large />
+          <h3>কোনো ডিভাইস নেই</h3>
+          <p>এখনও কোনো হাজিরা ডিভাইস যোগ করা হয়নি।</p>
+          <button class="btn btn-primary" @click="showCreate = true">প্রথম ডিভাইস যোগ করুন</button>
+        </div>
+
+        <div slot="footer" class="card-footer-inner">
+          <div class="pagination-info">
+            {{ devices.from }}–{{ devices.to }} / {{ devices.total }} ডিভাইস
+          </div>
+          <div class="pagination" v-if="devices.last_page > 1">
+            <button
+              class="btn btn-outline btn-sm"
+              :disabled="!devices.prev_page_url"
+              @click="goPage(devices.current_page - 1)"
+            >
+              <Icon name="chevron-left" />
+            </button>
+            <span class="page-info">পৃষ্ঠা {{ devices.current_page }} / {{ devices.last_page }}</span>
+            <button
+              class="btn btn-outline btn-sm"
+              :disabled="!devices.next_page_url"
+              @click="goPage(devices.current_page + 1)"
+            >
+              <Icon name="chevron-right" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-    <ApiAlert :message="alert" v-if="alert" />
-    <ConfirmationModal v-if="confirmDelete" :title="confirmDelete.title" :message="confirmDelete.message" @confirm="doDestroy" @cancel="confirmDelete = null" />
+
+    <!-- Create/Edit Modal -->
+    <div v-if="showCreate" class="modal-overlay" @click.self="showCreate = false">
+      <div class="modal" :class="{ 'modal-lg': editingDevice }">
+        <div class="modal-header">
+          <h3>{{ editingDevice ? 'ডিভাইস সম্পাদনা' : 'নতুন ডিভাইস' }}</h3>
+          <button class="btn btn-icon" @click="showCreate = false">
+            <Icon name="close" />
+          </button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="saveDevice">
+            <div class="form-group">
+              <label class="form-label">ডিভাইসের নাম <span class="required">*</span></label>
+              <input v-model="form.name" type="text" class="form-control" placeholder="যেমন: কক্ষ ৫ বায়োমেট্রিক স্ক্যানার" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">সিরিয়াল নম্বর <span class="required">*</span></label>
+              <input v-model="form.serial_number" type="text" class="form-control" placeholder="ডিভাইসের সিরিয়াল নম্বর" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">ধরন <span class="required">*</span></label>
+                <select v-model="form.device_type" class="form-select">
+                  <option value="biometric">বায়োমেট্রিক</option>
+                  <option value="rfid"> RFID</option>
+                  <option value="scanner"> স্ক্যানার</option>
+                  <option value="manual"> ম্যানুয়াল</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">অবস্থা <span class="required">*</span></label>
+                <select v-model="form.status" class="form-select">
+                  <option value="active">সক্রিয়</option>
+                  <option value="inactive">নিষ্ক্রিয়</option>
+                  <option value="syncing">সিঙ্ক করছে</option>
+                  <option value="error">ত্রুটি</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">আইপি ঠিকানা</label>
+                <input v-model="form.ip_address" type="text" class="form-control" placeholder="192.168.1.100" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">পোর্ট</label>
+                <input v-model="form.port" type="number" class="form-control" placeholder="8080" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">অবস্থান</label>
+              <input v-model="form.location" type="text" class="form-control" placeholder="যেমন: প্রধান কক্ষ, তৃতীয় তলা" />
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" @click="showCreate = false">বাতিল</button>
+          <button class="btn btn-primary" @click="saveDevice" :disabled="saving">
+            <Icon name="spinner" v-if="saving" />
+            {{ editingDevice ? 'আপডেট করুন' : 'সংরক্ষণ করুন' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirm -->
+    <div v-if="showDelete" class="modal-overlay" @click.self="showDelete = false">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>আপনি কি নিশ্চিত?</h3>
+          <button class="btn btn-icon" @click="showDelete = false">
+            <Icon name="close" />
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>
+            "{{ deleteTarget?.name }}" নামে ডিভাইসটি মুছে ফেলতে চান। এই কাজটি পূর্বাবস্থায় ফেরানো যাবে না।
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" @click="showDelete = false">বাতিল</button>
+          <button class="btn btn-danger" @click="confirmDelete" :disabled="deleting">
+            <Icon name="spinner" v-if="deleting" />
+            মুছে ফেলুন
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
-import { useApiClient } from '~/utils/api'
-import { useAuth } from '~/composables/useAuth'
-import { useRouter, useRoute } from 'vue-router'
+<script>
+import Icon from '~/components/ui/Icon.vue'
 
-const api = useApiClient()
-const { isAuthenticated, isLoading: authLoading } = useAuth()
-const router = useRouter()
-const route = useRoute()
+export default {
+  components: { Icon },
+  data() {
+    return {
+      loading: true,
+      devices: { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null },
+      search: '',
+      statusFilter: '',
+      showCreate: false,
+      editingDevice: null,
+      form: {
+        name: '',
+        serial_number: '',
+        device_type: 'biometric',
+        ip_address: '',
+        port: null,
+        status: 'active',
+        location: '',
+      },
+      showDelete: false,
+      deleteTarget: null,
+      saving: false,
+      deleting: false,
+      searchTimeout: null,
+      per_page: 15,
+    }
+  },
 
-const devices = ref<any[]>([])
-const meta = ref<any>(null)
-const stats = ref<any>({})
-const loading = ref(false)
-const alert = ref('')
-const filters = reactive({
-  search: '',
-  type: '',
-  is_active: '',
-  page: 1,
-  per_page: 15,
-})
-const destroying = ref<number | null>(null)
-const confirmDelete = ref<{ id: number; title: string; message: string } | null>(null)
+  computed: {
+    apiUrl() {
+      return `${process.env.apiBase}/digital-attendance/devices`
+    },
+  },
 
-function goPage(page: number) { filters.page = page; load() }
+  async mounted() {
+    await this.fetchDevices()
+  },
 
-async function load() {
-  loading.value = true; alert.value = ''
-  try {
-    const params = new URLSearchParams({
-      page: String(filters.page),
-      per_page: String(filters.per_page),
-      ...(filters.search && { search: filters.search }),
-      ...(filters.type && { type: filters.type }),
-      ...(filters.is_active !== '' && { is_active: String(filters.is_active) }),
-    })
-    const res = await api.get(`/digital-attendance/devices?${params}`)
-    devices.value = res.data?.data || []
-    meta.value = res.data?.meta || null
-    try {
-      const overview = await api.get('/digital-attendance/stats')
-      stats.value = overview.data || {}
-    } catch {}
-  } catch (e: any) {
-    alert.value = e.response?.data?.message || 'ডিভাইস লোড করতে ত্রুটি হয়েছে।'
-  } finally { loading.value = false }
+  methods: {
+    async fetchDevices(page = 1) {
+      this.loading = true
+      try {
+        const params = new URLSearchParams({
+          page: page,
+          per_page: this.per_page,
+          ...(this.search ? { search: this.search } : {}),
+          ...(this.statusFilter ? { status: this.statusFilter } : {}),
+        })
+        const res = await fetch(`${this.apiUrl}?${params}`)
+        const json = await res.json()
+        this.devices = json.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
+      } catch (err) {
+        console.error('Failed to fetch devices:', err)
+      } finally {
+        this.loading = false
+      }
+    },
+
+    debounceSearch() {
+      clearTimeout(this.searchTimeout)
+      this.searchTimeout = setTimeout(() => this.fetchDevices(1), 300)
+    },
+
+    goPage(page) {
+      if (page < 1 || page > this.devices.last_page) return
+      this.fetchDevices(page)
+    },
+
+    editDevice(device) {
+      this.editingDevice = device
+      this.form = {
+        name: device.name || '',
+        serial_number: device.serial_number || '',
+        device_type: device.device_type || 'biometric',
+        ip_address: device.ip_address || '',
+        port: device.port || null,
+        status: device.status || 'active',
+        location: device.location || '',
+      }
+      this.showCreate = true
+    },
+
+    async saveDevice() {
+      this.saving = true
+      try {
+        const url = this.editingDevice
+          ? `${this.apiUrl}/${this.editingDevice.id}`
+          : this.apiUrl
+        const method = this.editingDevice ? 'put' : 'post'
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.form),
+        })
+        const json = await res.json()
+        if (json.status && json.status < 500) {
+          this.showCreate = false
+          this.editingDevice = null
+          this.resetForm()
+          this.fetchDevices(this.devices.current_page)
+        } else {
+          alert(json.message || 'সংরক্ষণে সমস্যা হয়েছে')
+        }
+      } catch (err) {
+        console.error('Save failed:', err)
+      } finally {
+        this.saving = false
+      }
+    },
+
+    resetForm() {
+      this.form = {
+        name: '',
+        serial_number: '',
+        device_type: 'biometric',
+        ip_address: '',
+        port: null,
+        status: 'active',
+        location: '',
+      }
+    },
+
+    confirmDelete() {
+      if (!this.deleteTarget) return
+      this.deleting = true
+      fetch(`${this.apiUrl}/${this.deleteTarget.id}`, { method: 'delete' })
+        .then(async r => {
+          const json = await r.json()
+          if (json.status && json.status < 500) {
+            this.showDelete = false
+            this.deleteTarget = null
+            this.fetchDevices(this.devices.current_page)
+          } else {
+            alert(json.message || 'মুছে ফেলতে সমস্যা হয়েছে')
+          }
+        })
+        .catch(err => console.error('Delete failed:', err))
+        .finally(() => { this.deleting = false })
+    },
+
+    deleteDevice(device) {
+      this.deleteTarget = device
+      this.showDelete = true
+    },
+
+    deviceTypeClass(type) {
+      const map = { biometric: 'green', rfid: 'blue', scanner: 'purple', manual: 'gray' }
+      return map[type] || 'gray'
+    },
+
+    formatDeviceType(type) {
+      const map = { biometric: 'বায়োমেট্রিক', rfid: 'RFID', scanner: 'স্ক্যানার', manual: 'ম্যানুয়াল' }
+      return map[type] || type
+    },
+
+    formatStatus(status) {
+      const map = { active: 'সক্রিয়', inactive: 'নিষ্ক্রিয়', syncing: 'সিঙ্ক করছে', error: 'ত্রুটি' }
+      return map[status] || status
+    },
+
+    formatDate(date) {
+      if (!date) return ''
+      try {
+        const d = new Date(date)
+        return d.toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' })
+      } catch { return date }
+    },
+  },
 }
+</script>
 
-async function destroy(id: number) {
-  destroying.value = id
-  confirmDelete.value = {
-    id,
-    title: 'ডিভাইস মুছে ফেলবেন?',
-    message: 'এই ডিভাইসটি মুছে ফেলা হলে পুনরুদ্ধার করা যাবে না। আপনি কি ঠিক আছেন?',
+<style scoped lang="scss">
+.modal-lg {
+  max-width: 640px;
+}
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  &.status-active::before { background: #2e7d32; }
+  &.status-inactive::before { background: #9e9e9e; }
+  &.status-syncing::before { background: #1565c0; animation: pulse 1.5s infinite; }
+  &.status-error::before { background: #c62828; }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
   }
 }
-
-async function doDestroy() {
-  if (!confirmDelete.value) return
-  try {
-    await api.delete(`/digital-attendance/devices/${confirmDelete.value.id}`)
-    alert.value = 'ডিভাইস মুছে ফেলা হয়েছে।'
-    confirmDelete.value = null
-    load()
-  } catch (e: any) {
-    alert.value = e.response?.data?.message || 'মুছতে ত্রুটি হয়েছে।'
-  } finally { destroying.value = null }
+.mono {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
 }
-
-onMounted(() => {
-  if (!isAuthenticated.value && !authLoading.value) router.push('/login')
-  load()
-})
-</script>
+.text-muted {
+  color: #6c757d;
+}
+.actions-cell {
+  white-space: nowrap;
+}
+</style>

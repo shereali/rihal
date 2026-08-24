@@ -11,9 +11,30 @@ class CertificateMark extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
-    public $timestamps = false;
+    protected $fillable = [
+        'template_id', 'student_id', 'class_id',
+        'subject_id', 'mark_obtained', 'mark_total',
+        'passing_mark', 'grade', 'remark',
+        'tenant_id',
+    ];
 
-    public function certificate(): BelongsTo { return $this->belongsTo(IssuedCertificate::class); }
-    public function subject(): BelongsTo { return $this->belongsTo(AcademicSubject::class); }
+    public function templateRelation(): BelongsTo
+    {
+        return $this->belongsTo(CertificateTemplate::class, 'template_id');
+    }
+
+    public function studentRelation(): BelongsTo
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    public function classRelation(): BelongsTo
+    {
+        return $this->belongsTo(AcademicClass::class, 'class_id');
+    }
+
+    public function subjectRelation(): BelongsTo
+    {
+        return $this->belongsTo(AcademicSubject::class, 'subject_id');
+    }
 }

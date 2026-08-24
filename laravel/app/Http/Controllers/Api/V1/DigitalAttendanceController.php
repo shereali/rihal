@@ -2,105 +2,148 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Models\DigitalAttendanceDevice;
+use App\Models\AttendanceDevice;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ApiResource;
-use App\Http\Resources\ApiCollection;
 
 class DigitalAttendanceController extends Controller
 {
-    public function index(Request $request)
+    public function devices(Request $request)
     {
-        $tenant = $request->get('tenant');
-        $query = DigitalAttendanceDevice::where('tenant_id', $tenant?->id)
-            ->orderBy('updated_at', 'desc');
+        try {
+            $devices = AttendanceDevice::when($request->search, function ($q, $search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('serial_number', 'like', "%{$search}%");
+            })
+            ->when($request->status, fn($q, $status) => $q->where('status', $status))
+            ->orderBy('name')
+            ->paginate($request->per_page ?? 15);
 
-        $per_page = min((int) $request->input('per_page', 15), 100);
-        $items = $query->paginate($per_page);
-
-        return ApiCollection::make($items, fn($d) => [
-            'id' => $d->id,
-            'device_name' => $d->device_name,
-            'device_type' => $d->device_type,
-            'ip_address' => $d->ip_address,
-            'port' => $d->port,
-            'is_active' => (bool) ($d->is_active ?? true),
-            'installed_at' => $d->installed_at?->format('d M, Y'),
-            'last_synced_at' => ($d->last_synced_at) ? $d->last_synced_at->format('d M, Y h:i A') : null,
-            'created_at' => $d->created_at?->format('d M, Y'),
-        ]);
-    }
-
-    public function show(Request $request, $id)
-    {
-        $tenant = $request->get('tenant');
-        $device = DigitalAttendanceDevice::where('tenant_id', $tenant?->id)->findOrFail($id);
-        return ApiResource::make($device, fn($d) => [
-            'id' => $d->id,
-            'device_name' => $d->device_name,
-            'device_type' => $d->device_type,
-            'ip_address' => $d->ip_address,
-            'port' => $d->port,
-            'is_active' => (bool) ($d->is_active ?? true),
-            'installed_at' => $d->installed_at?->format('d M, Y'),
-            'last_synced_at' => ($d->last_synced_at) ? $d->last_synced_at->format('d M, Y h:i A') : null,
-            'created_at' => $d->created_at?->format('d M, Y'),
-            'updated_at' => $d->updated_at?->format('d M, Y h:i A'),
-        ]);
+            return response()->json([
+                'status'  => 200,
+                'message' => 'ডিভাইস তালিকা পাওয়া গেছে',
+                'data'    => $devices,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 500,
+                'message' => 'ডিভাইস তালিকা লোড করতে সমস্যা হয়েছে: ' . $e->getMessage(),
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'device_name' => 'required|string|max:255',
-            'device_type' => 'required|string|in:bio,gateway,software',
-            'ip_address' => 'nullable|ip',
-            'port' => 'nullable|integer|min:1|max:65535',
-            'is_active' => 'nullable|boolean',
-        ]);
-        $data['tenant_id'] = $request->get('tenant')?->id;
-        if (!isset($data['is_active'])) $data['is_active'] = true;
-        $device = DigitalAttendanceDevice::create($data);
-        return ApiResource::make($device, fn($d) => [
-            'id' => $d->id,
-            'device_name' => $d->device_name,
-            'device_type' => $d->device_type,
-            'ip_address' => $d->ip_address,
-            'port' => $d->port,
-            'is_active' => (bool) ($d->is_active ?? true),
-            'created_at' => $d->created_at?->format('d M, Y'),
-        ]);
+        try {
+            $validated = $request->validate([
+                'name'             => 'required|string|max:100',
+                'serial_number'    => 'required|string|max:50|unique:attendance_devices,serial_number,NULL,id,tenant_id,' . tenant('id'),
+                'device_type'      => 'required|in:biometric,rfid,scanner,manual',
+                'ip_address'       => 'nullable|ip',
+                'port'             => 'nullable|integer',
+                'api_key'          => 'nullable|string|max:255',
+                'status'           => 'required|in:active,inactive,syncing,error',
+                'location'         => 'nullable|string|max:200',
+            ]);
+
+            $device = AttendanceDevice::create(array_merge($validated, [
+                'tenant_id' => tenant('id'),
+            ]));
+
+            return response()->json([
+                'status'  => 201,
+                'message' => 'ডিভাইস সফলভাবে তৈরি করা হয়েছে',
+                'data'    => $device,
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status'  => 422,
+                'message' => 'বৈধতা ত্রুটি',
+                'errors'  => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 500,
+                'message' => 'ডিভাইস তৈরি করতে সমস্যা হয়েছে: ' . $e->getMessage(),
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            $device = AttendanceDevice::findOrFail($id);
+            return response()->json([
+                'status'  => 200,
+                'message' => 'ডিভাইসের তথ্য পাওয়া গেছে',
+                'data'    => $device,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 404,
+                'message' => 'ডিভাইস পাওয়া যায়নি',
+            ], 404);
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $tenant = $request->get('tenant');
-        $device = DigitalAttendanceDevice::where('tenant_id', $tenant?->id)->findOrFail($id);
-        $data = $request->validate([
-            'device_name' => 'nullable|string|max:255',
-            'device_type' => 'nullable|string|in:bio,gateway,software',
-            'ip_address' => 'nullable|ip',
-            'port' => 'nullable|integer|min:1|max:65535',
-            'is_active' => 'nullable|boolean',
-        ]);
-        $device->update($data);
-        return ApiResource::make($device->fresh(), fn($d) => [
-            'id' => $d->id,
-            'device_name' => $d->device_name,
-            'device_type' => $d->device_type,
-            'ip_address' => $d->ip_address,
-            'port' => $d->port,
-            'is_active' => (bool) ($d->is_active ?? true),
-            'updated_at' => $d->updated_at?->format('d M, Y h:i A'),
-        ]);
+        try {
+            $device = AttendanceDevice::findOrFail($id);
+
+            $validated = $request->validate([
+                'name'          => 'sometimes|string|max:100',
+                'serial_number' => 'sometimes|string|max:50',
+                'device_type'   => 'sometimes|in:biometric,rfid,scanner,manual',
+                'ip_address'    => 'nullable|ip',
+                'port'          => 'nullable|integer',
+                'api_key'       => 'nullable|string|max:255',
+                'status'        => 'sometimes|in:active,inactive,syncing,error',
+                'location'      => 'nullable|string|max:200',
+            ]);
+
+            $device->update($validated);
+
+            return response()->json([
+                'status'  => 200,
+                'message' => 'ডিভাইস সফলভাবে আপডেট করা হয়েছে',
+                'data'    => $device,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status'  => 422,
+                'message' => 'বৈধতা ত্রুটি',
+                'errors'  => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 500,
+                'message' => 'ডিভাইস আপডেট করতে সমস্যা হয়েছে: ' . $e->getMessage(),
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 
-    public function destroy(Request $request, $id)
+    public function destroy($id)
     {
-        $tenant = $request->get('tenant');
-        $device = DigitalAttendanceDevice::where('tenant_id', $tenant?->id)->findOrFail($id);
-        $device->delete();
-        return response()->json(['message' => 'ডিভাইস মুছে ফেলা হয়েছে।'], 200);
+        try {
+            $device = AttendanceDevice::findOrFail($id);
+            $device->delete();
+
+            return response()->json([
+                'status'  => 200,
+                'message' => 'ডিভাইস সফলভাবে মুছে ফেলা হয়েছে',
+                'data'    => null,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 500,
+                'message' => 'ডিভাইস মুছে ফেলতে সমস্যা হয়েছে: ' . $e->getMessage(),
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 }

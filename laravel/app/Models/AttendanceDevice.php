@@ -11,11 +11,17 @@ class AttendanceDevice extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $guarded = [];
-    protected $casts = [
-        'is_active' => 'boolean',
-        'port' => 'integer',
+    protected $fillable = [
+        'name', 'serial_number', 'device_type', 'ip_address',
+        'port', 'api_key', 'status', 'location', 'tenant_id',
     ];
 
-    public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
+    protected $casts = [
+        'last_synced_at' => 'datetime',
+    ];
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
 }
