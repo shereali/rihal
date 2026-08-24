@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\V1\TeacherAssignmentController;
 use App\Http\Controllers\Api\V1\HomeworkController;
 use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\LoanController;
+use App\Http\Controllers\Api\V1\OrphanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -400,5 +401,16 @@ Route::prefix('v1')->group(function () {
         Route::post('/loans/{id}/payments', [LoanController::class, 'recordPayment']);
         Route::get('/loans/{id}/payments', [LoanController::class, 'payments']);
         Route::get('/loans-summary', [LoanController::class, 'summary']);
+
+        // ─── Orphan Sponsorship ────────────────────────────────────────────────
+        Route::get('/orphans', [OrphanController::class, 'index']);
+        Route::post('/orphans', [OrphanController::class, 'store']);
+        Route::get('/orphans/{id}', [OrphanController::class, 'show']);
+        Route::put('/orphans/{id}', [OrphanController::class, 'update']);
+        Route::delete('/orphans/{id}', [OrphanController::class, 'destroy']);
+        Route::post('/orphans/{id}/payments', [OrphanController::class, 'recordPayment']);
+        Route::get('/orphans/{id}/payments', [OrphanController::class, 'payments']);
+        Route::get('/orphans-summary', [OrphanController::class, 'summary']);
+        Route::get('/orphans/sponsors', [OrphanController::class, 'donors']);
     });
 });
