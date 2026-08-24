@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\V1\EnrollmentController;
 use App\Http\Controllers\Api\V1\TeacherAssignmentController;
 use App\Http\Controllers\Api\V1\HomeworkController;
 use App\Http\Controllers\Api\V1\ActivityLogController;
+use App\Http\Controllers\Api\V1\LoanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -389,5 +390,15 @@ Route::prefix('v1')->group(function () {
         Route::get('/reminder-tasks/{id}', [ReminderTaskController::class, 'show']);
         Route::put('/reminder-tasks/{id}', [ReminderTaskController::class, 'update']);
         Route::delete('/reminder-tasks/{id}', [ReminderTaskController::class, 'destroy']);
+
+        // ─── Loans & Dues ──────────────────────────────────────────────────────
+        Route::get('/loans', [LoanController::class, 'index']);
+        Route::post('/loans', [LoanController::class, 'store']);
+        Route::get('/loans/{id}', [LoanController::class, 'show']);
+        Route::put('/loans/{id}', [LoanController::class, 'update']);
+        Route::delete('/loans/{id}', [LoanController::class, 'destroy']);
+        Route::post('/loans/{id}/payments', [LoanController::class, 'recordPayment']);
+        Route::get('/loans/{id}/payments', [LoanController::class, 'payments']);
+        Route::get('/loans-summary', [LoanController::class, 'summary']);
     });
 });

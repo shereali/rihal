@@ -134,6 +134,7 @@ const mainNavItems = computed(() => {
       { path: '/finance/donors', label: 'দাতা ও অনুদান', icon: 'donor', tooltip: 'দাতা তালিকা ও ডোনেশন হিসাব' },
       { path: '/finance/expenses', label: 'ব্যয়', icon: 'money', tooltip: 'ব্যয়, ভেন্ডর ও বার্ষিক হিসাব' },
       { path: '/finance/stocks', label: 'রিসেপ্ট স্টক', icon: 'document', tooltip: 'অর্থ রশিদ, স্টক ও বিতরণ' },
+      { path: '/loan-due', label: 'লোন ও ডিউ', icon: 'cash', tooltip: 'ঋণ, কিস্তি ও বাকিয়া ব্যবস্থাপনা' },
 
       // প্রশাসনিক
       { path: '/administration', label: 'প্রশাসনিক ড্যাশবোর্ড', icon: 'dashboard', tooltip: 'কর্মকর্তা, আয়োজন, ছুটি ও নিয়োগ এক নজরে' },
