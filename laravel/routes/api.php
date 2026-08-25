@@ -417,6 +417,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['tenant.context', 'role:admin,tenant_admin,super_admin'])->group(function () {
         // ─── Uploads & financial reports ──────────────────────────────────────
         Route::post('/uploads/photos', [FileUploadController::class, 'photo'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::delete('/uploads/photos', [FileUploadController::class, 'destroy'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
         Route::get('/reports/loans.csv', [FinancialReportController::class, 'loans'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/reports/orphans.csv', [FinancialReportController::class, 'orphans'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/financial-audit', [FinancialAuditController::class, 'index'])->middleware('role:admin,tenant_admin,super_admin');

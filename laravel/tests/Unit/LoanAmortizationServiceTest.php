@@ -26,6 +26,14 @@ class LoanAmortizationServiceTest extends TestCase
             0.02
         );
         $this->assertGreaterThan(0, $schedule['emi']);
+        $this->assertSame(
+            $schedule['total_payable'],
+            round(array_sum(array_column($schedule['installments'], 'installment_amount')), 2)
+        );
+        $this->assertSame(
+            $schedule['total_interest'],
+            round(array_sum(array_column($schedule['installments'], 'interest_amount')), 2)
+        );
     }
 
     public function test_zero_interest_schedule_evenly_splits_principal(): void

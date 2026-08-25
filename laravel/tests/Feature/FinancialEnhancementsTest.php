@@ -196,7 +196,11 @@ class FinancialEnhancementsTest extends TestCase
         ], $this->headers);
 
         $response->assertCreated()->assertJsonPath('success', true);
-        Storage::disk('public')->assertExists($response->json('data.path'));
+        $path = $response->json('data.path');
+        Storage::disk('public')->assertExists($path);
+
+        $this->deleteJson('/api/v1/uploads/photos', ['path' => $path], $this->headers)->assertOk();
+        Storage::disk('public')->assertMissing($path);
     }
 
     public function test_loan_creation_generates_persisted_emi_schedule(): void
@@ -237,6 +241,12 @@ class FinancialEnhancementsTest extends TestCase
                 'starts_at' => '2026-01-01',
             ], $this->headers)->assertCreated();
         }
+
+        $this->postJson("/api/v1/orphans/{$orphan->id}/sponsors", [
+            'donor_id' => $first->id,
+            'monthly_commitment' => 600,
+            'starts_at' => '2026-01-01',
+        ], $this->headers)->assertUnprocessable();
 
         $this->getJson("/api/v1/orphans/{$orphan->id}/sponsors", $this->headers)
             ->assertOk()->assertJsonCount(2, 'data');
@@ -291,6 +301,13 @@ class FinancialEnhancementsTest extends TestCase
 
         $this->expectException(\LogicException::class);
         $log->update(['action' => 'tampered']);
+    }
+
+    public function test_financial_audit_filters_reject_invalid_input(): void
+    {
+        $this->getJson('/api/v1/financial-audit?per_page=0', $this->headers)->assertUnprocessable();
+        $this->getJson('/api/v1/financial-audit?from=not-a-date', $this->headers)->assertUnprocessable();
+        $this->getJson('/api/v1/financial-audit?from=2026-01-02&to=2026-01-01', $this->headers)->assertUnprocessable();
     }
 
     public function test_payment_rolls_back_when_audit_write_fails(): void

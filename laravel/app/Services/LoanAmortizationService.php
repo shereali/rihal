@@ -41,40 +41,45 @@ class LoanAmortizationService
         }
 
         $rows = [];
-        $balance = $principal;
-        $runningInterest = 0.0;
+        $principalCents = (int) round($principal * 100);
+        $balanceCents = $principalCents;
+        $emiCents = (int) round($emi * 100);
+        $targetFlatInterestCents = (int) round($totalInterest * 100);
+        $runningInterestCents = 0;
 
         for ($number = 1; $number <= $installments; $number++) {
-            $interest = $type === 'flat'
-                ? $totalInterest / $installments
-                : $balance * $periodicRate;
-            $principalPart = min($balance, $emi - $interest);
-            if ($number === $installments) {
-                $principalPart = $balance;
-                $emiForRow = $principalPart + $interest;
+            if ($type === 'flat') {
+                $interestCents = $number === $installments
+                    ? $targetFlatInterestCents - $runningInterestCents
+                    : (int) round($targetFlatInterestCents / $installments);
             } else {
-                $emiForRow = $emi;
+                $interestCents = (int) round(($balanceCents / 100) * $periodicRate * 100);
             }
-            $opening = $balance;
-            $balance = max(0, $balance - $principalPart);
-            $runningInterest += $interest;
+
+            $principalPartCents = $number === $installments
+                ? $balanceCents
+                : min($balanceCents, max(0, $emiCents - $interestCents));
+            $installmentCents = $principalPartCents + $interestCents;
+            $openingCents = $balanceCents;
+            $balanceCents = max(0, $balanceCents - $principalPartCents);
+            $runningInterestCents += $interestCents;
             $date = $this->nextDate($date, $frequency);
 
             $rows[] = [
                 'installment_number' => $number,
                 'due_date' => $date->toDateString(),
-                'opening_balance' => round($opening, 2),
-                'principal_amount' => round($principalPart, 2),
-                'interest_amount' => round($interest, 2),
-                'installment_amount' => round($emiForRow, 2),
-                'closing_balance' => $number === $installments ? 0.0 : round($balance, 2),
+                'opening_balance' => (float) ($openingCents / 100),
+                'principal_amount' => (float) ($principalPartCents / 100),
+                'interest_amount' => (float) ($interestCents / 100),
+                'installment_amount' => (float) ($installmentCents / 100),
+                'closing_balance' => (float) ($balanceCents / 100),
             ];
         }
 
         return [
-            'emi' => round($emi, 2),
-            'total_interest' => round($runningInterest, 2),
-            'total_payable' => round($principal + $runningInterest, 2),
+            'emi' => (float) ($emiCents / 100),
+            'total_interest' => (float) ($runningInterestCents / 100),
+            'total_payable' => (float) (($principalCents + $runningInterestCents) / 100),
             'installments' => $rows,
         ];
     }

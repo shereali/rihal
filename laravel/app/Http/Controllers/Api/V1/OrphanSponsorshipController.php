@@ -7,6 +7,8 @@ use App\Models\Orphan;
 use App\Models\OrphanSponsorship;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 
 class OrphanSponsorshipController extends ApiController
 {
@@ -34,15 +36,30 @@ class OrphanSponsorshipController extends ApiController
             'দাতা এই প্রতিষ্ঠানের নয়'
         );
 
-        $sponsorship = $orphan->sponsorships()->create([
-            'tenant_id' => $request->user()->tenant_id,
-            ...$validated,
-            'status' => 'active',
-        ]);
-        $orphan->update([
-            'sponsorship_status' => 'sponsored',
-            'monthly_amount' => $orphan->sponsorships()->where('status', 'active')->sum('monthly_commitment'),
-        ]);
+        $duplicate = $orphan->sponsorships()
+            ->where('donor_id', $validated['donor_id'])
+            ->whereDate('starts_at', $validated['starts_at'])
+            ->exists();
+        if ($duplicate) {
+            return $this->errorResponse('এই দাতার একই শুরুর তারিখের স্পন্সরশিপ ইতোমধ্যে আছে', 422);
+        }
+
+        try {
+            $sponsorship = DB::transaction(function () use ($orphan, $request, $validated) {
+                $sponsorship = $orphan->sponsorships()->create([
+                    'tenant_id' => $request->user()->tenant_id,
+                    ...$validated,
+                    'status' => 'active',
+                ]);
+                $orphan->update([
+                    'sponsorship_status' => 'sponsored',
+                    'monthly_amount' => $orphan->sponsorships()->where('status', 'active')->sum('monthly_commitment'),
+                ]);
+                return $sponsorship;
+            });
+        } catch (UniqueConstraintViolationException) {
+            return $this->errorResponse('এই দাতার একই শুরুর তারিখের স্পন্সরশিপ ইতোমধ্যে আছে', 422);
+        }
 
         return $this->successResponse($sponsorship->load('donor'), 'স্পন্সর যুক্ত হয়েছে', 201);
     }
@@ -51,28 +68,33 @@ class OrphanSponsorshipController extends ApiController
     {
         $orphan = $this->orphan($request, $orphanId);
         $sponsorship = $orphan->sponsorships()->findOrFail($sponsorshipId);
-        $sponsorship->update($request->validate([
+        $validated = $request->validate([
             'monthly_commitment' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999.99'],
             'share_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'ends_at' => ['nullable', 'date'],
             'status' => ['sometimes', 'in:active,paused,ended'],
             'notes' => ['nullable', 'string'],
-        ]));
-        $orphan->update([
-            'monthly_amount' => $orphan->sponsorships()->where('status', 'active')->sum('monthly_commitment'),
-            'sponsorship_status' => $orphan->sponsorships()->where('status', 'active')->exists() ? 'sponsored' : 'pending',
         ]);
+        DB::transaction(function () use ($orphan, $sponsorship, $validated) {
+            $sponsorship->update($validated);
+            $orphan->update([
+                'monthly_amount' => $orphan->sponsorships()->where('status', 'active')->sum('monthly_commitment'),
+                'sponsorship_status' => $orphan->sponsorships()->where('status', 'active')->exists() ? 'sponsored' : 'pending',
+            ]);
+        });
         return $this->successResponse($sponsorship->fresh('donor'), 'স্পন্সরশিপ আপডেট হয়েছে');
     }
 
     public function destroy(Request $request, int $orphanId, int $sponsorshipId): JsonResponse
     {
         $orphan = $this->orphan($request, $orphanId);
-        $orphan->sponsorships()->findOrFail($sponsorshipId)->update(['status' => 'ended', 'ends_at' => today()]);
-        $orphan->update([
-            'monthly_amount' => $orphan->sponsorships()->where('status', 'active')->sum('monthly_commitment'),
-            'sponsorship_status' => $orphan->sponsorships()->where('status', 'active')->exists() ? 'sponsored' : 'pending',
-        ]);
+        DB::transaction(function () use ($orphan, $sponsorshipId) {
+            $orphan->sponsorships()->findOrFail($sponsorshipId)->update(['status' => 'ended', 'ends_at' => today()]);
+            $orphan->update([
+                'monthly_amount' => $orphan->sponsorships()->where('status', 'active')->sum('monthly_commitment'),
+                'sponsorship_status' => $orphan->sponsorships()->where('status', 'active')->exists() ? 'sponsored' : 'pending',
+            ]);
+        });
         return $this->successResponse(null, 'স্পন্সরশিপ সমাপ্ত হয়েছে');
     }
 

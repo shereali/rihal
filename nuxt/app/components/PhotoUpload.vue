@@ -11,7 +11,7 @@
     </label>
     <div v-if="uploading" class="progress">ছবি আপলোড হচ্ছে...</div>
     <div v-if="error" class="error">{{ error }}</div>
-    <button v-if="modelValue" type="button" class="remove" @click="$emit('update:modelValue', '')">ছবি সরান</button>
+    <button v-if="modelValue" type="button" class="remove" @click="removePhoto">ছবি সরান</button>
   </div>
 </template>
 
@@ -25,6 +25,7 @@ const api = useApiClient()
 const uploading = ref(false)
 const dragging = ref(false)
 const error = ref('')
+const uploadedPath = ref('')
 
 function onSelect(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
@@ -46,11 +47,29 @@ async function upload(file: File) {
     const body = new FormData()
     body.append('file', file)
     const response = await api.post('/uploads/photos', body, { headers: { 'Content-Type': 'multipart/form-data' } })
+    const previousPath = uploadedPath.value
+    uploadedPath.value = response.data?.data?.path || ''
     emit('update:modelValue', response.data?.data?.url || '')
+    if (previousPath) {
+      await api.delete('/uploads/photos', { data: { path: previousPath } }).catch(() => undefined)
+    }
   } catch (exception: any) {
     error.value = exception?.response?.data?.message || 'ছবি আপলোড করা যায়নি।'
   } finally {
     uploading.value = false
+  }
+}
+
+async function removePhoto() {
+  error.value = ''
+  const path = uploadedPath.value
+  emit('update:modelValue', '')
+  uploadedPath.value = ''
+  if (!path) return
+  try {
+    await api.delete('/uploads/photos', { data: { path } })
+  } catch (exception: any) {
+    error.value = exception?.response?.data?.message || 'আপলোড করা ছবি মুছে ফেলা যায়নি।'
   }
 }
 </script>
