@@ -2,24 +2,19 @@
 
 return [
 
-    'app' => [
-        'name' => env('APP_NAME', 'Rihal'),
-        'env' => env('APP_ENV', 'production'),
-        'debug' => (bool) env('APP_DEBUG', true),
-        'url' => env('APP_URL', 'http://localhost'),
-        'timezone' => 'Asia/Dhaka',
-        'locale' => 'bn',
-        'fallback_locale' => 'bn',
-        'faker_locale' => 'bn_BD',
-        'cipher' => 'AES-256-CBC',
-        'key' => env('APP_KEY'),
-        'previous_keys' => [env('APP_PREVIOUS_KEYS') ?: ''],
-        'maintenance' => [
-            'driver' => 'file',
-        ],
-        'providers' => [
-            \App\Providers\AppServiceProvider::class,
-        ],
+    'name' => env('APP_NAME', 'Rihal'),
+    'env' => env('APP_ENV', 'production'),
+    'debug' => (bool) env('APP_DEBUG', true),
+    'url' => env('APP_URL', 'http://localhost'),
+    'timezone' => 'Asia/Dhaka',
+    'locale' => 'bn',
+    'fallback_locale' => 'bn',
+    'faker_locale' => 'bn_BD',
+    'cipher' => 'AES-256-CBC',
+    'key' => env('APP_KEY'),
+    'previous_keys' => [env('APP_PREVIOUS_KEYS') ?: ''],
+    'maintenance' => [
+        'driver' => 'file',
     ],
 
     'providers' => [
