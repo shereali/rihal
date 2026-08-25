@@ -1,0 +1,14 @@
+[Unit]
+Description=Rihal Laravel queue worker
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/rihal/laravel
+ExecStart=/usr/bin/php /var/www/rihal/laravel/artisan queue:work --queue=notifications,default --tries=3 --max-time=3600 --sleep=3
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
