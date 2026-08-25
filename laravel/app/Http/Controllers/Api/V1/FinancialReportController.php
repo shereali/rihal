@@ -51,7 +51,7 @@ class FinancialReportController
 
     private function safeCell(mixed $value): mixed
     {
-        if (is_string($value) && preg_match('/^[=+\-@\t\r]/u', $value)) {
+        if (is_string($value) && preg_match('/^[\x00-\x20]*[=+\-@]/u', $value)) {
             return "'".$value;
         }
         return $value;

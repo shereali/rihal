@@ -21,7 +21,7 @@ class OrphanSponsorshipController extends ApiController
         $orphan = $this->orphan($request, $orphanId);
         $validated = $request->validate([
             'donor_id' => ['required', 'integer', 'exists:donors,id'],
-            'monthly_commitment' => ['required', 'numeric', 'min:0'],
+            'monthly_commitment' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999.99'],
             'share_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
@@ -52,7 +52,7 @@ class OrphanSponsorshipController extends ApiController
         $orphan = $this->orphan($request, $orphanId);
         $sponsorship = $orphan->sponsorships()->findOrFail($sponsorshipId);
         $sponsorship->update($request->validate([
-            'monthly_commitment' => ['sometimes', 'numeric', 'min:0'],
+            'monthly_commitment' => ['sometimes', 'numeric', 'decimal:0,2', 'min:0', 'max:9999999999.99'],
             'share_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'ends_at' => ['nullable', 'date'],
             'status' => ['sometimes', 'in:active,paused,ended'],

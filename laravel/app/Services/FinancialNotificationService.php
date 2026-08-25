@@ -9,6 +9,7 @@ use App\Models\Orphan;
 use App\Models\OrphanSponsorship;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class FinancialNotificationService
@@ -117,12 +118,23 @@ class FinancialNotificationService
 
         if ($delivery->status === 'sent') return;
 
-        $delivery->forceFill([
-            'status' => 'pending',
-            'attempts' => (int) $delivery->attempts + 1,
-            'last_attempted_at' => now(),
-            'provider_response' => null,
-        ])->save();
+        $claimed = NotificationDelivery::whereKey($delivery->id)
+            ->where(function ($query) {
+                $query->whereIn('status', ['pending', 'failed', 'skipped'])
+                    ->orWhere(function ($stale) {
+                        $stale->where('status', 'sending')
+                            ->where('last_attempted_at', '<', now()->subMinutes(15));
+                    });
+            })
+            ->update([
+                'status' => 'sending',
+                'attempts' => DB::raw('attempts + 1'),
+                'last_attempted_at' => now(),
+                'provider_response' => null,
+                'updated_at' => now(),
+            ]);
+        if ($claimed !== 1) return;
+        $delivery->refresh();
 
         try {
             if ($channel === 'email') {

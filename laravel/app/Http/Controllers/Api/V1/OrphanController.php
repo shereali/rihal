@@ -54,7 +54,7 @@ class OrphanController extends ApiController
             'section_id' => 'nullable|string|max:50',
             'photo_url' => 'nullable|url',
             'story' => 'nullable|string',
-            'monthly_amount' => 'nullable|numeric|min:0',
+            'monthly_amount' => 'nullable|numeric|decimal:0,2|min:0|max:9999999999.99',
             'sponsor_id' => 'nullable|exists:donors,id',
             'sponsorship_start_date' => 'nullable|date',
             'sponsorship_end_date' => 'nullable|date',
@@ -124,7 +124,7 @@ class OrphanController extends ApiController
             'section_id' => 'nullable|string|max:50',
             'photo_url' => 'nullable|url',
             'story' => 'nullable|string',
-            'monthly_amount' => 'nullable|numeric|min:0',
+            'monthly_amount' => 'nullable|numeric|decimal:0,2|min:0|max:9999999999.99',
             'sponsor_id' => 'nullable|exists:donors,id',
             'sponsorship_start_date' => 'nullable|date',
             'sponsorship_end_date' => 'nullable|date',
@@ -171,7 +171,7 @@ class OrphanController extends ApiController
     ): JsonResponse {
         $validator = Validator::make($request->all(), [
             'orphan_sponsorship_id' => 'nullable|integer|exists:orphan_sponsorships,id',
-            'amount' => 'required|numeric|min:1',
+            'amount' => 'required|numeric|decimal:0,2|min:1|max:9999999999.99',
             'purpose_bn' => 'nullable|string|max:255',
             'purpose_en' => 'nullable|string|max:255',
             'payment_date' => 'nullable|date',

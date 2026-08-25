@@ -41,7 +41,7 @@ class LoanController extends ApiController
             'loan_type' => 'nullable|string|max:100',
             'title_bn' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
-            'principal_amount' => 'required|numeric|min:1',
+            'principal_amount' => 'required|numeric|decimal:0,2|min:1|max:9999999999.99',
             'interest_rate' => 'nullable|numeric|min:0',
             'interest_type' => 'nullable|in:flat,reducing',
             'installment_count' => 'nullable|integer|min:1|max:600',
@@ -111,9 +111,12 @@ class LoanController extends ApiController
             'loan_type' => 'nullable|string|max:100',
             'title_bn' => 'nullable|string|max:255',
             'title_en' => 'nullable|string|max:255',
-            'principal_amount' => 'nullable|numeric|min:1',
-            'interest_rate' => 'nullable|numeric',
-            'start_date' => 'nullable|date',
+            'principal_amount' => 'prohibited',
+            'interest_rate' => 'prohibited',
+            'interest_type' => 'prohibited',
+            'installment_count' => 'prohibited',
+            'repayment_frequency' => 'prohibited',
+            'start_date' => 'prohibited',
             'due_date' => 'nullable|date',
             'status' => 'nullable|in:active,paid,overdue,closed',
             'approval_status' => 'nullable|in:pending,approved,rejected',
@@ -147,7 +150,7 @@ class LoanController extends ApiController
         FinancialNotificationService $notifications
     ): JsonResponse {
         $validator = Validator::make($request->all(), [
-            'amount' => 'required|numeric|min:1',
+            'amount' => 'required|numeric|decimal:0,2|min:1|max:9999999999.99',
             'payment_date' => 'nullable|date',
             'payment_method' => 'nullable|string|max:100',
             'reference' => 'nullable|string|max:255',

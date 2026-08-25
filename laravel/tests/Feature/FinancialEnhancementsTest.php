@@ -187,6 +187,9 @@ class FinancialEnhancementsTest extends TestCase
         $response->assertCreated();
         $loanId = $response->json('data.id');
         $this->assertDatabaseCount('loan_installments', 12);
+        $this->putJson("/api/v1/loans/{$loanId}", [
+            'principal_amount' => 999999,
+        ], $this->headers)->assertUnprocessable();
         $this->getJson("/api/v1/loans/{$loanId}/amortization", $this->headers)
             ->assertOk()->assertJsonCount(12, 'data.installments');
     }
@@ -224,6 +227,9 @@ class FinancialEnhancementsTest extends TestCase
             'total_due' => 10000,
         ]);
 
+        $this->postJson("/api/v1/loans/{$loan->id}/payments", [
+            'amount' => 1.001,
+        ], $this->headers)->assertUnprocessable();
         $this->postJson("/api/v1/loans/{$loan->id}/payments", [
             'amount' => 1000,
             'payment_date' => '2026-01-15',
@@ -284,10 +290,15 @@ class FinancialEnhancementsTest extends TestCase
             'tenant_id' => $this->tenant->id, 'title_bn' => '=HYPERLINK("https://evil.test")',
             'principal_amount' => 5000, 'remaining_amount' => 5000, 'total_due' => 5000,
         ]);
+        Loan::create([
+            'tenant_id' => $this->tenant->id, 'title_bn' => " \t=1+1",
+            'principal_amount' => 1000, 'remaining_amount' => 1000, 'total_due' => 1000,
+        ]);
         $content = $this->get('/api/v1/reports/loans.csv', $this->headers)
             ->assertOk()->streamedContent();
 
         $this->assertStringContainsString("'=HYPERLINK", $content);
+        $this->assertStringContainsString("' \t=1+1", $content);
         $this->assertStringNotContainsString(",=HYPERLINK", $content);
     }
 
