@@ -6,10 +6,14 @@ use App\Http\Controllers\Api\ApiController;
 use App\Models\Orphan;
 use App\Models\SponsorshipPayment;
 use App\Models\Donor;
+use App\Models\OrphanSponsorship;
+use App\Services\FinancialAuditService;
+use App\Services\FinancialNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class OrphanController extends ApiController
 {
@@ -25,7 +29,7 @@ class OrphanController extends ApiController
             ->when($request->input('is_active') !== null, function($q) use ($request) {
                 $q->where('is_active', filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN));
             })
-            ->with('sponsor:id,name_bn,name_en')
+            ->with(['sponsor:id,name_bn,name_en', 'sponsors:id,name_bn,name_en'])
             ->orderBy('created_at', 'desc');
 
         $orphans = $query->paginate($perPage);
@@ -66,18 +70,34 @@ class OrphanController extends ApiController
 
         $data = $validator->validated();
         $data['tenant_id'] = $request->user()->tenant_id;
-        $data['sponsorship_status'] = $data['sponsor_id'] ? 'sponsored' : 'pending';
+        if (!empty($data['sponsor_id']) && !Donor::where('tenant_id', $data['tenant_id'])->whereKey($data['sponsor_id'])->exists()) {
+            return $this->errorResponse('দাতা এই প্রতিষ্ঠানের নয়', 422);
+        }
+        $data['sponsorship_status'] = !empty($data['sponsor_id']) ? 'sponsored' : 'pending';
 
-        $orphan = Orphan::create($data);
+        $orphan = DB::transaction(function () use ($data) {
+            $orphan = Orphan::create($data);
+            if (!empty($data['sponsor_id'])) {
+                $orphan->sponsorships()->create([
+                    'tenant_id' => $orphan->tenant_id,
+                    'donor_id' => $data['sponsor_id'],
+                    'monthly_commitment' => $data['monthly_amount'] ?? 0,
+                    'starts_at' => $data['sponsorship_start_date'] ?? today(),
+                    'ends_at' => $data['sponsorship_end_date'] ?? null,
+                    'status' => 'active',
+                ]);
+            }
+            return $orphan;
+        });
 
-        return $this->successResponse($orphan, 'অর্ফান তৈরি সফল', 201);
+        return $this->successResponse($orphan->load('sponsors'), 'অর্ফান তৈরি সফল', 201);
     }
 
     public function show(Request $request, int $id): JsonResponse
     {
         $orphan = Orphan::where('tenant_id', $request->user()->tenant_id)
             ->where('id', $id)
-            ->with(['sponsor:id,name_bn,name_en,phone,email', 'payments'])
+            ->with(['sponsor:id,name_bn,name_en,phone,email', 'sponsors:id,name_bn,name_en,phone,email', 'sponsorships.donor:id,name_bn,name_en,phone,email', 'payments'])
             ->firstOrFail();
 
         return $this->successResponse($orphan);
@@ -120,6 +140,9 @@ class OrphanController extends ApiController
         }
 
         $data = $validator->validated();
+        if (!empty($data['sponsor_id']) && !Donor::where('tenant_id', $request->user()->tenant_id)->whereKey($data['sponsor_id'])->exists()) {
+            return $this->errorResponse('দাতা এই প্রতিষ্ঠানের নয়', 422);
+        }
         if (array_key_exists('sponsor_id', $data) && $data['sponsor_id']) {
             $data['sponsorship_status'] = 'sponsored';
         }
@@ -140,13 +163,14 @@ class OrphanController extends ApiController
         return $this->successResponse(null, 'অর্ফান মুছে ফেলা সফল');
     }
 
-    public function recordPayment(Request $request, int $orphanId): JsonResponse
-    {
-        $orphan = Orphan::where('tenant_id', $request->user()->tenant_id)
-            ->where('id', $orphanId)
-            ->firstOrFail();
-
+    public function recordPayment(
+        Request $request,
+        int $orphanId,
+        FinancialAuditService $audit,
+        FinancialNotificationService $notifications
+    ): JsonResponse {
         $validator = Validator::make($request->all(), [
+            'orphan_sponsorship_id' => 'nullable|integer|exists:orphan_sponsorships,id',
             'amount' => 'required|numeric|min:1',
             'purpose_bn' => 'nullable|string|max:255',
             'purpose_en' => 'nullable|string|max:255',
@@ -160,27 +184,55 @@ class OrphanController extends ApiController
         if ($validator->fails()) {
             return $this->errorResponse('বৈধতা ত্রুটি', 422, $validator->errors());
         }
+        $data = $validator->validated();
+        $tenantId = $request->user()->tenant_id;
+        $amountCents = (int) round((float) $data['amount'] * 100);
 
-        DB::transaction(function () use ($orphan, $request, $validator) {
-            $data = $validator->validated();
-            $data['tenant_id'] = $request->user()->tenant_id;
-            $data['orphan_id'] = $orphan->id;
-            $data['sponsor_id'] = $orphan->sponsor_id;
-            $data['payment_date'] = $data['payment_date'] ?? now()->toDateString();
-            $data['collected_by_user_id'] = $request->user()->id;
-
-            SponsorshipPayment::create($data);
-
-            $orphan->total_sponsored = ($orphan->total_sponsored ?? 0) + $data['amount'];
-
-            if ($orphan->monthly_amount > 0 && $orphan->total_sponsored >= $orphan->monthly_amount * 3) {
-                $orphan->sponsorship_status = 'completed';
+        [$orphan, $sponsorship] = DB::transaction(function () use ($orphanId, $tenantId, $request, $data, $amountCents, $audit) {
+            $orphan = Orphan::where('tenant_id', $tenantId)->whereKey($orphanId)->lockForUpdate()->firstOrFail();
+            $sponsorshipQuery = $orphan->sponsorships()->where('status', 'active');
+            if (!empty($data['orphan_sponsorship_id'])) {
+                $sponsorshipQuery->whereKey($data['orphan_sponsorship_id']);
+            } elseif ($orphan->sponsor_id) {
+                $sponsorshipQuery->where('donor_id', $orphan->sponsor_id);
+            }
+            $sponsorship = $sponsorshipQuery->lockForUpdate()->first();
+            if (!$sponsorship) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'orphan_sponsorship_id' => 'সক্রিয় স্পন্সরশিপ নির্বাচন করুন',
+                ]);
             }
 
-            $orphan->save();
+            $payment = SponsorshipPayment::create([
+                ...$data,
+                'tenant_id' => $tenantId,
+                'orphan_id' => $orphan->id,
+                'sponsor_id' => $sponsorship->donor_id,
+                'orphan_sponsorship_id' => $sponsorship->id,
+                'amount' => $amountCents / 100,
+                'payment_date' => $data['payment_date'] ?? now()->toDateString(),
+                'collected_by_user_id' => $request->user()->id,
+            ]);
+            $totalCents = (int) round((float) $orphan->total_sponsored * 100) + $amountCents;
+            $orphan->update(['total_sponsored' => $totalCents / 100]);
+
+            $audit->record('orphan.payment_recorded', $orphan, [
+                'payment_id' => $payment->id,
+                'sponsorship_id' => $sponsorship->id,
+                'donor_id' => $sponsorship->donor_id,
+                'amount' => $amountCents / 100,
+            ], $request, 'অর্ফান স্পন্সরশিপ প্রদান রেকর্ড করা হয়েছে');
+
+            return [$orphan, $sponsorship];
         });
 
-        return $this->successResponse($orphan->fresh('payments'), 'স্পন্সরশিপ প্রদান সফল');
+        try {
+            $notifications->orphanPaymentRecorded($orphan, $sponsorship->load('donor'), $amountCents / 100);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        return $this->successResponse($orphan->fresh(['payments', 'sponsorships.donor']), 'স্পন্সরশিপ প্রদান সফল');
     }
 
     public function payments(Request $request, int $orphanId): JsonResponse

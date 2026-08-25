@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\ApiController;
 use App\Models\Loan;
 use App\Models\LoanPayment;
+use App\Services\FinancialAuditService;
+use App\Services\FinancialNotificationService;
+use App\Services\LoanAmortizationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class LoanController extends ApiController
 {
@@ -30,16 +35,19 @@ class LoanController extends ApiController
         return $this->successResponse($loans);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, LoanAmortizationService $calculator): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'loan_type' => 'nullable|string|max:100',
             'title_bn' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
             'principal_amount' => 'required|numeric|min:1',
-            'interest_rate' => 'nullable|numeric',
+            'interest_rate' => 'nullable|numeric|min:0',
+            'interest_type' => 'nullable|in:flat,reducing',
+            'installment_count' => 'nullable|integer|min:1|max:600',
+            'repayment_frequency' => 'nullable|in:weekly,monthly,quarterly,yearly',
             'start_date' => 'nullable|date',
-            'due_date' => 'nullable|date',
+            'due_date' => 'nullable|date|after_or_equal:start_date',
             'user_id' => 'nullable|exists:users,id',
             'notes' => 'nullable|string',
         ]);
@@ -50,19 +58,44 @@ class LoanController extends ApiController
 
         $data = $validator->validated();
         $data['tenant_id'] = $request->user()->tenant_id;
-        $data['remaining_amount'] = $data['principal_amount'];
-        $data['total_due'] = $data['principal_amount'];
+        if (!empty($data['user_id']) && !\App\Models\User::where('tenant_id', $data['tenant_id'])->whereKey($data['user_id'])->exists()) {
+            return $this->errorResponse('ঋণগ্রহীতা এই প্রতিষ্ঠানের নয়', 422);
+        }
+        $data['interest_rate'] = $data['interest_rate'] ?? 0;
+        $data['interest_type'] = $data['interest_type'] ?? 'reducing';
+        $data['installment_count'] = $data['installment_count'] ?? 1;
+        $data['repayment_frequency'] = $data['repayment_frequency'] ?? 'monthly';
+        $data['start_date'] = $data['start_date'] ?? today()->toDateString();
 
-        $loan = Loan::create($data);
+        $schedule = $calculator->build(
+            (float) $data['principal_amount'],
+            (float) $data['interest_rate'],
+            (int) $data['installment_count'],
+            $data['start_date'],
+            $data['repayment_frequency'],
+            $data['interest_type'],
+        );
+        $data['monthly_installment'] = $schedule['emi'];
+        $data['total_interest'] = $schedule['total_interest'];
+        $data['total_due'] = $schedule['total_payable'];
+        $data['remaining_amount'] = $schedule['total_payable'];
 
-        return $this->successResponse($loan, 'ঋণ তৈরি সফল', 201);
+        $loan = DB::transaction(function () use ($data, $schedule) {
+            $loan = Loan::create($data);
+            foreach ($schedule['installments'] as $row) {
+                $loan->installments()->create(['tenant_id' => $loan->tenant_id, ...$row]);
+            }
+            return $loan;
+        });
+
+        return $this->successResponse($loan->load('installments'), 'ঋণ তৈরি সফল', 201);
     }
 
     public function show(Request $request, int $id): JsonResponse
     {
         $loan = Loan::where('tenant_id', $request->user()->tenant_id)
             ->where('id', $id)
-            ->with(['user:id,name_bn,name_en', 'payments'])
+            ->with(['user:id,name_bn,name_en,email,phone', 'payments', 'installments'])
             ->firstOrFail();
 
         return $this->successResponse($loan);
@@ -107,12 +140,12 @@ class LoanController extends ApiController
         return $this->successResponse(null, 'ঋণ মুছে ফেলা সফল');
     }
 
-    public function recordPayment(Request $request, int $loanId): JsonResponse
-    {
-        $loan = Loan::where('tenant_id', $request->user()->tenant_id)
-            ->where('id', $loanId)
-            ->firstOrFail();
-
+    public function recordPayment(
+        Request $request,
+        int $loanId,
+        FinancialAuditService $audit,
+        FinancialNotificationService $notifications
+    ): JsonResponse {
         $validator = Validator::make($request->all(), [
             'amount' => 'required|numeric|min:1',
             'payment_date' => 'nullable|date',
@@ -124,31 +157,71 @@ class LoanController extends ApiController
         if ($validator->fails()) {
             return $this->errorResponse('বৈধতা ত্রুটি', 422, $validator->errors());
         }
+        $data = $validator->validated();
+        $tenantId = $request->user()->tenant_id;
+        $paymentCents = (int) round((float) $data['amount'] * 100);
 
-        DB::transaction(function () use ($loan, $request, $validator) {
-            $data = $validator->validated();
-            $data['tenant_id'] = $request->user()->tenant_id;
-            $data['loan_id'] = $loan->id;
-            $data['payment_date'] = $data['payment_date'] ?? now()->toDateString();
-            $data['collected_by_user_id'] = $request->user()->id;
-
-            LoanPayment::create($data);
-
-            $newTotalPaid = ($loan->total_paid ?? 0) + $data['amount'];
-            $loan->total_paid = $newTotalPaid;
-            $loan->remaining_amount = max(0, ($loan->remaining_amount ?? $loan->principal_amount) - $data['amount']);
-            $loan->total_due = max(0, $loan->total_due - $data['amount']);
-
-            if ($loan->remaining_amount <= 0) {
-                $loan->status = 'paid';
-                $loan->remaining_amount = 0;
-                $loan->total_due = 0;
+        $loan = DB::transaction(function () use ($loanId, $tenantId, $request, $data, $paymentCents, $audit) {
+            $loan = Loan::where('tenant_id', $tenantId)->whereKey($loanId)->lockForUpdate()->firstOrFail();
+            $remainingCents = (int) round((float) $loan->remaining_amount * 100);
+            if ($paymentCents > $remainingCents) {
+                throw ValidationException::withMessages(['amount' => 'প্রদানের পরিমাণ অবশিষ্ট ঋণের চেয়ে বেশি']);
             }
 
+            $before = $loan->only(['total_paid', 'remaining_amount', 'total_due', 'status']);
+            $payment = LoanPayment::create([
+                ...$data,
+                'tenant_id' => $tenantId,
+                'loan_id' => $loan->id,
+                'amount' => $paymentCents / 100,
+                'payment_date' => $data['payment_date'] ?? now()->toDateString(),
+                'collected_by_user_id' => $request->user()->id,
+            ]);
+
+            $unallocatedCents = $paymentCents;
+            $installments = $loan->installments()->whereIn('status', ['pending', 'partial', 'overdue'])
+                ->orderBy('installment_number')->lockForUpdate()->get();
+            foreach ($installments as $installment) {
+                if ($unallocatedCents <= 0) break;
+                $installmentCents = (int) round((float) $installment->installment_amount * 100);
+                $alreadyPaidCents = (int) round((float) $installment->paid_amount * 100);
+                $allocatedCents = min($installmentCents - $alreadyPaidCents, $unallocatedCents);
+                $newPaidCents = $alreadyPaidCents + $allocatedCents;
+                $fullyPaid = $newPaidCents >= $installmentCents;
+                $installment->update([
+                    'paid_amount' => $newPaidCents / 100,
+                    'status' => $fullyPaid ? 'paid' : 'partial',
+                    'paid_at' => $fullyPaid ? now() : null,
+                ]);
+                $unallocatedCents -= $allocatedCents;
+            }
+
+            $newPaidCents = (int) round((float) $loan->total_paid * 100) + $paymentCents;
+            $newRemainingCents = max(0, $remainingCents - $paymentCents);
+            $loan->total_paid = $newPaidCents / 100;
+            $loan->remaining_amount = $newRemainingCents / 100;
+            $loan->total_due = $newRemainingCents / 100;
+            if ($newRemainingCents === 0) $loan->status = 'paid';
             $loan->save();
+
+            $audit->record('loan.payment_recorded', $loan, [
+                'before' => $before,
+                'after' => $loan->only(['total_paid', 'remaining_amount', 'total_due', 'status']),
+                'payment_id' => $payment->id,
+                'amount' => $paymentCents / 100,
+            ], $request, 'ঋণের কিস্তি রেকর্ড করা হয়েছে');
+
+            return $loan;
         });
 
-        return $this->successResponse($loan->fresh('payments'), 'প্রদান রেকর্ড সফল');
+        $loan->load('user');
+        try {
+            $notifications->loanPaymentRecorded($loan, $paymentCents / 100);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        return $this->successResponse($loan->fresh(['payments', 'installments']), 'প্রদান রেকর্ড সফল');
     }
 
     public function payments(Request $request, int $loanId): JsonResponse

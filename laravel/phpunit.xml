@@ -43,11 +43,4 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
     </php>
 
-    <extensions>
-        <bootstrap class="Illuminate\Foundation\Testing\TestCaseBootstrapper">
-            <arguments>
-                <string>./tests</string>
-            </arguments>
-        </bootstrap>
-    </extensions>
 </phpunit>

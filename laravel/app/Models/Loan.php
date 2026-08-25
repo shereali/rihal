@@ -41,4 +41,9 @@ class Loan extends Model
     {
         return $this->hasMany(LoanPayment::class);
     }
+
+    public function installments(): HasMany
+    {
+        return $this->hasMany(LoanInstallment::class)->orderBy('installment_number');
+    }
 }

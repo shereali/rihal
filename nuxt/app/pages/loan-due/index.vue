@@ -7,6 +7,7 @@
         <p class="subtitle">ঋণ, কিস্তি ও বাকিয়া ব্যবস্থাপনা</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline btn-sm" :disabled="exporting" @click="downloadExport"><icon name="document" /> {{ exporting ? 'তৈরি হচ্ছে...' : 'CSV রিপোর্ট' }}</button>
         <NuxtLink to="/loan-due/create" class="btn btn-primary btn-sm"><icon name="plus" /> নতুন ঋণ</NuxtLink>
       </div>
     </div>
@@ -118,6 +119,7 @@ import { useApiClient } from '~/utils/api'
 
 const api = useApiClient()
 const loading = ref(true)
+const exporting = ref(false)
 const loans = ref<any>(null)
 const summary = ref<any>(null)
 const search = ref('')
@@ -136,7 +138,7 @@ async function loadLoans(page = 1) {
     if (search.value) params.set('search', search.value)
 
     const r = await api.get(`/loans?${params.toString()}`)
-    loans.value = r.data
+    loans.value = r.data?.data
   } catch (e: any) {
     console.error(e)
   } finally {
@@ -147,9 +149,24 @@ async function loadLoans(page = 1) {
 async function loadSummary() {
   try {
     const r = await api.get('/loans-summary')
-    summary.value = r.data
+    summary.value = r.data?.data
   } catch (e: any) {
     console.error(e)
+  }
+}
+
+async function downloadExport() {
+  exporting.value = true
+  try {
+    const response = await api.get('/reports/loans.csv', { responseType: 'blob' })
+    const url = URL.createObjectURL(response.data)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `loans-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  } finally {
+    exporting.value = false
   }
 }
 

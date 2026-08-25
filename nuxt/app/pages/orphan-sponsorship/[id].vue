@@ -30,16 +30,45 @@
           <div><dt>ঠিকানা</dt><dd>{{ orphan.address_bn || orphan.address_en || '-' }}</dd></div>
           <div><dt>মাসিক স্পন্সরশিপ (৳)</dt><dd>{{ orphan.monthly_amount ? Number(orphan.monthly_amount).toLocaleString('bn-BD') : 0 }}</dd></div>
           <div><dt>মোট স্পন্সরড (৳)</dt><dd>{{ orphan.total_sponsored ? Number(orphan.total_sponsored).toLocaleString('bn-BD') : 0 }}</dd></div>
-          <div><dt>স্পন্সর</dt><dd>{{ orphan.sponsor?.name_bn || orphan.sponsor?.name_en || 'অভাজন' }}</dd></div>
+          <div><dt>স্পন্সর</dt><dd>{{ (orphan.sponsors || []).map(s => s.name_bn || s.name_en).join(', ') || 'অভাজন' }}</dd></div>
           <div v-if="orphan.story"><dt>গল্প</dt><dd>{{ orphan.story }}</dd></div>
           <div><dt>সৃষ্টির তারিখ</dt><dd>{{ formatDate(orphan.created_at) }}</dd></div>
         </dl>
+      </div>
+
+      <div class="card sponsor-card">
+        <h3>একাধিক স্পন্সর ব্যবস্থাপনা</h3>
+        <div class="sponsor-list">
+          <div v-for="item in sponsorships" :key="item.id" class="sponsor-row">
+            <div><strong>{{ item.donor?.name_bn || item.donor?.name_en }}</strong><small>মাসিক ৳{{ money(item.monthly_commitment) }} · {{ item.status === 'active' ? 'সক্রিয়' : 'সমাপ্ত' }}</small></div>
+            <button v-if="item.status === 'active'" type="button" class="btn btn-sm btn-outline" @click="endSponsorship(item.id)">সমাপ্ত করুন</button>
+          </div>
+          <p v-if="!sponsorships.length" class="text-muted">কোনো স্পন্সর যুক্ত নেই।</p>
+        </div>
+        <form class="payment-form sponsor-form" @submit.prevent="addSponsor">
+          <div class="form-row">
+            <div class="form-group"><label>দাতা</label><select v-model="sponsorForm.donor_id" required><option value="">দাতা নির্বাচন</option><option v-for="donor in donors" :key="donor.id" :value="donor.id">{{ donor.name_bn || donor.name_en }}</option></select></div>
+            <div class="form-group"><label>মাসিক অঙ্গীকার (৳)</label><input v-model.number="sponsorForm.monthly_commitment" type="number" min="0" required /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>শুরুর তারিখ</label><input v-model="sponsorForm.starts_at" type="date" required /></div>
+            <div class="form-group"><label>অংশ (%)</label><input v-model.number="sponsorForm.share_percent" type="number" min="0" max="100" /></div>
+          </div>
+          <button type="submit" class="btn btn-primary" :disabled="loading">স্পন্সর যুক্ত করুন</button>
+        </form>
       </div>
 
       <!-- Record Payment -->
       <div class="card">
         <h3>স্পন্সরশিপ প্রদান রেকর্ড</h3>
         <form @submit.prevent="recordPayment" class="payment-form">
+          <div class="form-group">
+            <label>স্পন্সরশিপ *</label>
+            <select v-model="payment.orphan_sponsorship_id" required :disabled="loading">
+              <option value="">স্পন্সর নির্বাচন করুন</option>
+              <option v-for="item in activeSponsorships" :key="item.id" :value="String(item.id)">{{ item.donor?.name_bn || item.donor?.name_en }} — ৳{{ money(item.monthly_commitment) }}/মাস</option>
+            </select>
+          </div>
           <div class="form-row">
             <div class="form-group">
               <label>পরিমাণ (৳) *</label>
@@ -101,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useApiClient } from '~/utils/api'
 
@@ -110,24 +139,41 @@ const api = useApiClient()
 const loading = ref(false)
 const orphan = ref<any>(null)
 const payments = ref<any[]>([])
+const sponsorships = ref<any[]>([])
+const donors = ref<any[]>([])
+const activeSponsorships = computed(() => sponsorships.value.filter(item => item.status === 'active'))
 const error = ref('')
 const success = ref('')
 
 const payment = ref({
+  orphan_sponsorship_id: '',
   amount: null,
   payment_date: new Date().toISOString().split('T')[0],
   purpose_bn: '',
   payment_method: 'নগদ',
   reference: '',
 })
+const sponsorForm = ref({
+  donor_id: '',
+  monthly_commitment: 0,
+  share_percent: null as number | null,
+  starts_at: new Date().toISOString().split('T')[0],
+})
 
 async function loadOrphan() {
   loading.value = true
   try {
     const id = route.params.id
-    const r = await api.get(`/orphans/${id}`)
-    orphan.value = r.data
-    payments.value = r.data?.payments || []
+    const [orphanResponse, sponsorResponse, donorResponse] = await Promise.all([
+      api.get(`/orphans/${id}`),
+      api.get(`/orphans/${id}/sponsors`),
+      api.get('/orphans/sponsors'),
+    ])
+    orphan.value = orphanResponse.data?.data
+    payments.value = orphan.value?.payments || []
+    sponsorships.value = sponsorResponse.data?.data || []
+    donors.value = donorResponse.data?.data || []
+    if (!payment.value.orphan_sponsorship_id && activeSponsorships.value.length === 1) payment.value.orphan_sponsorship_id = String(activeSponsorships.value[0].id)
   } catch (e: any) {
     error.value = 'অর্ফান লোড করা যায়নি'
     console.error(e)
@@ -136,16 +182,37 @@ async function loadOrphan() {
   }
 }
 
+async function addSponsor() {
+  loading.value = true
+  error.value = ''
+  try {
+    await api.post(`/orphans/${orphan.value.id}/sponsors`, sponsorForm.value)
+    sponsorForm.value = { donor_id: '', monthly_commitment: 0, share_percent: null, starts_at: new Date().toISOString().split('T')[0] }
+    success.value = 'স্পন্সর যুক্ত হয়েছে।'
+    await loadOrphan()
+  } catch (e: any) {
+    error.value = e?.response?.data?.message || 'স্পন্সর যুক্ত করা যায়নি।'
+  } finally { loading.value = false }
+}
+async function endSponsorship(id: number) {
+  if (!confirm('এই স্পন্সরশিপ সমাপ্ত করবেন?')) return
+  await api.delete(`/orphans/${orphan.value.id}/sponsors/${id}`)
+  await loadOrphan()
+}
+function money(value: unknown) {
+  return Number(value || 0).toLocaleString('bn-BD', { maximumFractionDigits: 2 })
+}
+
 async function recordPayment() {
   error.value = ''
   success.value = ''
   loading.value = true
   try {
     const r = await api.post(`/orphans/${orphan.value.id}/payments`, { ...payment.value })
-    orphan.value = r.data
-    payments.value = r.data?.payments || []
+    orphan.value = r.data?.data
+    payments.value = orphan.value?.payments || []
     success.value = 'স্পন্সরশিপ প্রদান সফল!'
-    payment.value = { amount: null, payment_date: new Date().toISOString().split('T')[0], purpose_bn: '', payment_method: 'নগদ', reference: '' }
+    payment.value = { orphan_sponsorship_id: payment.value.orphan_sponsorship_id, amount: null, payment_date: new Date().toISOString().split('T')[0], purpose_bn: '', payment_method: 'নগদ', reference: '' }
   } catch (e: any) {
     error.value = e?.response?.data?.message ?? 'প্রদান রেকর্ড করা যায়নি'
   } finally {
@@ -199,7 +266,12 @@ onMounted(loadOrphan)
 .header-left h1 { margin: 0; font-size: 1.25rem; font-family: 'Noto Sans Bengali', sans-serif; }
 .back-link { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--color-primary); text-decoration: none; font-family: 'Noto Sans Bengali', sans-serif; }
 .text-muted { color: var(--color-text-light); }
-.detail-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.25rem; }
+.sponsor-card { grid-column: 1 / -1; }
+.sponsor-list { display:grid;gap:.65rem;padding:0 1.25rem 1rem; }
+.sponsor-row { display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.8rem;border:1px solid var(--color-border-light);border-radius:10px; }
+.sponsor-row div { display:grid;gap:.2rem; }.sponsor-row small { color:var(--color-text-light); }
+.sponsor-form { border-top:1px solid var(--color-border-light); }
 .card { background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 12px; margin-bottom: 1.25rem; }
 .card h3 { margin: 0 0 1rem; padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--color-border-light); font-size: 1.05rem; font-family: 'Noto Sans Bengali', sans-serif; }
 .card-body { padding: 1.25rem; }

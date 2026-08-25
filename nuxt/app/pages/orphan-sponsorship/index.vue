@@ -7,6 +7,7 @@
         <p class="subtitle">অপ্রাপ্তবয় শিশু ও তাদের স্পন্সরদের ব্যবস্থাপনা</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline btn-sm" :disabled="exporting" @click="downloadExport"><icon name="document" /> {{ exporting ? 'তৈরি হচ্ছে...' : 'CSV রিপোর্ট' }}</button>
         <NuxtLink to="/orphan-sponsorship/create" class="btn btn-primary btn-sm"><icon name="plus" /> নতুন অর্ফান</NuxtLink>
       </div>
     </div>
@@ -84,7 +85,7 @@
               <td>{{ orphan.birth_date ? calculateAge(orphan.birth_date) : '-' }}</td>
               <td>{{ genderLabel(orphan.gender) }}</td>
               <td>{{ orphan.class_id || '-' }}</td>
-              <td>{{ orphan.sponsor?.name_bn || orphan.sponsor?.name_en || 'অভাজন' }}</td>
+              <td>{{ (orphan.sponsors || []).map(s => s.name_bn || s.name_en).join(', ') || orphan.sponsor?.name_bn || 'অভাজন' }}</td>
               <td>{{ orphan.monthly_amount ? Number(orphan.monthly_amount).toLocaleString('bn-BD') : 0 }}</td>
               <td>{{ orphan.total_sponsored ? Number(orphan.total_sponsored).toLocaleString('bn-BD') : 0 }}</td>
               <td>
@@ -116,6 +117,7 @@ import { useApiClient } from '~/utils/api'
 
 const api = useApiClient()
 const loading = ref(true)
+const exporting = ref(false)
 const orphans = ref<any>(null)
 const summary = ref<any>(null)
 const search = ref('')
@@ -134,7 +136,7 @@ async function loadOrphans(page = 1) {
     if (search.value) params.set('search', search.value)
 
     const r = await api.get(`/orphans?${params.toString()}`)
-    orphans.value = r.data
+    orphans.value = r.data?.data
   } catch (e: any) {
     console.error(e)
   } finally {
@@ -145,9 +147,24 @@ async function loadOrphans(page = 1) {
 async function loadSummary() {
   try {
     const r = await api.get('/orphans-summary')
-    summary.value = r.data
+    summary.value = r.data?.data
   } catch (e: any) {
     console.error(e)
+  }
+}
+
+async function downloadExport() {
+  exporting.value = true
+  try {
+    const response = await api.get('/reports/orphans.csv', { responseType: 'blob' })
+    const url = URL.createObjectURL(response.data)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `orphans-${new Date().toISOString().slice(0, 10)}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  } finally {
+    exporting.value = false
   }
 }
 

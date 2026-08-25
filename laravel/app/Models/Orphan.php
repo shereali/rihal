@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Orphan extends Model
 {
@@ -38,5 +39,17 @@ class Orphan extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(SponsorshipPayment::class);
+    }
+
+    public function sponsorships(): HasMany
+    {
+        return $this->hasMany(OrphanSponsorship::class);
+    }
+
+    public function sponsors(): BelongsToMany
+    {
+        return $this->belongsToMany(Donor::class, 'orphan_sponsorships')
+            ->withPivot(['monthly_commitment', 'share_percent', 'starts_at', 'ends_at', 'status', 'notes'])
+            ->withTimestamps();
     }
 }

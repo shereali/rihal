@@ -30,6 +30,22 @@ use App\Http\Controllers\Api\V1\HomeworkController;
 use App\Http\Controllers\Api\V1\ActivityLogController;
 use App\Http\Controllers\Api\V1\LoanController;
 use App\Http\Controllers\Api\V1\OrphanController;
+use App\Http\Controllers\Api\V1\ModuleDashboardController;
+use App\Http\Controllers\Api\V1\FileUploadController;
+use App\Http\Controllers\Api\V1\LoanAmortizationController;
+use App\Http\Controllers\Api\V1\OrphanSponsorshipController;
+use App\Http\Controllers\Api\V1\FinancialReportController;
+use App\Http\Controllers\Api\V1\FinancialAuditController;
+use App\Http\Controllers\Api\V1\CertificateController;
+use App\Http\Controllers\Api\V1\DigitalAttendanceController;
+use App\Http\Controllers\Api\V1\LeaveManagementController;
+use App\Http\Controllers\Api\V1\PromotionController;
+use App\Http\Controllers\Api\V1\PropertyDocumentController;
+use App\Http\Controllers\Api\V1\PropertyMaintenanceController;
+use App\Http\Controllers\Api\V1\PropertyVisitorController;
+use App\Http\Controllers\Api\V1\ReminderTaskController;
+use App\Http\Controllers\Api\V1\SettingsController;
+use App\Http\Controllers\Api\V1\TransportAssignmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,13 +60,16 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
     // Protected routes (require Bearer token)
-    Route::middleware('auth.token')->group(function () {
+    Route::middleware(['auth.token', 'throttle:api'])->group(function () {
         // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/user', [AuthController::class, 'user']);
 
         // Dashboard
         Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+
+        // Module Dashboard (multi-module overview)
+        Route::get('/module-dashboard', [ModuleDashboardController::class, 'index']);
 
         // Academic lookups + CRUD
         Route::get('/timetable', [TimetableController::class, 'index']);
@@ -155,33 +174,35 @@ Route::prefix('v1')->group(function () {
         Route::delete('/attendance/{id}', [AttendanceController::class, 'destroy']);
         Route::get('/attendance/summary', [AttendanceController::class, 'summary']);
 
+        Route::middleware('tenant.context')->group(function () {
         // ─── Finance ──────────────────────────────────────────────────────────
         Route::get('/finance/funds', [FinanceController::class, 'funds']);
-        Route::post('/finance/funds', [FinanceController::class, 'storeFund']);
+        Route::post('/finance/funds', [FinanceController::class, 'storeFund'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/funds/{id}', [FinanceController::class, 'showFund']);
         Route::get('/finance/donors', [FinanceController::class, 'donors']);
-        Route::post('/finance/donors', [FinanceController::class, 'storeDonor']);
+        Route::post('/finance/donors', [FinanceController::class, 'storeDonor'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/donations', [FinanceController::class, 'donations']);
-        Route::post('/finance/donations', [FinanceController::class, 'storeDonation']);
+        Route::post('/finance/donations', [FinanceController::class, 'storeDonation'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/donations/{id}', [FinanceController::class, 'showDonation']);
         Route::get('/finance/expenses', [FinanceController::class, 'expenses']);
-        Route::post('/finance/expenses', [FinanceController::class, 'storeExpense']);
+        Route::post('/finance/expenses', [FinanceController::class, 'storeExpense'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/expenses/{id}', [FinanceController::class, 'showExpense']);
         Route::get('/finance/vendors', [FinanceController::class, 'vendors']);
-        Route::post('/finance/vendors', [FinanceController::class, 'storeVendor']);
+        Route::post('/finance/vendors', [FinanceController::class, 'storeVendor'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/fee-structures', [FinanceController::class, 'feeStructures']);
-        Route::post('/finance/fee-structures', [FinanceController::class, 'storeFeeStructure']);
+        Route::post('/finance/fee-structures', [FinanceController::class, 'storeFeeStructure'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/fee-payments', [FinanceController::class, 'feePayments']);
-        Route::post('/finance/fee-payments', [FinanceController::class, 'storeFeePayment']);
+        Route::post('/finance/fee-payments', [FinanceController::class, 'storeFeePayment'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/journal-entries', [FinanceController::class, 'journalEntries']);
-        Route::post('/finance/journal-entries', [FinanceController::class, 'storeJournalEntry']);
+        Route::post('/finance/journal-entries', [FinanceController::class, 'storeJournalEntry'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/cash-books', [FinanceController::class, 'cashBooks']);
-        Route::post('/finance/cash-books', [FinanceController::class, 'storeCashBook']);
+        Route::post('/finance/cash-books', [FinanceController::class, 'storeCashBook'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/summary', [FinanceController::class, 'summary']);
         Route::get('/finance/stocks', [FinanceController::class, 'stocks']);
-        Route::post('/finance/stocks', [FinanceController::class, 'storeStock']);
+        Route::post('/finance/stocks', [FinanceController::class, 'storeStock'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/stock-transactions', [FinanceController::class, 'stockTransactions']);
-        Route::post('/finance/stock-transactions', [FinanceController::class, 'storeStockTransaction']);
+        Route::post('/finance/stock-transactions', [FinanceController::class, 'storeStockTransaction'])->middleware('role:admin,tenant_admin,super_admin');
+        });
 
         // ─── Homework ─────────────────────────────────────────────────────────
         Route::get('/homework-assignments', [HomeworkController::class, 'index']);
@@ -392,25 +413,39 @@ Route::prefix('v1')->group(function () {
         Route::put('/reminder-tasks/{id}', [ReminderTaskController::class, 'update']);
         Route::delete('/reminder-tasks/{id}', [ReminderTaskController::class, 'destroy']);
 
+        Route::middleware('tenant.context')->group(function () {
+        // ─── Uploads & financial reports ──────────────────────────────────────
+        Route::post('/uploads/photos', [FileUploadController::class, 'photo'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::get('/reports/loans.csv', [FinancialReportController::class, 'loans'])->middleware('role:admin,tenant_admin,super_admin');
+        Route::get('/reports/orphans.csv', [FinancialReportController::class, 'orphans'])->middleware('role:admin,tenant_admin,super_admin');
+        Route::get('/financial-audit', [FinancialAuditController::class, 'index'])->middleware('role:admin,tenant_admin,super_admin');
+
         // ─── Loans & Dues ──────────────────────────────────────────────────────
-        Route::get('/loans', [LoanController::class, 'index']);
-        Route::post('/loans', [LoanController::class, 'store']);
-        Route::get('/loans/{id}', [LoanController::class, 'show']);
-        Route::put('/loans/{id}', [LoanController::class, 'update']);
-        Route::delete('/loans/{id}', [LoanController::class, 'destroy']);
-        Route::post('/loans/{id}/payments', [LoanController::class, 'recordPayment']);
-        Route::get('/loans/{id}/payments', [LoanController::class, 'payments']);
         Route::get('/loans-summary', [LoanController::class, 'summary']);
+        Route::get('/loans', [LoanController::class, 'index']);
+        Route::post('/loans', [LoanController::class, 'store'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::get('/loans/{id}/amortization', [LoanAmortizationController::class, 'show']);
+        Route::put('/loans/{id}/amortization', [LoanAmortizationController::class, 'regenerate'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::post('/loans/{id}/payments', [LoanController::class, 'recordPayment'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::get('/loans/{id}/payments', [LoanController::class, 'payments']);
+        Route::get('/loans/{id}', [LoanController::class, 'show']);
+        Route::put('/loans/{id}', [LoanController::class, 'update'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::delete('/loans/{id}', [LoanController::class, 'destroy'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
 
         // ─── Orphan Sponsorship ────────────────────────────────────────────────
-        Route::get('/orphans', [OrphanController::class, 'index']);
-        Route::post('/orphans', [OrphanController::class, 'store']);
-        Route::get('/orphans/{id}', [OrphanController::class, 'show']);
-        Route::put('/orphans/{id}', [OrphanController::class, 'update']);
-        Route::delete('/orphans/{id}', [OrphanController::class, 'destroy']);
-        Route::post('/orphans/{id}/payments', [OrphanController::class, 'recordPayment']);
-        Route::get('/orphans/{id}/payments', [OrphanController::class, 'payments']);
         Route::get('/orphans-summary', [OrphanController::class, 'summary']);
         Route::get('/orphans/sponsors', [OrphanController::class, 'donors']);
+        Route::get('/orphans', [OrphanController::class, 'index']);
+        Route::post('/orphans', [OrphanController::class, 'store'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::get('/orphans/{id}/sponsors', [OrphanSponsorshipController::class, 'index']);
+        Route::post('/orphans/{id}/sponsors', [OrphanSponsorshipController::class, 'store'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::put('/orphans/{id}/sponsors/{sponsorshipId}', [OrphanSponsorshipController::class, 'update'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::delete('/orphans/{id}/sponsors/{sponsorshipId}', [OrphanSponsorshipController::class, 'destroy'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::post('/orphans/{id}/payments', [OrphanController::class, 'recordPayment'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::get('/orphans/{id}/payments', [OrphanController::class, 'payments']);
+        Route::get('/orphans/{id}', [OrphanController::class, 'show']);
+        Route::put('/orphans/{id}', [OrphanController::class, 'update'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::delete('/orphans/{id}', [OrphanController::class, 'destroy'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        });
     });
 });

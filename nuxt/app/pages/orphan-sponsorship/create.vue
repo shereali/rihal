@@ -15,6 +15,10 @@
         <label>নাম (বাংলা) *</label>
         <input v-model="form.name_bn" type="text" placeholder="শিশুর নাম" :disabled="loading" />
       </div>
+      <div class="form-group">
+        <label>শিশুর ছবি</label>
+        <PhotoUpload v-model="form.photo_url" />
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label>নাম (ইংরেজি)</label>
@@ -100,6 +104,7 @@ const donors = ref<any[]>([])
 const form = ref({
   name_bn: '',
   name_en: '',
+  photo_url: '',
   birth_date: null,
   gender: 'other',
   class_id: '',
@@ -120,7 +125,7 @@ const form = ref({
 async function loadDonors() {
   try {
     const r = await api.get('/orphans/sponsors')
-    donors.value = r.data || []
+    donors.value = r.data?.data || []
   } catch (e: any) {
     console.error(e)
   }

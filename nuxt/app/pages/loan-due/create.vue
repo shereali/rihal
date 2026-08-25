@@ -55,9 +55,30 @@
           <input v-model="form.due_date" type="date" :disabled="loading" />
         </div>
       </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>সুদের ধরন</label>
+          <select v-model="form.interest_type" :disabled="loading">
+            <option value="reducing">হ্রাসমান ব্যালেন্স</option>
+            <option value="flat">ফ্ল্যাট রেট</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>কিস্তির সংখ্যা *</label>
+          <input v-model.number="form.installment_count" type="number" min="1" max="600" :disabled="loading" />
+        </div>
+      </div>
       <div class="form-group">
-        <label>প্রতি মাসের কিস্তি (৳)</label>
-        <input v-model.number="form.monthly_installment" type="number" min="0" step="0.01" placeholder="0" :disabled="loading" />
+        <label>পরিশোধের বিরতি</label>
+        <select v-model="form.repayment_frequency" :disabled="loading">
+          <option value="weekly">সাপ্তাহিক</option>
+          <option value="monthly">মাসিক</option>
+          <option value="quarterly">ত্রৈমাসিক</option>
+          <option value="yearly">বার্ষিক</option>
+        </select>
+      </div>
+      <div class="emi-preview">
+        <span>আনুমানিক প্রতি কিস্তি</span><strong>৳{{ estimatedEmi.toLocaleString('bn-BD', { maximumFractionDigits: 2 }) }}</strong>
       </div>
       <div class="form-group">
         <label>নোট</label>
@@ -74,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useApiClient } from '~/utils/api'
 import { useRouter } from 'vue-router'
 
@@ -90,10 +111,30 @@ const form = ref({
   user_id: null,
   principal_amount: null,
   interest_rate: 0,
+  interest_type: 'reducing',
+  installment_count: 12,
+  repayment_frequency: 'monthly',
   start_date: null,
   due_date: null,
-  monthly_installment: 0,
   notes: '',
+})
+
+const estimatedEmi = computed(() => {
+  const principal = Number(form.value.principal_amount || 0)
+  const count = Math.max(1, Number(form.value.installment_count || 1))
+  const frequency = form.value.repayment_frequency
+  const periodsPerYear = frequency === 'weekly' ? 52
+    : frequency === 'quarterly' ? 4
+      : frequency === 'yearly' ? 1
+        : 12
+  const rate = Number(form.value.interest_rate || 0) / 100 / periodsPerYear
+  if (!principal) return 0
+  if (form.value.interest_type === 'flat') {
+    return (principal + principal * Number(form.value.interest_rate || 0) / 100 * (count / periodsPerYear)) / count
+  }
+  if (!rate) return principal / count
+  const factor = Math.pow(1 + rate, count)
+  return principal * rate * factor / (factor - 1)
 })
 
 async function handleSubmit() {
@@ -131,6 +172,8 @@ async function handleSubmit() {
 .form-group textarea { resize: vertical; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .form-row .form-group { margin-bottom: 0; }
+.emi-preview { display:flex;justify-content:space-between;align-items:center;padding:1rem;margin:.9rem 0;border-radius:12px;background:#edf6f0;color:#145032; }
+.emi-preview strong { font-size:1.25rem; }
 .form-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
 .btn { padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-family: 'Noto Sans Bengali', sans-serif; display: inline-flex; align-items: center; gap: 0.35rem; }
 .btn-primary { background: var(--color-primary); color: var(--color-text-on-primary); }

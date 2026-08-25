@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'auth.token' => \App\Http\Middleware\AuthenticateWithToken::class,
             'tenant.scoped' => \App\Http\Middleware\EnsureTenantScoped::class,
+            'tenant.context' => \App\Http\Middleware\RequireTenantContext::class,
             'role' => \App\Http\Middleware\CheckRole::class,
         ]);
     })

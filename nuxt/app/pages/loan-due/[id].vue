@@ -25,6 +25,9 @@
           <div><dt>প্রতিষ্ঠানকর্তা</dt><dd>{{ loan.user?.name_bn || loan.user?.name_en || loan.user_id || '-' }}</dd></div>
           <div><dt>মূল পরিমাণ (৳)</dt><dd>{{ loan.principal_amount ? Number(loan.principal_amount).toLocaleString('bn-BD') : 0 }}</dd></div>
           <div><dt>সুদের হার (%)</dt><dd>{{ loan.interest_rate || 0 }}</dd></div>
+          <div><dt>সুদের ধরন</dt><dd>{{ loan.interest_type === 'flat' ? 'ফ্ল্যাট' : 'হ্রাসমান ব্যালেন্স' }}</dd></div>
+          <div><dt>কিস্তির সংখ্যা</dt><dd>{{ loan.installment_count || 1 }}</dd></div>
+          <div><dt>প্রতি কিস্তি (৳)</dt><dd>{{ money(loan.monthly_installment) }}</dd></div>
           <div><dt>শুরুর তারিখ</dt><dd>{{ loan.start_date || '-' }}</dd></div>
           <div><dt>শেষ তারিখ</dt><dd>{{ loan.due_date || '-' }}</dd></div>
           <div><dt>প্রদত্ত (৳)</dt><dd>{{ loan.total_paid ? Number(loan.total_paid).toLocaleString('bn-BD') : 0 }}</dd></div>
@@ -35,6 +38,20 @@
           <div v-if="loan.notes"><dt>নোট</dt><dd>{{ loan.notes }}</dd></div>
           <div><dt>তৈরির তারিখ</dt><dd>{{ formatDate(loan.created_at) }}</dd></div>
         </dl>
+      </div>
+
+      <div class="card schedule-card">
+        <h3>কিস্তির সূচি</h3>
+        <div class="schedule-summary"><span>মোট {{ installments.length }} কিস্তি</span><strong>প্রতি কিস্তি ৳{{ money(loan.monthly_installment) }}</strong></div>
+        <div v-if="!installments.length" class="empty-state"><p>কিস্তির সূচি নেই</p></div>
+        <div v-else class="table-scroll">
+          <table class="table table-hover">
+            <thead><tr><th>#</th><th>ডিউ তারিখ</th><th>মূলধন</th><th>সুদ</th><th>কিস্তি</th><th>পরিশোধ</th><th>অবস্থা</th></tr></thead>
+            <tbody><tr v-for="row in installments" :key="row.id">
+              <td>{{ row.installment_number }}</td><td>{{ row.due_date }}</td><td>{{ money(row.principal_amount) }}</td><td>{{ money(row.interest_amount) }}</td><td>{{ money(row.installment_amount) }}</td><td>{{ money(row.paid_amount) }}</td><td><span class="badge" :class="installmentClass(row.status)">{{ installmentLabel(row.status) }}</span></td>
+            </tr></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Record Payment -->
@@ -107,6 +124,7 @@ const api = useApiClient()
 const loading = ref(false)
 const loan = ref<any>(null)
 const payments = ref<any[]>([])
+const installments = ref<any[]>([])
 const error = ref('')
 const success = ref('')
 
@@ -122,8 +140,9 @@ async function loadLoan() {
   try {
     const id = route.params.id
     const r = await api.get(`/loans/${id}`)
-    loan.value = r.data
-    payments.value = r.data?.payments || []
+    loan.value = r.data?.data
+    payments.value = loan.value?.payments || []
+    installments.value = loan.value?.installments || []
   } catch (e: any) {
     error.value = 'ঋণ লোড করা যায়নি'
     console.error(e)
@@ -138,8 +157,9 @@ async function recordPayment() {
   loading.value = true
   try {
     const r = await api.post(`/loans/${loan.value.id}/payments`, { ...payment.value })
-    loan.value = r.data
-    payments.value = r.data?.payments || []
+    loan.value = r.data?.data
+    payments.value = loan.value?.payments || []
+    installments.value = loan.value?.installments || []
     success.value = 'প্রদান সফল!'
     payment.value = { amount: null, payment_date: new Date().toISOString().split('T')[0], payment_method: 'নগদ', reference: '' }
   } catch (e: any) {
@@ -147,6 +167,16 @@ async function recordPayment() {
   } finally {
     loading.value = false
   }
+}
+
+function money(value: unknown): string {
+  return Number(value || 0).toLocaleString('bn-BD', { maximumFractionDigits: 2 })
+}
+function installmentClass(status: string): string {
+  return status === 'paid' ? 'badge-success' : status === 'overdue' ? 'badge-danger' : status === 'partial' ? 'badge-warning' : 'badge-outline'
+}
+function installmentLabel(status: string): string {
+  return ({ paid: 'পরিশোধিত', overdue: 'বিলম্বিত', partial: 'আংশিক', pending: 'অপেক্ষমান' } as Record<string, string>)[status] || status
 }
 
 function formatDate(dateStr: string): string {
@@ -181,7 +211,10 @@ onMounted(loadLoan)
 .header-left h1 { margin: 0; font-size: 1.25rem; font-family: 'Noto Sans Bengali', sans-serif; }
 .back-link { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--color-primary); text-decoration: none; font-family: 'Noto Sans Bengali', sans-serif; }
 .text-muted { color: var(--color-text-light); }
-.detail-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.25rem; }
+.schedule-card { grid-column: 1 / -1; }
+.schedule-summary { display:flex;justify-content:space-between;gap:1rem;padding:.75rem 0;color:var(--color-text-light); }
+.table-scroll { overflow-x:auto; }
 .card { background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 12px; }
 .card h3 { margin: 0 0 1rem; font-size: 1.05rem; font-family: 'Noto Sans Bengali', sans-serif; padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border-light); }
 .card-body { padding: 1.25rem; }

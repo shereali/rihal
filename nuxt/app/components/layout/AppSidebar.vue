@@ -87,6 +87,7 @@ const role = computed(() => (currentUser.value as any)?.role)
 const mainNavItems = computed(() => {
   const items = [
     { path: '/dashboard', label: 'ড্যাশবোর্ড', icon: 'dashboard', tooltip: 'মূল ড্যাশবোর্ড ও তথ্যসারণি' },
+    { path: '/module-dashboard', label: 'মডিউল ড্যাশবোর্ড', icon: 'dashboard', tooltip: 'সব মডিউলের কার্যক্রম এক নজরে' },
     { path: '/notice', label: 'বিজ্ঞপ্তি ও ঘোষণা', icon: 'notice', tooltip: 'সব বিজ্ঞপ্তি তৈরি, দেখা ও সম্পাদনা' },
   ]
 
@@ -134,6 +135,7 @@ const mainNavItems = computed(() => {
       { path: '/finance/donors', label: 'দাতা ও অনুদান', icon: 'donor', tooltip: 'দাতা তালিকা ও ডোনেশন হিসাব' },
       { path: '/finance/expenses', label: 'ব্যয়', icon: 'money', tooltip: 'ব্যয়, ভেন্ডর ও বার্ষিক হিসাব' },
       { path: '/finance/stocks', label: 'রিসেপ্ট স্টক', icon: 'document', tooltip: 'অর্থ রশিদ, স্টক ও বিতরণ' },
+      { path: '/finance/audit', label: 'আর্থিক অডিট', icon: 'clock', tooltip: 'ঋণ, কিস্তি ও স্পন্সরশিপ লেনদেনের অপরিবর্তনীয় ইতিহাস' },
       { path: '/loan-due', label: 'লোন ও ডিউ', icon: 'cash', tooltip: 'ঋণ, কিস্তি ও বাকিয়া ব্যবস্থাপনা' },
       { path: '/orphan-sponsorship', label: 'অর্ফান স্পন্সরশিপ', icon: 'child', tooltip: 'অর্ফান শিশু এবং স্পন্সরশিপ ব্যবস্থাপনা' },
 
