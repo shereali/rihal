@@ -69,7 +69,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 
         // Module Dashboard (multi-module overview)
-        Route::get('/module-dashboard', [ModuleDashboardController::class, 'index']);
+        Route::get('/module-dashboard', [ModuleDashboardController::class, 'index'])
+            ->middleware('role:admin,tenant_admin,super_admin');
 
         // Academic lookups + CRUD
         Route::get('/timetable', [TimetableController::class, 'index']);
@@ -174,7 +175,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/attendance/{id}', [AttendanceController::class, 'destroy']);
         Route::get('/attendance/summary', [AttendanceController::class, 'summary']);
 
-        Route::middleware('tenant.context')->group(function () {
+        Route::middleware(['tenant.context', 'role:admin,tenant_admin,super_admin'])->group(function () {
         // ─── Finance ──────────────────────────────────────────────────────────
         Route::get('/finance/funds', [FinanceController::class, 'funds']);
         Route::post('/finance/funds', [FinanceController::class, 'storeFund'])->middleware('role:admin,tenant_admin,super_admin');
@@ -413,7 +414,7 @@ Route::prefix('v1')->group(function () {
         Route::put('/reminder-tasks/{id}', [ReminderTaskController::class, 'update']);
         Route::delete('/reminder-tasks/{id}', [ReminderTaskController::class, 'destroy']);
 
-        Route::middleware('tenant.context')->group(function () {
+        Route::middleware(['tenant.context', 'role:admin,tenant_admin,super_admin'])->group(function () {
         // ─── Uploads & financial reports ──────────────────────────────────────
         Route::post('/uploads/photos', [FileUploadController::class, 'photo'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
         Route::get('/reports/loans.csv', [FinancialReportController::class, 'loans'])->middleware('role:admin,tenant_admin,super_admin');

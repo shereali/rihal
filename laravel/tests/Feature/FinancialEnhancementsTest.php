@@ -63,7 +63,7 @@ class FinancialEnhancementsTest extends TestCase
             ->assertJsonStructure(['data' => ['students', 'finance', 'loans', 'orphans', 'generated_at']]);
     }
 
-    public function test_financial_mutations_require_admin_role(): void
+    public function test_financial_apis_require_admin_role(): void
     {
         $student = User::create([
             'tenant_id' => $this->tenant->id,
@@ -99,10 +99,12 @@ class FinancialEnhancementsTest extends TestCase
         $this->postJson("/api/v1/loans/{$loan->id}/payments", ['amount' => 10], $headers)->assertForbidden();
         $this->postJson("/api/v1/orphans/{$orphan->id}/sponsors", [], $headers)->assertForbidden();
 
-        // Read-only financial lists and details remain available to authenticated users.
-        $this->getJson('/api/v1/loans', $headers)->assertOk();
-        $this->getJson("/api/v1/loans/{$loan->id}", $headers)->assertOk();
-        $this->getJson("/api/v1/orphans/{$orphan->id}/sponsors", $headers)->assertOk();
+        // Tenant-wide financial and personal data is admin-only.
+        $this->getJson('/api/v1/module-dashboard', $headers)->assertForbidden();
+        $this->getJson('/api/v1/finance/summary', $headers)->assertForbidden();
+        $this->getJson('/api/v1/loans', $headers)->assertForbidden();
+        $this->getJson("/api/v1/loans/{$loan->id}", $headers)->assertForbidden();
+        $this->getJson("/api/v1/orphans/{$orphan->id}/sponsors", $headers)->assertForbidden();
     }
 
     public function test_module_dashboard_rejects_users_without_tenant(): void
