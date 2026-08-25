@@ -25,13 +25,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (!Schema::hasTable('notification_deliveries')) return;
-        Schema::table('notification_deliveries', function (Blueprint $table) {
-            $columns = array_values(array_filter(
-                ['dedupe_key', 'attempts', 'last_attempted_at'],
-                fn (string $column) => Schema::hasColumn('notification_deliveries', $column)
-            ));
-            if ($columns) $table->dropColumn($columns);
-        });
+        // Intentionally non-destructive: these columns are part of migration
+        // 000001 on fresh installs. This compatibility migration only repairs
+        // databases where 000001 had already run before the columns existed.
     }
 };

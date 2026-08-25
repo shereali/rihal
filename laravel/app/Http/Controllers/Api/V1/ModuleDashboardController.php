@@ -63,8 +63,8 @@ class ModuleDashboardController extends ApiController
     private function query(string $table, ?int $tenantId)
     {
         if ($tenantId === null || !Schema::hasTable($table)) return null;
-        $query = DB::table($table);
-        if (Schema::hasColumn($table, 'tenant_id')) $query->where('tenant_id', $tenantId);
+        if (!Schema::hasColumn($table, 'tenant_id')) return null;
+        $query = DB::table($table)->where('tenant_id', $tenantId);
         if (Schema::hasColumn($table, 'deleted_at')) $query->whereNull('deleted_at');
         return $query;
     }

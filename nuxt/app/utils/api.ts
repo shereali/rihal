@@ -27,18 +27,17 @@ apiClient.interceptors.response.use((response) => {
   return response
 })
 
-const baseURL = 'http://localhost:8000/api/v1'
-
 /**
- * Runtime-config–aware composable returning the configured API client.
+ * Returns the shared client whose baseURL is configured by api.client.ts from
+ * Nuxt runtimeConfig. Per-request config may still override it explicitly.
  */
 export function useApiClient() {
   return {
-    get: <T = any>(url: string, config?: any) => apiClient.get<T>(url, { baseURL, ...config }).then(res => res),
-    post: <T = any>(url: string, data?: any, config?: any) => apiClient.post<T>(url, data, { baseURL, ...config }).then(res => res),
-    put: <T = any>(url: string, data?: any, config?: any) => apiClient.put<T>(url, data, { baseURL, ...config }).then(res => res),
-    patch: <T = any>(url: string, data?: any, config?: any) => apiClient.patch<T>(url, data, { baseURL, ...config }).then(res => res),
-    delete: <T = any>(url: string, config?: any) => apiClient.delete<T>(url, { baseURL, ...config }).then(res => res),
+    get: <T = any>(url: string, config?: any) => apiClient.get<T>(url, config),
+    post: <T = any>(url: string, data?: any, config?: any) => apiClient.post<T>(url, data, config),
+    put: <T = any>(url: string, data?: any, config?: any) => apiClient.put<T>(url, data, config),
+    patch: <T = any>(url: string, data?: any, config?: any) => apiClient.patch<T>(url, data, config),
+    delete: <T = any>(url: string, config?: any) => apiClient.delete<T>(url, config),
   }
 }
 

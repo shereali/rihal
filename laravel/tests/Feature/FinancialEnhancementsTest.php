@@ -16,6 +16,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -61,6 +63,30 @@ class FinancialEnhancementsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonStructure(['data' => ['students', 'finance', 'loans', 'orphans', 'generated_at']]);
+    }
+
+    public function test_module_dashboard_does_not_aggregate_tables_without_tenant_scope(): void
+    {
+        Schema::dropIfExists('properties');
+        Schema::create('properties', function ($table) {
+            $table->id();
+            $table->string('name');
+        });
+        DB::table('properties')->insert(['name' => 'Cross-tenant probe']);
+
+        $this->getJson('/api/v1/module-dashboard', $this->headers)
+            ->assertOk()
+            ->assertJsonPath('data.properties.total', 0);
+    }
+
+    public function test_retry_migration_rollback_preserves_base_notification_columns(): void
+    {
+        $migration = require database_path('migrations/2026_08_25_000002_add_retry_fields_to_notification_deliveries.php');
+        $migration->down();
+
+        $this->assertTrue(Schema::hasColumn('notification_deliveries', 'dedupe_key'));
+        $this->assertTrue(Schema::hasColumn('notification_deliveries', 'attempts'));
+        $this->assertTrue(Schema::hasColumn('notification_deliveries', 'last_attempted_at'));
     }
 
     public function test_financial_apis_require_admin_role(): void
