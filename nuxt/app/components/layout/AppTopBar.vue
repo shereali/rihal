@@ -587,6 +587,17 @@ function handleSearch() {
 }
 .logout-link:hover { background: var(--color-error-bg); }
 
+@media (max-width: 768px) {
+  .mobile-menu-btn { display: flex; }
+  .topbar { padding: 0 .5rem; gap: .35rem; }
+  .topbar-left { flex: 0 0 auto; }
+  .topbar-right { min-width: 0; gap: .3rem; }
+  .topbar-search-wrap, .topbar-support, .language-button, .user-info, .user-menu-trigger > .icon-wrapper { display: none; }
+  .topbar-badge span { display: none; }
+  .topbar-badge, .new-action, .round-action, .user-menu-trigger { width: 36px; height: 36px; padding: 0; justify-content: center; }
+  .user-menu-trigger { border-radius: 50%; }
+  .user-avatar { width: 30px; height: 30px; }
+}
 @media (max-width: 900px) {
   .topbar-support { display: none; }
   .search-mode-toggle { display: none; }

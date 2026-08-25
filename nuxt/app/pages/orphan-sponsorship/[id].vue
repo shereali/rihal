@@ -112,18 +112,20 @@
         <h3>প্রদান ইতিবোধ্য</h3>
         <div v-if="loading" class="loading-state"><div class="spinner" /></div>
         <div v-else-if="(payments || []).length === 0" class="empty-state"><p>কোনো প্রদান নেই</p></div>
-        <table v-else class="table table-hover">
-          <thead><tr><th>তারিখ</th><th>পরিমাণ (৳)</th><th> উদ্দেশ্য</th><th>পদ্ধতি</th><th>রেফারেন্স</th></tr></thead>
-          <tbody>
-            <tr v-for="p in payments" :key="p.id">
-              <td>{{ p.payment_date }}</td>
-              <td>{{ p.amount ? Number(p.amount).toLocaleString('bn-BD') : 0 }}</td>
-              <td>{{ p.purpose_bn || '-' }}</td>
-              <td>{{ p.payment_method || '-' }}</td>
-              <td>{{ p.reference || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div v-else class="table-scroll">
+          <table class="table table-hover">
+            <thead><tr><th>তারিখ</th><th>পরিমাণ (৳)</th><th> উদ্দেশ্য</th><th>পদ্ধতি</th><th>রেফারেন্স</th></tr></thead>
+            <tbody>
+              <tr v-for="p in payments" :key="p.id">
+                <td>{{ p.payment_date }}</td>
+                <td>{{ p.amount ? Number(p.amount).toLocaleString('bn-BD') : 0 }}</td>
+                <td>{{ p.purpose_bn || '-' }}</td>
+                <td>{{ p.payment_method || '-' }}</td>
+                <td>{{ p.reference || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -275,9 +277,9 @@ onMounted(loadOrphan)
 .card { background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 12px; margin-bottom: 1.25rem; }
 .card h3 { margin: 0 0 1rem; padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--color-border-light); font-size: 1.05rem; font-family: 'Noto Sans Bengali', sans-serif; }
 .card-body { padding: 1.25rem; }
-.info-list { display: grid; grid-template-columns: 140px 1fr; gap: 0.5rem 1rem; font-family: 'Noto Sans Bengali', sans-serif; }
+.info-list { display: grid; grid-template-columns: minmax(120px, max-content) minmax(0, 1fr); gap: 0.5rem 1rem; font-family: 'Noto Sans Bengali', sans-serif; }
 .info-list dt { color: var(--color-text-light); font-size: 0.85rem; }
-.info-list dd { margin: 0; font-size: 0.95rem; }
+.info-list dd { margin: 0; font-size: 0.95rem; overflow-wrap: anywhere; }
 .badge { padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.75rem; font-family: 'Noto Sans Bengali', sans-serif; white-space: nowrap; }
 .badge-success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 .badge-warning { background: rgba(234, 179, 8, 0.15); color: #d97706; }
@@ -304,4 +306,15 @@ onMounted(loadOrphan)
 .alert { padding: 0.6rem 0.9rem; border-radius: 8px; margin-bottom: 0.75rem; font-family: 'Noto Sans Bengali', sans-serif; }
 .alert-error { background: #fde2e2; color: var(--color-error); }
 .alert-success { background: #dcfce8; color: #16a34a; }
+@media (max-width: 768px) {
+  .orphan-detail-page { padding: .25rem; }
+  .detail-grid { grid-template-columns: minmax(0, 1fr); gap: .875rem; }
+  .card { min-width: 0; overflow: hidden; }
+  .info-list { grid-template-columns: minmax(0, 1fr); padding: 0 1rem 1rem; }
+  .payment-form .form-row { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .sponsor-row { align-items: flex-start; flex-direction: column; }
+  .sponsor-form { padding: 1rem; }
+  .card > .table { display: block; max-width: 100%; overflow-x: auto; width: max-content; min-width: 100%; }
+  .page-header { align-items: flex-start; }
+}
 </style>

@@ -80,11 +80,36 @@ class BControllerTest extends TestCase
 
     public function test_exam_results_publish_and_unpublish(): void
     {
-        // Result needs: tenant_id, exam_id, student_id, session_id
-        // But results table has no is_published column — it has pass_fail_status
-        // The publish() method sets is_published which doesn't exist in migration
-        // Skip this test — it exercises a controller/migration mismatch
-        $this->markTestSkipped('Result model has is_published in controller but migration lacks this column');
+        $student = User::create([
+            'tenant_id' => $this->tenant->id,
+            'name_bn' => 'Test Student',
+            'email' => 'result-student@test.com',
+            'password' => Hash::make('password123'),
+            'role' => 'student',
+            'is_active' => true,
+        ]);
+        $exam = Exam::create([
+            'tenant_id' => $this->tenant->id,
+            'name_bn' => 'বার্ষিক পরীক্ষা',
+            'exam_type' => 'final',
+            'start_date' => '2026-08-01',
+        ]);
+        $result = Result::create([
+            'tenant_id' => $this->tenant->id,
+            'exam_id' => $exam->id,
+            'student_id' => $student->id,
+            'is_published' => false,
+        ]);
+
+        $this->patchJson("/api/v1/exam-results/{$result->id}/publish", [], $this->headers())
+            ->assertOk()
+            ->assertJsonPath('data.is_published', true);
+        $this->assertNotNull($result->fresh()->published_at);
+
+        $this->patchJson("/api/v1/exam-results/{$result->id}/unpublish", [], $this->headers())
+            ->assertOk()
+            ->assertJsonPath('data.is_published', false);
+        $this->assertNull($result->fresh()->published_at);
     }
 
     // ─── MarkEntryController Tests ───

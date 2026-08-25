@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar" :style="{ backgroundColor: tenantColor }">
+  <div class="sidebar" :class="{ open }" :style="{ backgroundColor: tenantColor }">
     <div class="sidebar-header">
       <div class="sidebar-brand">
         <div class="brand-logo">
@@ -15,7 +15,7 @@
           <span class="brand-subtitle">মাদ্রাসা ব্যবস্থাপনা</span>
         </div>
       </div>
-      <button class="sidebar-close" @click="showSidebar = false" title="Close sidebar">
+      <button class="sidebar-close" @click="emit('close')" title="Close sidebar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"/>
           <line x1="6" y1="6" x2="18" y2="18"/>
@@ -69,11 +69,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, toRefs } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 
+const props = withDefaults(defineProps<{ open?: boolean }>(), { open: false })
+const emit = defineEmits<{ (event: 'close'): void }>()
+const { open } = toRefs(props)
 const { currentUser, logout } = useAuth()
-const showSidebar = ref(true)
 const currentLanguage = ref('bn')
 
 const tenantColor = computed(() => '#145032')

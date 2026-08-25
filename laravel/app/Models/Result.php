@@ -19,6 +19,7 @@ class Result extends Model
         'class_position' => 'integer',
         'merit_list_position' => 'integer',
         'published_at' => 'datetime',
+        'is_published' => 'boolean',
         'parent_notified_at' => 'datetime',
         'subject_results' => 'array',
         'grade_distribution' => 'array',

@@ -1,9 +1,9 @@
 <template>
   <div class="default-layout">
-    <AppSidebar v-if="showSidebar" />
+    <AppSidebar v-if="showSidebar" :open="sidebarOpen" @close="sidebarOpen = false" />
 
     <div class="layout-main" :class="{ 'with-sidebar': showSidebar }">
-      <AppTopBar />
+      <AppTopBar @toggle-sidebar="sidebarOpen = !sidebarOpen" />
 
       <main class="layout-content">
         <slot />
@@ -18,6 +18,7 @@ import AppSidebar from '~/components/layout/AppSidebar.vue'
 import AppTopBar from '~/components/layout/AppTopBar.vue'
 
 const showSidebar = ref(true)
+const sidebarOpen = ref(false)
 </script>
 
 <style>
@@ -43,5 +44,15 @@ const showSidebar = ref(true)
   flex: 1;
   padding: 1.5rem;
   padding-top: calc(1.5rem + var(--header-height));
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .layout-main.with-sidebar { margin-left: 0; min-width: 0; }
+  .layout-content {
+    padding: .875rem;
+    padding-top: calc(.875rem + var(--header-height));
+    overflow-x: hidden;
+  }
 }
 </style>
