@@ -13,32 +13,44 @@
     <form @submit.prevent="handleSubmit" class="create-form card">
       <div class="form-group">
         <label>ছাত্র *</label>
-        <select v-model="form.student_id" :disabled="loading || students.length === 0">
+        <select v-model="form.student_id" :disabled="loading || students.length === 0" required>
           <option value="" disabled>ছাত্র নির্বাচন করুন</option>
-          <option v-for="s in students" :key="s.id" :value="s.id">{{ s.name_bn || s.name_en || s.email }}</option>
+          <option v-for="s in students" :key="s.id" :value="s.id">{{ s.name_bn || s.user?.name_bn || s.name_en || s.email }}</option>
         </select>
         <small v-if="students.length === 0" class="text-muted">কোনো ছাত্র নেই</small>
       </div>
+
       <div class="form-row">
         <div class="form-group">
-          <label>ক্লাস আইডি *</label>
-          <input v-model.number="form.class_id" type="number" placeholder="যেমন: 1" :disabled="loading" />
+          <label>শ্রেণি *</label>
+          <select v-model="form.class_id" :disabled="loading || classes.length === 0" @change="loadSections" required>
+            <option value="" disabled>শ্রেণি নির্বাচন করুন</option>
+            <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name_bn }}</option>
+          </select>
         </div>
         <div class="form-group">
-          <label>সেশন আইডি *</label>
-          <input v-model.number="form.session_id" type="number" placeholder="যেমন: 1" :disabled="loading" />
+          <label>সেশন / শিক্ষাবর্ষ *</label>
+          <select v-model="form.session_id" :disabled="loading || sessions.length === 0" required>
+            <option value="" disabled>সেশন নির্বাচন করুন</option>
+            <option v-for="ses in sessions" :key="ses.id" :value="ses.id">{{ ses.name_bn || ses.name_en || ses.year }}</option>
+          </select>
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
-          <label>সেকশন আইডি</label>
-          <input v-model.number="form.section_id" type="number" placeholder="ঐচ্ছিক" :disabled="loading" />
+          <label>শাখা / সেকশন</label>
+          <select v-model="form.section_id" :disabled="loading">
+            <option value="">সেকশন ছাড়া</option>
+            <option v-for="sec in sections" :key="sec.id" :value="sec.id">{{ sec.name_bn }}</option>
+          </select>
         </div>
         <div class="form-group">
           <label>ভর্তির তারিখ</label>
           <input v-model="form.enrollment_date" type="date" :disabled="loading" />
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>অবস্থা</label>
@@ -60,10 +72,12 @@
           </select>
         </div>
       </div>
+
       <div class="form-group">
         <label>মন্তব্য (বাংলা)</label>
         <textarea v-model="form.remarks_bn" rows="3" placeholder="ঐচ্ছিক মন্তব্য" :disabled="loading"></textarea>
       </div>
+
       <div class="form-actions">
         <button type="submit" class="btn btn-primary" :disabled="loading || !form.student_id || !form.class_id || !form.session_id">
           <span v-if="loading" class="spinner"></span>
@@ -83,11 +97,15 @@ const api = useApiClient()
 const { isAuthenticated } = useAuth()
 
 const students = ref<any[]>([])
+const classes = ref<any[]>([])
+const sessions = ref<any[]>([])
+const sections = ref<any[]>([])
+
 const form = ref({
   student_id: '' as string | number,
-  class_id: null as number | null,
-  session_id: null as number | null,
-  section_id: null as number | null,
+  class_id: '' as string | number,
+  session_id: '' as string | number,
+  section_id: '' as string | number,
   enrollment_date: new Date().toISOString().slice(0, 10),
   status: 'active',
   admission_type: 'regular',
@@ -98,11 +116,37 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 
-async function loadStudents() {
+async function loadData() {
   try {
-    const s = await api.get('/students').catch(() => ({ data: { data: [] } }))
-    students.value = s.data.data || []
-  } catch { /* ignore */ }
+    const [s, c, ses] = await Promise.all([
+      api.get('/students?per_page=100').catch(() => ({ data: { data: [] } })),
+      api.get('/academic/classes').catch(() => ({ data: { data: [] } })),
+      api.get('/settings/sessions').catch(() => ({ data: { data: [] } })),
+    ])
+    students.value = s.data?.data?.data || s.data?.data || []
+    classes.value = c.data?.data || []
+    sessions.value = ses.data?.data?.data || ses.data?.data || []
+    if (sessions.value.length === 0) {
+      sessions.value = [{ id: 1, name_bn: '২০২৬ শিক্ষাবর্ষ', year: 2026 }]
+      form.value.session_id = 1
+    } else {
+      form.value.session_id = sessions.value[0].id
+    }
+  } catch (err) {
+    console.error('Failed to load initial data:', err)
+  }
+}
+
+async function loadSections() {
+  sections.value = []
+  form.value.section_id = ''
+  if (!form.value.class_id) return
+  try {
+    const r = await api.get(`/academic/sections?class_id=${form.value.class_id}`)
+    sections.value = r.data?.data || []
+  } catch (err) {
+    console.error('Failed to load sections:', err)
+  }
 }
 
 async function handleSubmit() {
@@ -120,16 +164,20 @@ async function handleSubmit() {
       admission_type: form.value.admission_type,
       remarks_bn: form.value.remarks_bn || undefined,
     })
-    success.value = 'ভর্তি সফলভাবে যোগ করা হয়েছে!'
+    success.value = 'ভর্তি সফলভাবে সম্পন্ন হয়েছে!'
     setTimeout(() => navigateTo('/students'), 1200)
   } catch (e: any) {
-    error.value = e?.response?.data?.message ?? 'ভর্তি যোগ করা যায়নি'
+    error.value = e?.response?.data?.message ?? 'ভর্তি সংরক্ষণ করা যায়নি'
   } finally {
     loading.value = false
   }
 }
 
-if (isAuthenticated.value) onMounted(loadStudents)
+onMounted(() => {
+  if (isAuthenticated.value) {
+    loadData()
+  }
+})
 </script>
 
 <style scoped>
@@ -145,7 +193,7 @@ if (isAuthenticated.value) onMounted(loadStudents)
   padding: 0.7rem 0.9rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: 1rem;
   font-family: 'Noto Sans Bengali', sans-serif; background: var(--color-bg);
 }
-.form-actions { margin-top: 0.5rem; }
+.form-actions { margin-top: 0.5rem; display: flex; justify-content: flex-end; }
 .btn { padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; font-family: 'Noto Sans Bengali', sans-serif; }
 .btn-primary { background: var(--color-primary); color: var(--color-text-on-primary); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }

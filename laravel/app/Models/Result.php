@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Result extends Model
 {
+    use BelongsToTenant;
+
     use HasFactory, SoftDeletes;
 
     protected $guarded = [];
@@ -38,6 +42,11 @@ class Result extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function studentProfile(): BelongsTo
+    {
+        return $this->belongsTo(Student::class, 'student_id', 'user_id');
     }
 
     public function session(): BelongsTo

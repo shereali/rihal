@@ -125,8 +125,8 @@
           <tbody>
             <tr v-for="a in assignments" :key="a.id">
               <td class="student-cell">
-                <strong>{{ a.student?.user?.name_bn || a.student?.user?.name_en || '-' }}</strong>
-                <span class="text-muted">{{ a.student?.class?.name_bn || '-' }}</span>
+                <strong>{{ a.student_display_name }}</strong>
+                <span class="text-muted">{{ a.student_class }}</span>
               </td>
               <td class="text-center">
                 <span class="pickup-badge">
@@ -186,9 +186,9 @@ async function load() {
   loading.value = true
   try {
     const [students, routes, buses, ass] = await Promise.all([
-      api.get('/students?per_page=50'),
-      api.get('/transport/routes'),
-      api.get('/transport/buses'),
+      api.get('/students?per_page=50').catch(() => ({ data: { data: [] } })),
+      api.get('/transport/routes').catch(() => ({ data: { data: [] } })),
+      api.get('/transport/buses').catch(() => ({ data: { data: [] } })),
       api.get(`/transport/assignments?search=${search.value || ''}`),
     ])
     studentOptions.value = (students.data?.data?.data || students.data?.data || []).map((s: any) => ({
@@ -200,7 +200,8 @@ async function load() {
     busOptions.value = (buses.data?.data?.data || buses.data?.data || []).filter((b: any) => b.is_active !== false)
     assignments.value = (ass.data?.data?.data || ass.data?.data || []).map((a: any) => ({
       ...a,
-      student: (a.student && a.student.user !== undefined) ? a.student : undefined,
+      student_display_name: a.student?.name_bn || a.student?.user?.name_bn || a.student?.name_en || a.student?.user?.name_en || 'শিক্ষার্থী',
+      student_class: a.student?.enrollment?.class?.name_bn || a.student?.class?.name_bn || '—',
     }))
   } catch (e) { console.error(e) }
   finally { loading.value = false }

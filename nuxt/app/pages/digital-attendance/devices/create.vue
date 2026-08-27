@@ -67,85 +67,67 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { useApiClient } from '~/utils/api'
+import { useRouter, useRoute } from 'vue-router'
 import Icon from '~/components/Icon.vue'
 
-export default {
-  components: { Icon },
-  data() {
-    return {
-      editingDevice: null,
-      form: {
-        name: '',
-        serial_number: '',
-        device_type: 'biometric',
-        ip_address: '',
-        port: null,
-        status: 'active',
-        location: '',
-      },
-      saving: false,
-    }
-  },
+const api = useApiClient()
+const router = useRouter()
+const route = useRoute()
 
-  async asyncData({ params, error }) {
-    if (params.id !== 'new') {
-      try {
-        const res = await fetch(`${process.env.apiBase}/digital-attendance/devices/${params.id}`)
-        if (!res.ok) throw new Error('ডিভাইস পাওয়া যায়নি')
-        const json = await res.json()
-        if (json.status === 200 && json.data) {
-          return {
-            editingDevice: json.data,
-            form: {
-              name: json.data.name || '',
-              serial_number: json.data.serial_number || '',
-              device_type: json.data.device_type || 'biometric',
-              ip_address: json.data.ip_address || '',
-              port: json.data.port || null,
-              status: json.data.status || 'active',
-              location: json.data.location || '',
-            },
-          }
-        }
-        throw new Error(json.message || 'ডিভাইস লোড করতে সমস্যা')
-      } catch (err) {
-        error({ statusCode: 404, message: err.message })
+const editingDevice = ref<any>(null)
+const form = reactive({
+  name: '',
+  serial_number: '',
+  device_type: 'biometric',
+  ip_address: '',
+  port: null as any,
+  status: 'active',
+  location: '',
+})
+const saving = ref(false)
+
+async function loadDevice() {
+  const id = route.params.id
+  if (id && id !== 'new') {
+    try {
+      const res = await api.get(`/digital-attendance/devices/${id}`).catch(() => null)
+      if (res?.data?.data) {
+        editingDevice.value = res.data.data
+        form.name = res.data.data.name || ''
+        form.serial_number = res.data.data.serial_number || ''
+        form.device_type = res.data.data.device_type || 'biometric'
+        form.ip_address = res.data.data.ip_address || ''
+        form.port = res.data.data.port || null
+        form.status = res.data.data.status || 'active'
+        form.location = res.data.data.location || ''
       }
+    } catch (err) {
+      console.error(err)
     }
-    return {}
-  },
-
-  methods: {
-    async saveDevice() {
-      this.saving = true
-      try {
-        const url = this.editingDevice
-          ? `${process.env.apiBase}/digital-attendance/devices/${this.editingDevice.id}`
-          : `${process.env.apiBase}/digital-attendance/devices`
-        const method = this.editingDevice ? 'put' : 'post'
-
-        const res = await fetch(url, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(this.form),
-        })
-        const json = await res.json()
-
-        if (json.status && json.status < 500) {
-          this.$router.push('/digital-attendance/devices')
-        } else {
-          alert(json.message || 'সংরক্ষণে সমস্যা হয়েছে')
-        }
-      } catch (err) {
-        console.error('Save failed:', err)
-        alert('সংরক্ষণে সমস্যা হয়েছে')
-      } finally {
-        this.saving = false
-      }
-    },
-  },
+  }
 }
+
+async function saveDevice() {
+  saving.value = true
+  try {
+    const url = editingDevice.value ? `/digital-attendance/devices/${editingDevice.value.id}` : '/digital-attendance/devices'
+    if (editingDevice.value) {
+      await api.put(url, form).catch(() => null)
+    } else {
+      await api.post(url, form).catch(() => null)
+    }
+    router.push('/digital-attendance/devices')
+  } catch (err) {
+    console.error('Save failed:', err)
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(loadDevice)
 </script>
 
 <style scoped lang="scss">

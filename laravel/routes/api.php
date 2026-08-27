@@ -46,6 +46,11 @@ use App\Http\Controllers\Api\V1\PropertyVisitorController;
 use App\Http\Controllers\Api\V1\ReminderTaskController;
 use App\Http\Controllers\Api\V1\SettingsController;
 use App\Http\Controllers\Api\V1\TransportAssignmentController;
+use App\Http\Controllers\Api\V1\LessonEvaluationController;
+use App\Http\Controllers\Api\V1\AlumniController;
+use App\Http\Controllers\Api\V1\BoardingController;
+use App\Http\Controllers\Api\V1\AccountingController;
+use App\Http\Controllers\Api\V1\AdministrationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -241,11 +246,11 @@ Route::prefix('v1')->group(function () {
         Route::delete('/transport/buses/{id}', [TransportController::class, 'destroyBus']);
 
         // ─── HR ───────────────────────────────────────────────────────────────
-        Route::get('/hr/staff', [HRController::class, 'index']);
-        Route::post('/hr/staff', [HRController::class, 'store']);
-        Route::get('/hr/staff/{id}', [HRController::class, 'show']);
-        Route::put('/hr/staff/{id}', [HRController::class, 'update']);
-        Route::delete('/hr/staff/{id}', [HRController::class, 'destroy']);
+        Route::get('/hr/staff', [HRController::class, 'staff']);
+        Route::post('/hr/staff', [HRController::class, 'storeStaff']);
+        Route::get('/hr/staff/{id}', [HRController::class, 'showStaff']);
+        Route::put('/hr/staff/{id}', [HRController::class, 'updateStaff']);
+        Route::delete('/hr/staff/{id}', [HRController::class, 'destroyStaff']);
         Route::get('/hr/recruitments', [HRController::class, 'recruitments']);
         Route::post('/hr/recruitments', [HRController::class, 'storeRecruitment']);
         Route::put('/hr/recruitments/{id}', [HRController::class, 'updateRecruitment']);
@@ -273,6 +278,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/transport/assignments/{id}', [TransportAssignmentController::class, 'show']);
         Route::put('/transport/assignments/{id}', [TransportAssignmentController::class, 'update']);
         Route::delete('/transport/assignments/{id}', [TransportAssignmentController::class, 'destroy']);
+
+        // ─── Properties ───────────────────────────────────────────────────────
+        Route::get('/properties', [PropertyController::class, 'index']);
+        Route::post('/properties', [PropertyController::class, 'store']);
+        Route::get('/properties/summary', [PropertyController::class, 'summary']);
+        Route::get('/properties/{id}', [PropertyController::class, 'show']);
+        Route::put('/properties/{id}', [PropertyController::class, 'update']);
+        Route::delete('/properties/{id}', [PropertyController::class, 'destroy']);
 
         // ─── Property Documents ────────────────────────────────────────────────
         Route::get('/properties/{propertyId}/documents', [PropertyDocumentController::class, 'index']);
@@ -448,6 +461,66 @@ Route::prefix('v1')->group(function () {
         Route::get('/orphans/{id}', [OrphanController::class, 'show']);
         Route::put('/orphans/{id}', [OrphanController::class, 'update'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
         Route::delete('/orphans/{id}', [OrphanController::class, 'destroy'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+
+        // ─── Lesson Evaluations (সবক ও পাঠ মূল্যায়ন) ──────────────────────
+        Route::get('/lesson-evaluations/grid', [LessonEvaluationController::class, 'grid']);
+        Route::post('/lesson-evaluations/mark', [LessonEvaluationController::class, 'mark']);
+        Route::post('/lesson-evaluations/mark-bulk', [LessonEvaluationController::class, 'markBulk']);
+        Route::get('/lesson-evaluations/books', [LessonEvaluationController::class, 'books']);
+        Route::post('/lesson-evaluations/books', [LessonEvaluationController::class, 'storeBook']);
+        Route::delete('/lesson-evaluations/books/{id}', [LessonEvaluationController::class, 'destroyBook']);
+
+        // ─── Digital Attendance Suite (ডিজিটাল বায়োমেট্রিক ও ADMS) ───────────
+        Route::get('/digital-attendance/devices', [DigitalAttendanceController::class, 'devices']);
+        Route::post('/digital-attendance/devices', [DigitalAttendanceController::class, 'store']);
+        Route::post('/digital-attendance/devices/{id}/ping', [DigitalAttendanceController::class, 'ping']);
+        Route::post('/digital-attendance/tools/sync-time', [DigitalAttendanceController::class, 'syncTime']);
+        Route::post('/digital-attendance/tools/upload-users', [DigitalAttendanceController::class, 'uploadUsers']);
+        Route::post('/digital-attendance/tools/reboot', [DigitalAttendanceController::class, 'rebootDevice']);
+        Route::post('/digital-attendance/tools/clear-logs', [DigitalAttendanceController::class, 'clearDeviceLogs']);
+        Route::get('/digital-attendance/adms-commands', [DigitalAttendanceController::class, 'admsCommands']);
+        Route::post('/digital-attendance/adms-commands', [DigitalAttendanceController::class, 'storeAdmsCommand']);
+        Route::get('/digital-attendance/rfid-cards', [DigitalAttendanceController::class, 'rfidCards']);
+        Route::post('/digital-attendance/rfid-cards', [DigitalAttendanceController::class, 'storeRfidCard']);
+        Route::put('/digital-attendance/rfid-cards/{id}', [DigitalAttendanceController::class, 'updateRfidCard']);
+        Route::delete('/digital-attendance/rfid-cards/{id}', [DigitalAttendanceController::class, 'destroyRfidCard']);
+        Route::post('/digital-attendance/simulate-punch', [DigitalAttendanceController::class, 'simulatePunch']);
+
+        // ─── Alumni & Graduates (ফারেগীন ডিরেক্টরি) ───────────────────────────
+        Route::get('/alumni', [AlumniController::class, 'index']);
+        Route::post('/alumni', [AlumniController::class, 'store']);
+        Route::put('/alumni/{id}', [AlumniController::class, 'update']);
+        Route::delete('/alumni/{id}', [AlumniController::class, 'destroy']);
+
+        // ─── Boarding & Meals (বোর্ডিং বাজার ও মিল) ──────────────────────────
+        Route::get('/boarding/bazaar', [BoardingController::class, 'indexBazaar']);
+        Route::post('/boarding/bazaar', [BoardingController::class, 'storeBazaar']);
+        Route::delete('/boarding/bazaar/{id}', [BoardingController::class, 'destroyBazaar']);
+        Route::get('/boarding/meals', [BoardingController::class, 'meals']);
+        Route::post('/boarding/meals/bulk', [BoardingController::class, 'storeMealsBulk']);
+
+        // ─── Double-Entry Accounting (অ্যাকাউন্টিং ও সম্পদ) ───────────────────
+        Route::get('/accounting/chart', [AccountingController::class, 'chart']);
+        Route::post('/accounting/chart', [AccountingController::class, 'storeChartAccount']);
+        Route::get('/accounting/vouchers', [AccountingController::class, 'vouchers']);
+        Route::post('/accounting/vouchers', [AccountingController::class, 'storeVoucher']);
+        Route::get('/accounting/trial-balance', [AccountingController::class, 'trialBalance']);
+        Route::get('/accounting/fixed-assets', [AccountingController::class, 'fixedAssets']);
+        Route::post('/accounting/fixed-assets', [AccountingController::class, 'storeFixedAsset']);
+        Route::delete('/accounting/fixed-assets/{id}', [AccountingController::class, 'destroyFixedAsset']);
+
+        // ─── Administration & Complaints (প্রশাসন, অভিযোগ ও সহায়তা) ─────────
+        Route::get('/administration/complaints', [AdministrationController::class, 'complaints']);
+        Route::post('/administration/complaints', [AdministrationController::class, 'storeComplaint']);
+        Route::patch('/administration/complaints/{id}/toggle-resolve', [AdministrationController::class, 'toggleResolveComplaint']);
+        Route::get('/administration/duties', [AdministrationController::class, 'duties']);
+        Route::post('/administration/duties', [AdministrationController::class, 'storeDuty']);
+        Route::delete('/administration/duties/{id}', [AdministrationController::class, 'destroyDuty']);
+        Route::get('/administration/discharges', [AdministrationController::class, 'discharges']);
+        Route::post('/administration/discharges', [AdministrationController::class, 'storeDischarge']);
+        Route::get('/settings/needy', [AdministrationController::class, 'needy']);
+        Route::post('/settings/needy', [AdministrationController::class, 'storeNeedy']);
+        Route::post('/settings/cache/clear', [AdministrationController::class, 'clearCache']);
         });
     });
 });

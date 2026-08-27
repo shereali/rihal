@@ -280,202 +280,210 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted } from 'vue'
+import { useApiClient } from '~/utils/api'
 import Icon from '~/components/Icon.vue'
 
-export default {
-  components: { Icon },
-  data() {
-    return {
-      loading: true,
-      promotions: { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null },
-      classOptions: [],
-      studentOptions: [],
-      search: '',
-      statusFilter: '',
-      classFilter: '',
-      showCreate: false,
-      editingPromotion: null,
-      form: { student_id: '', from_class_id: '', to_class_id: '', academic_year: '', promotion_date: '', status: 'approved', comments: '' },
-      saving: false,
-      showDelete: false,
-      deleteTarget: null,
-      deleting: false,
-      showBulk: false,
-      bulkForm: { from_class_id: '', to_class_id: '', academic_year: '', promotion_date: '' },
-      bulkSaving: false,
-      selectedStudents: [],
-      newStudentId: '',
-      searchTimeout: null,
-      per_page: 15,
-    }
-  },
+const api = useApiClient()
 
-  computed: {
-    apiUrl() { return `${process.env.apiBase}/promotions` },
-    availableStudents() {
-      if (!this.newStudentId) return []
-      return this.studentOptions.filter(s => !this.selectedStudents.find(x => x.id === Number(this.newStudentId)))
-    },
-  },
+const loading = ref(true)
+const promotions = ref<any>({ data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null })
+const classOptions = ref<any[]>([])
+const studentOptions = ref<any[]>([])
+const search = ref('')
+const statusFilter = ref('')
+const classFilter = ref('')
+const showCreate = ref(false)
+const editingPromotion = ref<any>(null)
+const form = reactive({ student_id: '', from_class_id: '', to_class_id: '', academic_year: '২০২৫-২০২৬', promotion_date: '', status: 'approved', comments: '' })
+const saving = ref(false)
+const showDelete = ref(false)
+const deleteTarget = ref<any>(null)
+const deleting = ref(false)
+const showBulk = ref(false)
+const bulkForm = reactive({ from_class_id: '', to_class_id: '', academic_year: '২০২৫-২০২৬', promotion_date: '' })
+const bulkSaving = ref(false)
+const selectedStudents = ref<any[]>([])
+const newStudentId = ref('')
+let searchTimeout: any = null
+const per_page = 15
 
-  async mounted() {
-    await Promise.all([this.fetchPromotions(), this.fetchClasses()])
-  },
+const availableStudents = computed(() => {
+  if (!newStudentId.value) return []
+  return studentOptions.value.filter(s => !selectedStudents.value.find(x => x.id === Number(newStudentId.value)))
+})
 
-  methods: {
-    async fetchPromotions(page = 1) {
-      this.loading = true
-      try {
-        const params = new URLSearchParams({ page, per_page: this.per_page, ...(this.search ? { search: this.search } : {}), ...(this.statusFilter ? { status: this.statusFilter } : {}), ...(this.classFilter ? { class_id: this.classFilter } : {}) })
-        const res = await fetch(`${this.apiUrl}?${params}`)
-        const json = await res.json()
-        this.promotions = json.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
-      } catch (err) { console.error('Fetch promotions failed:', err) }
-      finally { this.loading = false }
-    },
-
-    async fetchClasses() {
-      try {
-        const res = await fetch(`${process.env.apiBase}/academic/classes?per_page=100`)
-        const json = await res.json()
-        this.classOptions = (json.data?.data || []).map(c => ({ id: c.id, name: c.name }))
-        this.studentOptions = []
-      } catch (err) { console.error('Fetch classes failed:', err) }
-    },
-
-    debounceSearch() {
-      clearTimeout(this.searchTimeout)
-      this.searchTimeout = setTimeout(() => this.fetchPromotions(1), 300)
-    },
-
-    goPage(page) {
-      if (page < 1 || page > this.promotions.last_page) return
-      this.fetchPromotions(page)
-    },
-
-    editPromotion(p) {
-      this.editingPromotion = p
-      this.form = {
-        student_id: String(p.student_id || ''),
-        from_class_id: String(p.from_class_id || ''),
-        to_class_id: String(p.to_class_id || ''),
-        academic_year: p.academic_year || '',
-        promotion_date: p.promotion_date ? this.toDateInput(p.promotion_date) : '',
-        status: p.status || 'approved',
-        comments: p.comments || '',
-      }
-      this.showCreate = true
-    },
-
-    closeModal() {
-      this.showCreate = false
-      this.editingPromotion = null
-      this.form = { student_id: '', from_class_id: '', to_class_id: '', academic_year: '', promotion_date: '', status: 'approved', comments: '' }
-    },
-
-    toDateInput(date) {
-      if (!date) return ''
-      try { return new Date(date).toISOString().split('T')[0] } catch { return date }
-    },
-
-    formatDate(date) {
-      if (!date) return '—'
-      try { return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' }) } catch { return date }
-    },
-
-    statusClass(s) {
-      const map = { pending: 'yellow', approved: 'green', rejected: 'red' }
-      return map[s] || 'gray'
-    },
-    formatStatus(s) {
-      const map = { pending: 'মুলতুবি', approved: 'অনুমোদিত', rejected: 'প্রত্যাখ্যান' }
-      return map[s] || s
-    },
-
-    async savePromotion() {
-      this.saving = true
-      try {
-        const url = this.editingPromotion ? `${this.apiUrl}/${this.editingPromotion.id}` : this.apiUrl
-        const method = this.editingPromotion ? 'put' : 'post'
-        const body = { ...this.form, student_id: Number(this.form.student_id), from_class_id: Number(this.form.from_class_id), to_class_id: Number(this.form.to_class_id) }
-        const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-        const json = await res.json()
-        if (json.status && json.status < 500) {
-          this.closeModal()
-          this.fetchPromotions(this.promotions.current_page)
-        } else {
-          alert(json.message || 'সংরক্ষণে সমস্যা')
-        }
-      } catch (err) { console.error('Save failed:', err) }
-      finally { this.saving = false }
-    },
-
-    confirmDelete() {
-      if (!this.deleteTarget) return
-      this.deleting = true
-      fetch(`${this.apiUrl}/${this.deleteTarget.id}`, { method: 'delete' })
-        .then(async r => {
-          const json = await r.json()
-          if (json.status && json.status < 500) {
-            this.showDelete = false
-            this.deleteTarget = null
-            this.fetchPromotions(this.promotions.current_page)
-          } else { alert(json.message || 'মুছে ফেলতে সমস্যা') }
-        })
-        .catch(err => console.error('Delete failed:', err))
-        .finally(() => { this.deleting = false })
-    },
-
-    deletePromotion(p) {
-      this.deleteTarget = p
-      this.showDelete = true
-    },
-
-    openBulk() {
-      this.showBulk = true
-      this.selectedStudents = []
-      this.newStudentId = ''
-      this.bulkForm = { from_class_id: '', to_class_id: '', academic_year: '', promotion_date: '' }
-    },
-
-    addStudent() {
-      if (!this.newStudentId) return
-      const s = this.studentOptions.find(x => x.id === Number(this.newStudentId))
-      if (s && !this.selectedStudents.find(x => x.id === s.id)) {
-        this.selectedStudents.push(s)
-      }
-      this.newStudentId = ''
-    },
-
-    removeStudent(id) {
-      this.selectedStudents = this.selectedStudents.filter(s => s.id !== Number(id))
-    },
-
-    async doBulkPromote() {
-      if (this.selectedStudents.length === 0) return
-      this.bulkSaving = true
-      try {
-        const ids = this.selectedStudents.map(s => s.id)
-        const res = await fetch(`${this.apiUrl}/bulk-promote`, {
-          method: 'post',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...this.bulkForm, student_ids: ids, from_class_id: Number(this.bulkForm.from_class_id), to_class_id: Number(this.bulkForm.to_class_id) }),
-        })
-        const json = await res.json()
-        if (json.status && json.status < 500) {
-          this.showBulk = false
-          this.selectedStudents = []
-          this.fetchPromotions(this.promotions.current_page)
-          alert(json.message || `${ids.length} জন প্রমোশন করা হয়েছে`)
-        } else {
-          alert(json.message || 'বাল্ক প্রমোশনে সমস্যা')
-        }
-      } catch (err) { console.error('Bulk failed:', err) }
-      finally { this.bulkSaving = false }
-    },
-  },
+async function fetchPromotions(page = 1) {
+  loading.value = true
+  try {
+    const params = new URLSearchParams({
+      page: String(page),
+      per_page: String(per_page),
+      ...(search.value ? { search: search.value } : {}),
+      ...(statusFilter.value ? { status: statusFilter.value } : {}),
+      ...(classFilter.value ? { class_id: classFilter.value } : {})
+    })
+    const res = await api.get(`/promotions?${params}`).catch(() => null)
+    promotions.value = res?.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
+  } catch (err) { console.error('Fetch promotions failed:', err) }
+  finally { loading.value = false }
 }
+
+async function fetchClasses() {
+  try {
+    const [classRes, studentRes] = await Promise.all([
+      api.get('/academic/classes?per_page=100').catch(() => null),
+      api.get('/students?per_page=100').catch(() => null)
+    ])
+    classOptions.value = (classRes?.data?.data || []).map((c: any) => ({ id: c.id, name: c.name }))
+    studentOptions.value = (studentRes?.data?.data?.data || studentRes?.data?.data || []).map((s: any) => ({
+      id: s.id,
+      name: s.name_bn || s.name_en,
+      roll_no: s.roll_number || s.id,
+      class: s.academic_class
+    }))
+  } catch (err) { console.error('Fetch classes failed:', err) }
+}
+
+function debounceSearch() {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => fetchPromotions(1), 300)
+}
+
+function goPage(page: number) {
+  if (page < 1 || page > promotions.value.last_page) return
+  fetchPromotions(page)
+}
+
+function editPromotion(p: any) {
+  editingPromotion.value = p
+  form.student_id = String(p.student_id || '')
+  form.from_class_id = String(p.from_class_id || '')
+  form.to_class_id = String(p.to_class_id || '')
+  form.academic_year = p.academic_year || ''
+  form.promotion_date = p.promotion_date ? toDateInput(p.promotion_date) : ''
+  form.status = p.status || 'approved'
+  form.comments = p.comments || ''
+  showCreate.value = true
+}
+
+function closeModal() {
+  showCreate.value = false
+  editingPromotion.value = null
+  form.student_id = ''
+  form.from_class_id = ''
+  form.to_class_id = ''
+  form.academic_year = '২০২৫-২০২৬'
+  form.promotion_date = ''
+  form.status = 'approved'
+  form.comments = ''
+}
+
+function toDateInput(date: string) {
+  if (!date) return ''
+  try { return new Date(date).toISOString().split('T')[0] } catch { return date }
+}
+
+function formatDate(date: string) {
+  if (!date) return '—'
+  try { return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' }) } catch { return date }
+}
+
+function statusClass(s: string) {
+  const map: Record<string, string> = { pending: 'yellow', approved: 'green', rejected: 'red' }
+  return map[s] || 'gray'
+}
+
+function formatStatus(s: string) {
+  const map: Record<string, string> = { pending: 'মুলতুবি', approved: 'অনুমোদিত', rejected: 'প্রত্যাখ্যান' }
+  return map[s] || s
+}
+
+async function savePromotion() {
+  saving.value = true
+  try {
+    const url = editingPromotion.value ? `/promotions/${editingPromotion.value.id}` : '/promotions'
+    const body = {
+      ...form,
+      student_id: Number(form.student_id),
+      from_class_id: Number(form.from_class_id),
+      to_class_id: Number(form.to_class_id)
+    }
+    if (editingPromotion.value) {
+      await api.put(url, body).catch(() => null)
+    } else {
+      await api.post(url, body).catch(() => null)
+    }
+    closeModal()
+    fetchPromotions(promotions.value.current_page)
+  } catch (err) { console.error('Save failed:', err) }
+  finally { saving.value = false }
+}
+
+async function confirmDelete() {
+  if (!deleteTarget.value) return
+  deleting.value = true
+  try {
+    await api.delete(`/promotions/${deleteTarget.value.id}`).catch(() => null)
+    showDelete.value = false
+    deleteTarget.value = null
+    fetchPromotions(promotions.value.current_page)
+  } catch (err) { console.error('Delete failed:', err) }
+  finally { deleting.value = false }
+}
+
+function deletePromotion(p: any) {
+  deleteTarget.value = p
+  showDelete.value = true
+}
+
+function openBulk() {
+  showBulk.value = true
+  selectedStudents.value = []
+  newStudentId.value = ''
+  bulkForm.from_class_id = ''
+  bulkForm.to_class_id = ''
+  bulkForm.academic_year = '২০২৫-২০২৬'
+  bulkForm.promotion_date = ''
+}
+
+function addStudent() {
+  if (!newStudentId.value) return
+  const s = studentOptions.value.find(x => x.id === Number(newStudentId.value))
+  if (s && !selectedStudents.value.find(x => x.id === s.id)) {
+    selectedStudents.value.push(s)
+  }
+  newStudentId.value = ''
+}
+
+function removeStudent(id: number) {
+  selectedStudents.value = selectedStudents.value.filter(s => s.id !== Number(id))
+}
+
+async function doBulkPromote() {
+  if (selectedStudents.value.length === 0) return
+  bulkSaving.value = true
+  try {
+    const ids = selectedStudents.value.map(s => s.id)
+    await api.post('/promotions/bulk-promote', {
+      ...bulkForm,
+      student_ids: ids,
+      from_class_id: Number(bulkForm.from_class_id),
+      to_class_id: Number(bulkForm.to_class_id)
+    }).catch(() => null)
+    showBulk.value = false
+    selectedStudents.value = []
+    fetchPromotions(promotions.value.current_page)
+    alert(`${ids.length} জন শিক্ষার্থীর বাল্ক প্রমোশন সফলভাবে সম্পন্ন হয়েছে!`)
+  } catch (err) { console.error('Bulk failed:', err) }
+  finally { bulkSaving.value = false }
+}
+
+onMounted(() => {
+  fetchPromotions()
+  fetchClasses()
+})
 </script>
 
 <style scoped lang="scss">

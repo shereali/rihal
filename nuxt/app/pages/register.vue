@@ -66,6 +66,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 
+definePageMeta({
+  layout: 'auth',
+})
+
 const { register, isAuthenticated } = useAuth()
 const form = ref({
   name_bn: '', name_en: '', email: '',

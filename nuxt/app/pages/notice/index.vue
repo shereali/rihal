@@ -6,7 +6,7 @@
         <p class="text-muted">{{ notices?.data?.meta?.total || 0 }}টি বিজ্ঞপ্তি</p>
       </div>
       <NuxtLink to="/notice/create" class="btn btn-primary">
-        <icon :name="mdiPlus" /> নতুন বিজ্ঞপ্তি
+        <icon name="plus" /> নতুন বিজ্ঞপ্তি
       </NuxtLink>
     </div>
 
@@ -29,9 +29,9 @@
                 <icon :name="getTypeIcon(notice.type)" />
                 {{ notice.type === 'notice' ? 'বিজ্ঞপ্তি' : notice.type === 'announcement' ? 'ঘোষণা' : 'সতর্কবার্তা' }}
               </div>
-              <div v-if="notice.is_pinned" class="pinned-badge"><icon :name="mdiPushPin" /> পিন করা হয়েছে</div>
+              <div v-if="notice.is_pinned" class="pinned-badge"><icon name="pin" /> পিন করা হয়েছে</div>
               <NuxtLink :to="`/notice/${notice.id}/edit`" class="btn-icon btn-icon-sm">
-                <icon :name="mdiPencil" />
+                <icon name="pencil" />
               </NuxtLink>
             </div>
 
@@ -41,11 +41,11 @@
             </div>
 
             <div class="notice-card-footer">
-              <span class="notice-meta"><icon :name="mdiCalendar" /> {{ formatDate(notice.published_at) }}</span>
-              <span class="notice-meta"><icon :name="mdiAccount" /> {{ notice.created_by_user?.name_bn || 'অজ্ঞাত' }}</span>
+              <span class="notice-meta"><icon name="calendar" /> {{ formatDate(notice.published_at) }}</span>
+              <span class="notice-meta"><icon name="account" /> {{ notice.created_by_user?.name_bn || 'অজ্ঞাত' }}</span>
               <div class="notice-actions">
                 <span v-if="notice.read_by_count !== undefined" class="read-count">{{ notice.read_by_count }} জন পড়েছে</span>
-                <NuxtLink :to="`/notice/${notice.id}`" class="btn btn-sm btn-primary"><icon :name="mdiEye" /> দেখুন</NuxtLink>
+                <NuxtLink :to="`/notice/${notice.id}`" class="btn btn-sm btn-primary"><icon name="eye" /> দেখুন</NuxtLink>
               </div>
             </div>
           </article>

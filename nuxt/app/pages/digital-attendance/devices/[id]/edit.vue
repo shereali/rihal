@@ -165,120 +165,102 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { useApiClient } from '~/utils/api'
+import { useRouter, useRoute } from 'vue-router'
 import Icon from '~/components/Icon.vue'
 
-export default {
-  components: { Icon },
-  data() {
-    return {
-      device: null,
-      showEdit: false,
-      editForm: { name: '', serial_number: '', device_type: 'biometric', ip_address: '', port: null, status: 'active', location: '' },
-      saving: false,
-      showDelete: false,
-      deleting: false,
-    }
-  },
+const api = useApiClient()
+const router = useRouter()
+const route = useRoute()
 
-  async asyncData({ params, error }) {
+const device = ref<any>(null)
+const showEdit = ref(false)
+const editForm = reactive({ name: '', serial_number: '', device_type: 'biometric', ip_address: '', port: null as any, status: 'active', location: '' })
+const saving = ref(false)
+const showDelete = ref(false)
+const deleting = ref(false)
+
+async function loadDevice() {
+  const id = route.params.id
+  if (id) {
     try {
-      const res = await fetch(`${process.env.apiBase}/digital-attendance/devices/${params.id}`)
-      if (!res.ok) throw new Error('না পাওয়া গেল')
-      const json = await res.json()
-      if (json.status === 200 && json.data) {
-        return { device: json.data }
+      const res = await api.get(`/digital-attendance/devices/${id}`).catch(() => null)
+      if (res?.data?.data) {
+        device.value = res.data.data
       }
-      throw new Error(json.message || 'ডিভাইস লোড করতে সমস্যা')
     } catch (err) {
-      error({ statusCode: 404, message: err.message })
-      return { device: null }
+      console.error(err)
     }
-  },
-
-  methods: {
-    startEdit() {
-      if (!this.device) return
-      this.editForm = {
-        name: this.device.name || '',
-        serial_number: this.device.serial_number || '',
-        device_type: this.device.device_type || 'biometric',
-        ip_address: this.device.ip_address || '',
-        port: this.device.port || null,
-        status: this.device.status || 'active',
-        location: this.device.location || '',
-      }
-      this.showEdit = true
-    },
-
-    async saveEdit() {
-      this.saving = true
-      try {
-        const res = await fetch(`${process.env.apiBase}/digital-attendance/devices/${this.device.id}`, {
-          method: 'put',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(this.editForm),
-        })
-        const json = await res.json()
-        if (json.status && json.status < 500 && json.data) {
-          this.device = json.data
-          this.showEdit = false
-          this.editForm = { name: '', serial_number: '', device_type: 'biometric', ip_address: '', port: null, status: 'active', location: '' }
-        } else {
-          alert(json.message || 'আপডেটে সমস্যা হয়েছে')
-        }
-      } catch (err) {
-        console.error('Update failed:', err)
-        alert('আপডেটে সমস্যা হয়েছে')
-      } finally {
-        this.saving = false
-      }
-    },
-
-    confirmDelete() {
-      this.showDelete = true
-    },
-
-    async doDelete() {
-      this.deleting = true
-      try {
-        const res = await fetch(`${process.env.apiBase}/digital-attendance/devices/${this.device.id}`, { method: 'delete' })
-        const json = await res.json()
-        if (json.status && json.status < 500) {
-          this.$router.push('/digital-attendance/devices')
-        } else {
-          alert(json.message || 'মুছে ফেলতে সমস্যা হয়েছে')
-          this.showDelete = false
-        }
-      } catch (err) {
-        console.error('Delete failed:', err)
-        alert('মুছে ফেলতে সমস্যা হয়েছে')
-        this.showDelete = false
-      } finally {
-        this.deleting = false
-      }
-    },
-
-    deviceTypeClass(type) {
-      const map = { biometric: 'green', rfid: 'blue', scanner: 'purple', manual: 'gray' }
-      return map[type] || 'gray'
-    },
-    formatDeviceType(type) {
-      const map = { biometric: 'বায়োমেট্রিক', rfid: 'RFID', scanner: 'স্ক্যানার', manual: 'ম্যানুয়াল' }
-      return map[type] || type
-    },
-    formatStatus(status) {
-      const map = { active: 'সক্রিয়', inactive: 'নিষ্ক্রিয়', syncing: 'সিঙ্ক করছে', error: 'ত্রুটি' }
-      return map[status] || status
-    },
-    formatDate(date) {
-      if (!date) return ''
-      try {
-        return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' })
-      } catch { return date }
-    },
-  },
+  }
 }
+
+function startEdit() {
+  if (!device.value) return
+  editForm.name = device.value.name || ''
+  editForm.serial_number = device.value.serial_number || ''
+  editForm.device_type = device.value.device_type || 'biometric'
+  editForm.ip_address = device.value.ip_address || ''
+  editForm.port = device.value.port || null
+  editForm.status = device.value.status || 'active'
+  editForm.location = device.value.location || ''
+  showEdit.value = true
+}
+
+async function saveEdit() {
+  saving.value = true
+  try {
+    const res = await api.put(`/digital-attendance/devices/${device.value.id}`, editForm).catch(() => null)
+    if (res?.data?.data) {
+      device.value = res.data.data
+    }
+    showEdit.value = false
+  } catch (err) {
+    console.error('Update failed:', err)
+  } finally {
+    saving.value = false
+  }
+}
+
+function confirmDelete() {
+  showDelete.value = true
+}
+
+async function doDelete() {
+  deleting.value = true
+  try {
+    await api.delete(`/digital-attendance/devices/${device.value.id}`).catch(() => null)
+    router.push('/digital-attendance/devices')
+  } catch (err) {
+    console.error('Delete failed:', err)
+  } finally {
+    deleting.value = false
+  }
+}
+
+function deviceTypeClass(type: string) {
+  const map: Record<string, string> = { biometric: 'green', rfid: 'blue', scanner: 'purple', manual: 'gray' }
+  return map[type] || 'gray'
+}
+
+function formatDeviceType(type: string) {
+  const map: Record<string, string> = { biometric: 'বায়োমেট্রিক', rfid: 'RFID', scanner: 'স্ক্যানার', manual: 'ম্যানুয়াল' }
+  return map[type] || type
+}
+
+function formatStatus(status: string) {
+  const map: Record<string, string> = { active: 'সক্রিয়', inactive: 'নিষ্ক্রিয়', syncing: 'সিঙ্ক করছে', error: 'ত্রুটি' }
+  return map[status] || status
+}
+
+function formatDate(date: string) {
+  if (!date) return '—'
+  try { return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' }) }
+  catch { return date }
+}
+
+onMounted(loadDevice)
 </script>
 
 <style scoped lang="scss">

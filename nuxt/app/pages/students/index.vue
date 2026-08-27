@@ -58,8 +58,8 @@
                   <span class="text-muted" v-else>-</span>
                 </td>
                 <td>
-                  <span class="badge" :class="getClassBadge(student.class?.name_bn || student.class_name || 'unknown')">
-                    {{ student.class?.name_bn || student.class_name }}
+                  <span class="badge" :class="getClassBadge(student.enrollments?.[0]?.class?.name_bn || student.class?.name_bn || student.class_name || 'unknown')">
+                    {{ student.enrollments?.[0]?.class?.name_bn || student.class?.name_bn || student.class_name }}
                   </span>
                 </td>
                 <td>
@@ -75,11 +75,11 @@
                 </td>
                 <td>
                   <div class="btn-group btn-group-sm">
-                    <NuxtLink :to="`/students/${student.id}`" class="btn btn-outline">
-                      <icon :name="mdiEye" />
+                    <NuxtLink :to="`/students/${student.id}`" class="btn btn-outline" title="দেখুন">
+                      <icon name="eye" :size="16" />
                     </NuxtLink>
-                    <NuxtLink :to="`/students/${student.id}/edit`" class="btn btn-outline">
-                      <icon :name="mdiPencil" />
+                    <NuxtLink :to="`/students/${student.id}/edit`" class="btn btn-outline" title="সম্পাদনা">
+                      <icon name="pencil" :size="16" />
                     </NuxtLink>
                   </div>
                 </td>

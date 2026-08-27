@@ -2,14 +2,14 @@
   <div class="notice-show">
     <div class="page-header">
       <NuxtLink to="/notice" class="btn btn-outline btn-sm">
-        <icon :name="mdiArrowLeft" /> ফিরে যান
+        <icon name="arrow-left" /> ফিরে যান
       </NuxtLink>
       <div class="header-actions">
         <NuxtLink :to="`/notice/${notice?.id}/edit`" class="btn btn-primary btn-sm">
-          <icon :name="mdiPencil" /> সম্পাদনা
+          <icon name="pencil" /> সম্পাদনা
         </NuxtLink>
         <button class="btn btn-outline-danger btn-sm" @click="confirmDelete">
-          <icon :name="mdiDelete" /> মুছুন
+          <icon name="delete" /> মুছুন
         </button>
       </div>
     </div>
@@ -30,13 +30,13 @@
           <span v-if="notice.priority" class="badge" :class="getPriorityBadge(notice.priority)">
             {{ { urgent:'জরুরি', high:'উচ্চ', normal:'সাধারণ', low:'নিম্ন' }[notice.priority] || 'সাধারণ' }}
           </span>
-          <span v-if="notice.is_pinned" class="pinned-badge"><icon :name="mdiPushPin" /> পিন করা</span>
+          <span v-if="notice.is_pinned" class="pinned-badge"><icon name="pin" /> পিন করা</span>
         </div>
         <h1 class="notice-title">{{ notice.title_bn }}</h1>
         <p v-if="notice.title_en && notice.title_en !== notice.title_bn" class="notice-title-en">{{ notice.title_en }}</p>
         <p class="notice-meta-bottom">
-          <span><icon :name="mdiAccount" /> {{ notice.creator?.name_bn || 'অজ্ঞাত' }}</span>
-          <span v-if="notice.read_by_count !== undefined"><icon :name="mdiEye" /> {{ notice.read_by_count }} জন পড়েছে</span>
+          <span><icon name="account" /> {{ notice.creator?.name_bn || 'অজ্ঞাত' }}</span>
+          <span v-if="notice.read_by_count !== undefined"><icon name="eye" /> {{ notice.read_by_count }} জন পড়েছে</span>
         </p>
       </header>
 
@@ -57,11 +57,11 @@
 
       <footer class="notice-footer">
         <div class="notice-footer-info">
-          <span><icon :name="mdiCalendar" /> প্রকাশিত: {{ formatDateTime(notice.published_at) }}</span>
-          <span v-if="notice.scheduled_at"><icon :name="mdiClock" /> নির্ধারিত: {{ formatDate(notice.scheduled_at) }}</span>
-          <span v-if="notice.expired_at"><icon :name="mdiCancel" /> মেয়াদ শেষ: {{ formatDate(notice.expired_at) }}</span>
-          <span><icon :name="mdiTag" /> বিভাগ: {{ notice.category || 'সাধারণ' }}</span>
-          <span><icon :name="mdiLock" /> অবস্থা: {{ notice.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span>
+          <span><icon name="calendar" /> প্রকাশিত: {{ formatDateTime(notice.published_at) }}</span>
+          <span v-if="notice.scheduled_at"><icon name="clock" /> নির্ধারিত: {{ formatDate(notice.scheduled_at) }}</span>
+          <span v-if="notice.expired_at"><icon name="cancel" /> মেয়াদ শেষ: {{ formatDate(notice.expired_at) }}</span>
+          <span><icon name="tag" /> বিভাগ: {{ notice.category || 'সাধারণ' }}</span>
+          <span><icon name="lock" /> অবস্থা: {{ notice.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span>
         </div>
         <div v-if="notice.target_audience?.length" class="notice-audience">
           <h4 class="audience-heading">লক্ষ্য শ্রোতা</h4>
@@ -77,7 +77,7 @@
       <div class="card-body">
         <div class="attachments-grid">
           <a v-for="file in notice.attachments" :key="file" :href="file" target="_blank" class="attachment-item" download>
-            <icon :name="mdiOpenInNew" /><span class="attachment-name">{{ file.split('/').pop() }}</span>
+            <icon name="external" /><span class="attachment-name">{{ file.split('/').pop() }}</span>
           </a>
         </div>
       </div>

@@ -67,7 +67,12 @@
 </template>
 
 <script setup lang="ts">
+import { reactive, ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+
+definePageMeta({
+  layout: 'auth',
+})
 
 const form = reactive({
   email: '',
@@ -89,7 +94,10 @@ async function handleLogin() {
   try {
     await login(form)
     success.value = 'সফলভাবে লগইন হয়েছে...'
-    setTimeout(() => { success.value = '' }, 2000)
+    setTimeout(() => { 
+      success.value = ''
+      navigateTo('/dashboard') 
+    }, 1500)
   } catch (err: any) {
     error.value = err?.response?.data?.message ?? 'লগইন ব্যর্থ হয়েছে। ইমেইল ও পাসওয়ার্ড যাচাই করুন।'
   } finally {

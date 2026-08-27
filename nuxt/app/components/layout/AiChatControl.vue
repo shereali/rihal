@@ -15,7 +15,7 @@
               <Icon name="close" size="18" />
             </button>
           </div>
-          <div class="ai-chat-body">
+          <div ref="chatBodyRef" class="ai-chat-body">
             <div class="ai-message ai-message-bot">
               <p>হ্যালো! আমি রিহালের আর্টিফিশিয়াল ইন্টেলিজেন্স সহায়ক। আপনাকে কীভাবে সাহায্য করতে পারি?</p>
             </div>
@@ -59,23 +59,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 
 const open = ref(false)
 const userMessage = ref('')
-const chatHistory: { role: 'bot' | 'user', text: string }[] = ref([])
+const chatBodyRef = ref<HTMLElement | null>(null)
+const chatHistory = ref<{ role: 'bot' | 'user', text: string }[]>([])
+
+function scrollToBottom() {
+  nextTick(() => {
+    if (chatBodyRef.value) {
+      chatBodyRef.value.scrollTop = chatBodyRef.value.scrollHeight
+    }
+  })
+}
 
 function sendMessage() {
   if (!userMessage.value.trim()) return
   chatHistory.value.push({ role: 'user', text: userMessage.value.trim() })
   userMessage.value = ''
+  scrollToBottom()
   // Simulate a bot reply
   setTimeout(() => {
     chatHistory.value.push({
       role: 'bot',
-      text: 'ধন্যবাদ! আপনার প্রশ্নটি রেকর্ড হয়েছে। আসল AI সংযোগ সক্ষম হওয়ার পর এই অংশ স্বয়ংক্রিয়ভাবে উত্তর দেবে।',
+      text: 'ধন্যবাদ! আপনার প্রশ্নটি রেকর্ড হয়েছে। শীঘ্রই উত্তর প্রদান করা হবে।',
     })
-  }, 600)
+    scrollToBottom()
+  }, 500)
 }
 
 // Close on Escape

@@ -128,8 +128,8 @@ onMounted(async () => {
   if (isAdmin.value) {
     try {
       const [cs, us] = await Promise.all([
-        api.get('/academic/classes'),
-        api.get('/users'),
+        api.get('/academic/classes').catch(() => ({ data: { data: [] } })),
+        api.get('/users').catch(() => ({ data: { data: [] } })),
       ])
       classes.value = cs.data?.data || []
       users.value = us.data?.data || []

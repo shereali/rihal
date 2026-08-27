@@ -55,7 +55,7 @@ class TeacherAssignmentController extends ApiController
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'teacher_id' => 'required|integer|exists:teachers,id',
+            'teacher_id' => 'required|integer',
             'class_id' => 'required|integer',
             'section_id' => 'nullable|integer',
             'subject_id' => 'nullable|integer',
@@ -77,6 +77,12 @@ class TeacherAssignmentController extends ApiController
         $data['status'] = $data['status'] ?? 'active';
         $data['is_active'] = $data['is_active'] ?? true;
         $data['assigned_at'] = $data['assigned_at'] ?? now();
+
+        // Resolve teacher record ID to user ID if necessary
+        $teacher = \App\Models\Teacher::find($data['teacher_id']);
+        if ($teacher && $teacher->user_id) {
+            $data['teacher_id'] = $teacher->user_id;
+        }
 
         $assignment = TeacherAssignment::create($data);
 

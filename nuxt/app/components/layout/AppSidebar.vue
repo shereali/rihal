@@ -1,75 +1,107 @@
 <template>
-  <div class="sidebar" :class="{ open }" :style="{ backgroundColor: tenantColor }">
-    <div class="sidebar-header">
-      <div class="sidebar-brand">
-        <div class="brand-logo">
-          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="3"/>
-            <path d="M30 70L50 30L70 70" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M40 55H60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-            <path d="M45 65H55" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-          </svg>
+  <div>
+    <!-- Mobile Backdrop -->
+    <div v-if="open" class="sidebar-backdrop" @click="emit('close')" />
+
+    <aside class="sidebar" :class="{ open }">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="brand-logo">
+            <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="3"/>
+              <path d="M30 70L50 30L70 70" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M40 55H60" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              <path d="M45 65H55" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">Rihal</span>
+            <span class="brand-subtitle">মাদ্রাসা ব্যবস্থাপনা</span>
+          </div>
         </div>
-        <div class="brand-text">
-          <span class="brand-name">Rihal</span>
-          <span class="brand-subtitle">মাদ্রাসা ব্যবস্থাপনা</span>
-        </div>
-      </div>
-      <button class="sidebar-close" @click="emit('close')" title="Close sidebar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>
-
-    <div class="sidebar-tenant" v-if="tenant?.name">
-      <p class="tenant-label">বর্তমান শাখা</p>
-      <p class="tenant-name">{{ tenant.name }}</p>
-    </div>
-
-    <nav class="sidebar-nav">
-      <p class="nav-section-label">প্রধান মেনু</p>
-      <ul class="nav-list">
-        <li v-for="item in mainNavItems" :key="item.path">
-          <NuxtLink
-            :to="item.path"
-            class="nav-item"
-            :class="{ active: isActive(item.path) }"
-            :title="item.tooltip"
-          >
-            <span class="nav-icon">
-              <icon :name="item.icon" />
-            </span>
-            <span class="nav-label">{{ item.label }}</span>
-          </NuxtLink>
-        </li>
-      </ul>
-    </nav>
-
-    <div class="sidebar-footer">
-      <div class="sidebar-bottom-item language-selector">
-        <select v-model="currentLanguage" class="language-select">
-          <option value="bn">বাংলা</option>
-          <option value="en">ইংরেজি</option>
-          <option value="ar">আরবি</option>
-        </select>
+        <button class="sidebar-close" @click="emit('close')" title="Close sidebar">
+          <Icon name="close" size="20" />
+        </button>
       </div>
 
-      <button class="sidebar-bottom-item logout-btn" @click="handleLogout">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-          <polyline points="16,17 21,12 16,7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-        <span>লগ আউট</span>
-      </button>
-    </div>
+      <div class="sidebar-tenant" v-if="tenant?.name">
+        <p class="tenant-label">বর্তমান শাখা</p>
+        <p class="tenant-name">{{ tenant.name }}</p>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div v-for="section in navSections" :key="section.title" class="nav-section">
+          <p class="nav-section-label">{{ section.title }}</p>
+          <ul class="nav-list">
+            <li v-for="item in section.items" :key="item.label">
+              <NuxtLink
+                v-if="!item.subItems"
+                :to="item.path"
+                class="nav-item"
+                :class="{ active: isActive(item.path) }"
+                :title="item.tooltip"
+                @click="handleNavClick"
+              >
+                <span class="nav-icon">
+                  <Icon :name="item.icon" :size="18" />
+                </span>
+                <span class="nav-label">{{ item.label }}</span>
+              </NuxtLink>
+
+              <div v-else class="nav-item-group">
+                <div 
+                  class="nav-item nav-item-parent" 
+                  :class="{ active: isAnySubItemActive(item.subItems), open: isExpanded(item.label) }"
+                  @click="toggleExpand(item.label)"
+                >
+                  <span class="nav-icon">
+                    <Icon :name="item.icon" :size="18" />
+                  </span>
+                  <span class="nav-label">{{ item.label }}</span>
+                  <span class="nav-arrow" :class="{ rotated: isExpanded(item.label) }">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </span>
+                </div>
+                
+                <ul v-show="isExpanded(item.label)" class="sub-nav-list">
+                  <li v-for="subItem in item.subItems" :key="subItem.path">
+                    <NuxtLink
+                      :to="subItem.path"
+                      class="sub-nav-item"
+                      :class="{ active: isActive(subItem.path) }"
+                      :title="subItem.tooltip"
+                      @click="handleNavClick"
+                    >
+                      <span class="sub-nav-label">{{ subItem.label }}</span>
+                    </NuxtLink>
+                  </li>
+                </ul>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-bottom-item language-selector">
+          <select v-model="currentLanguage" class="language-select">
+            <option value="bn">বাংলা</option>
+            <option value="en">English</option>
+            <option value="ar">العربية</option>
+          </select>
+        </div>
+
+        <button class="sidebar-bottom-item logout-btn" @click="handleLogout">
+          <Icon name="logout" size="14" />
+          <span>লগ আউট</span>
+        </button>
+      </div>
+    </aside>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, toRefs } from 'vue'
+import { ref, computed, toRefs, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 
 const props = withDefaults(defineProps<{ open?: boolean }>(), { open: false })
@@ -78,7 +110,7 @@ const { open } = toRefs(props)
 const { currentUser, logout } = useAuth()
 const currentLanguage = ref('bn')
 
-const tenantColor = computed(() => '#145032')
+const tenantColor = computed(() => 'transparent')
 
 const tenant = ref({
   name: 'দারুল কিরাত মজিদিয়া ফুলতলী ট্রাস্ট',
@@ -86,135 +118,339 @@ const tenant = ref({
 
 const role = computed(() => (currentUser.value as any)?.role)
 
-const mainNavItems = computed(() => {
-  const items = [
-    { path: '/dashboard', label: 'ড্যাশবোর্ড', icon: 'dashboard', tooltip: 'মূল ড্যাশবোর্ড ও তথ্যসারণি' },
-    { path: '/module-dashboard', label: 'মডিউল ড্যাশবোর্ড', icon: 'dashboard', tooltip: 'সব মডিউলের কার্যক্রম এক নজরে' },
-    { path: '/notice', label: 'বিজ্ঞপ্তি ও ঘোষণা', icon: 'notice', tooltip: 'সব বিজ্ঞপ্তি তৈরি, দেখা ও সম্পাদনা' },
+interface NavSubItem {
+  path: string
+  label: string
+  tooltip?: string
+}
+
+interface NavItem {
+  path?: string
+  label: string
+  icon: string
+  tooltip?: string
+  subItems?: NavSubItem[]
+}
+
+interface NavSection {
+  title: string
+  items: NavItem[]
+}
+
+const expandedItems = ref<Set<string>>(new Set())
+
+function toggleExpand(label: string) {
+  if (expandedItems.value.has(label)) {
+    expandedItems.value.delete(label)
+  } else {
+    expandedItems.value.add(label)
+  }
+}
+
+function isExpanded(label: string): boolean {
+  return expandedItems.value.has(label)
+}
+
+function isAnySubItemActive(subItems?: NavSubItem[]): boolean {
+  if (!subItems) return false
+  return subItems.some(sub => isActive(sub.path))
+}
+
+const navSections = computed<NavSection[]>(() => {
+  const sections: NavSection[] = []
+
+  // Main
+  const mainItems: NavItem[] = [
+    { 
+      label: 'ড্যাশবোর্ড', 
+      icon: 'mdi:view-dashboard-outline', 
+      subItems: [
+        { path: '/dashboard', label: 'মূল ড্যাশবোর্ড', tooltip: 'মূল ড্যাশবোর্ড ও তথ্যসারণি' },
+        { path: '/module-dashboard', label: 'মডিউল ড্যাশবোর্ড', tooltip: 'সব মডিউলের কার্যক্রম এক নজরে' }
+      ]
+    }
   ]
 
   if (role.value === 'student') {
-    items.push({ path: '/student/me', label: 'আমার তথ্য', icon: 'students', tooltip: 'আমার প্রোফাইল ও ফলাফল' })
+    mainItems.push({ path: '/student/me', label: 'আমার তথ্য', icon: 'mdi:account-school-outline', tooltip: 'আমার প্রোফাইল ও ফলাফল' })
   }
 
   if (role.value === 'teacher') {
-    items.push({ path: '/teacher/my-assignments', label: 'আমার বরাদ্দ', icon: 'assignment', tooltip: 'আমার দেওয়া ক্লাস ও পাঠ' })
-    items.push(
-      { path: '/attendance', label: 'হাজিরা', icon: 'attendance', tooltip: 'শ্রেণি হাজিরা নেওয়া' },
-      { path: '/exams', label: 'পরীক্ষা', icon: 'exam', tooltip: 'পরীক্ষা তৈরি, ফলাফল, সিট ও জাতা' },
-      { path: '/academic', label: 'একাডেমিক', icon: 'academic', tooltip: 'শ্রেণি, সেশন ও পাঠ্যক্রম' },
+    mainItems.push({ path: '/teacher/my-assignments', label: 'আমার বরাদ্দ', icon: 'mdi:clipboard-text-outline', tooltip: 'আমার দেওয়া ক্লাস ও পাঠ' })
+    mainItems.push(
+      { path: '/attendance', label: 'হাজিরা', icon: 'mdi:calendar-check-outline', tooltip: 'শ্রেণি হাজিরা নেওয়া' },
+      { path: '/exams', label: 'পরীক্ষা', icon: 'mdi:file-document-edit-outline', tooltip: 'পরীক্ষা তৈরি, ফলাফল, সিট ও জাতা' },
+      { path: '/academic', label: 'একাডেমিক', icon: 'mdi:school-outline', tooltip: 'শ্রেণি, সেশন ও পাঠ্যক্রম' },
     )
   }
 
   if (role.value === 'parent' || role.value === 'guardian') {
-    items.push({ path: '/portal', label: 'অভিভাবক পোর্টাল', icon: 'users', tooltip: 'ছাত্রের প্রগতি ও আয়-ব্যয়' })
+    mainItems.push({ path: '/portal', label: 'অভিভাবক পোর্টাল', icon: 'mdi:account-child-outline', tooltip: 'ছাত্রের প্রগতি ও আয়-ব্যয়' })
   }
 
-  if (role.value === 'admin' || role.value === 'super_admin') {
-    items.push(
-      // শিক্ষার্থী
-      { path: '/students', label: 'ছাত্র ব্যবস্থাপনা', icon: 'students', tooltip: 'ছাত্র তালিকা, ভর্তি, বরাদ্দ' },
-      { path: '/attendance', label: 'হাজিরা', icon: 'attendance', tooltip: 'হাজিরা রেকর্ড ও বার্ষিক হাজিরার হার' },
-      { path: '/exams', label: 'পরীক্ষা', icon: 'exam', tooltip: 'পরীক্ষা, ফলাফল, সিট, জাতা ও বিন্যাস' },
+  sections.push({ title: 'প্রধান মেনু', items: mainItems })
 
-      // একাডেমিক
-      { path: '/academic', label: 'একাডেমিক', icon: 'academic', tooltip: 'একাডেমিক ড্যাশবোর্ড' },
-      { path: '/academic/manage', label: 'একাডেমিক সেটআপ', icon: 'settings', tooltip: 'শ্রেণি, সেশন, বিভাগ, শিক্ষক নিয়োগ' },
-      { path: '/academic/timetable', label: 'ক্লাস রুটিন', icon: 'calendar', tooltip: 'সপ্তাহান্তিক ও দৈনিক রুটিন' },
+  if (role.value === 'admin' || role.value === 'super_admin' || !role.value) {
+    sections.push({
+      title: 'একাডেমিক ও শিক্ষার্থী',
+      items: [
+        { 
+          label: 'ছাত্র ও ভর্তি', 
+          icon: 'mdi:account-group-outline', 
+          subItems: [
+            { path: '/students', label: 'ছাত্র তালিকা', tooltip: 'ছাত্র তালিকা ও প্রোফাইল' },
+            { path: '/enrollments', label: 'ভর্তি', tooltip: 'নতুন ভর্তি' },
+            { path: '/students/admission-register', label: 'ভর্তি খাতা', tooltip: 'ভর্তি খাতা ও ফর্ম' },
+            { path: '/promotions', label: 'প্রমোশন', tooltip: 'পরবর্তী শ্রেণিতে প্রমোশন' },
+            { path: '/certificates', label: 'সনদ ও প্রশংসাপত্র', tooltip: 'প্রশংসাপত্র প্রদান' },
+          ]
+        },
+        { 
+          label: 'একাডেমিক বিবরণ', 
+          icon: 'mdi:school-outline', 
+          subItems: [
+            { path: '/academic', label: 'রুটিন ও সেশন', tooltip: 'রুটিন, সেশন ও শ্রেণি' },
+            { path: '/attendance', label: 'শ্রেণি হাজিরা', tooltip: 'শ্রেণি হাজিরা রেকর্ড' },
+            { path: '/digital-attendance', label: 'ডিজিটাল হাজিরা', tooltip: 'ডিজিটাল হাজিরা ব্যবস্থা' },
+            { path: '/lesson-plans', label: 'পাঠ পরিকল্পনা', tooltip: 'পাঠ পরিকল্পনা ও সিলেবাস' },
+            { path: '/homework', label: 'বাড়ির কাজ', tooltip: 'বাড়ির কাজ প্রদান' }
+          ]
+        },
+      ],
+    })
 
-      // ফলাফল
-      { path: '/results', label: 'ফলাফল', icon: 'document', tooltip: 'পরীক্ষার ফলাফল, জিপিএ ও মার্কস শীট' },
-      { path: '/results/gpa', label: 'জিপিএ হিসাব', icon: 'chart', tooltip: 'গ্রেড পয়েন্ট গড় ও শ্রেণি অনুযায়ী অগ্রগতি' },
+    sections.push({
+      title: 'পরীক্ষা ও ফলাফল',
+      items: [
+        { 
+          label: 'পরীক্ষা ব্যবস্থাপনা', 
+          icon: 'mdi:file-document-edit-outline', 
+          subItems: [
+            { path: '/exams', label: 'পরীক্ষা ও রুটিন', tooltip: 'পরীক্ষা তৈরি ও রুটিন' },
+            { path: '/marks', label: 'মার্কস এন্ট্রি', tooltip: 'পরীক্ষার মার্কস এন্ট্রি' },
+            { path: '/results', label: 'ফলাফল প্রকাশ', tooltip: 'ফলাফল তৈরি ও প্রকাশ' },
+            { path: '/lesson-evaluation', label: 'দৈনিক মূল্যায়ন', tooltip: 'সবক মূল্যায়ন শীট' }
+          ]
+        },
+      ],
+    })
 
-      // গৃহকাজ ও পাঠ পরিকল্পনা
-      { path: '/homework', label: 'বাড়ির কাজ', icon: 'book', tooltip: 'দৈনিক গৃহকাজ, জমা ও মূল্যায়ন' },
-      { path: '/lesson-plans', label: 'পাঠ পরিকল্পনা', icon: 'academic', tooltip: 'শিক্ষকদের দৈনিক পাঠ পরিকল্পনা' },
+    sections.push({
+      title: 'স্টাফ ও হিসাব',
+      items: [
+        { 
+          label: 'শিক্ষক ও স্টাফ', 
+          icon: 'mdi:account-tie', 
+          subItems: [
+            { path: '/hr', label: 'স্টাফ তালিকা (HR)', tooltip: 'কর্মকর্তা ও বেতন' },
+            { path: '/hr/recruitments', label: 'নিয়োগ', tooltip: 'নতুন স্টাফ নিয়োগ' },
+            { path: '/hr/holidays', label: 'ছুটির দিন', tooltip: 'সরকারি ও সাপ্তাহিক ছুটি' },
+            { path: '/hr/events', label: 'ইভেন্ট', tooltip: 'স্টাফ ইভেন্ট' },
+            { path: '/hr/hostel-visitors', label: 'হোস্টেল ভিজিটর', tooltip: 'হোস্টেল ভিজিটর ট্র্যাকিং' },
+            { path: '/teacher-assignments', label: 'শিক্ষকের কাজ', tooltip: 'শিক্ষকের কাজ বরাদ্দ' },
+            { path: '/leave-applications', label: 'ছুটির আবেদন', tooltip: 'ছুটির আবেদন ও অনুমোদন' }
+          ]
+        },
+        { 
+          label: 'অ্যাকাউন্টিং (হিসাব)', 
+          icon: 'mdi:book-open-page-variant-outline', 
+          subItems: [
+            { path: '/accounting', label: 'ড্যাশবোর্ড', tooltip: 'অ্যাকাউন্টিং ড্যাশবোর্ড' },
+            { path: '/accounting/vouchers', label: 'ভাউচার এন্ট্রি', tooltip: 'রশিদ ও পেমেন্ট ভাউচার' },
+            { path: '/accounting/chart', label: 'চার্ট অফ একাউন্টস', tooltip: 'খাত পরিচালনা' },
+            { path: '/accounting/statements', label: 'স্টেটমেন্ট', tooltip: 'আর্থিক প্রতিবেদন' },
+            { path: '/accounting/fixed-assets', label: 'স্থায়ী সম্পদ', tooltip: 'স্থায়ী সম্পদের হিসাব' },
+          ]
+        },
+        { 
+          label: 'অর্থায়ন ও ফান্ড', 
+          icon: 'mdi:cash-multiple', 
+          subItems: [
+            { path: '/fees', label: 'ফি ও আদায়', tooltip: 'ফি কালেকশন ও হিসাব' },
+            { path: '/finance', label: 'ফান্ড ড্যাশবোর্ড', tooltip: 'লিল্লাহ, যাকাত ও ফান্ড' },
+            { path: '/finance/donations', label: 'অনুদান (Donation)', tooltip: 'অনুদান এন্ট্রি' },
+            { path: '/finance/expenses', label: 'খরচ (Expense)', tooltip: 'ফান্ড খরচ' },
+            { path: '/orphan-sponsorship', label: 'এতিম স্পনসরশিপ', tooltip: 'এতিম স্পনসরশিপ পরিচালনা' },
+            { path: '/loan-due', label: 'ঋণ ও বকেয়া', tooltip: 'ঋণ ও বকেয়া আদায়' }
+          ]
+        },
+      ],
+    })
 
-      // অ্যাকাউন্টিং
-      { path: '/fees', label: 'ফি ও আয়-ব্যয়', icon: 'fees', tooltip: 'ফি কালেকশন, আয় ও ব্যয়' },
-      { path: '/finance', label: 'অ্যাকাউন্টিং', icon: 'money', tooltip: 'ফান্ড, ডোনর, ডোনেশন, ব্যয় ও রিসেপ্ট' },
-      { path: '/finance/funds', label: 'ফান্ড', icon: 'donor', tooltip: 'ফান্ড তৈরি, ব্যালেন্স ও ব্যয়' },
-      { path: '/finance/donors', label: 'দাতা ও অনুদান', icon: 'donor', tooltip: 'দাতা তালিকা ও ডোনেশন হিসাব' },
-      { path: '/finance/expenses', label: 'ব্যয়', icon: 'money', tooltip: 'ব্যয়, ভেন্ডর ও বার্ষিক হিসাব' },
-      { path: '/finance/stocks', label: 'রিসেপ্ট স্টক', icon: 'document', tooltip: 'অর্থ রশিদ, স্টক ও বিতরণ' },
-      { path: '/finance/audit', label: 'আর্থিক অডিট', icon: 'clock', tooltip: 'ঋণ, কিস্তি ও স্পন্সরশিপ লেনদেনের অপরিবর্তনীয় ইতিহাস' },
-      { path: '/loan-due', label: 'লোন ও ডিউ', icon: 'cash', tooltip: 'ঋণ, কিস্তি ও বাকিয়া ব্যবস্থাপনা' },
-      { path: '/orphan-sponsorship', label: 'অর্ফান স্পন্সরশিপ', icon: 'child', tooltip: 'অর্ফান শিশু এবং স্পন্সরশিপ ব্যবস্থাপনা' },
-
-      // প্রশাসনিক
-      { path: '/administration', label: 'প্রশাসনিক ড্যাশবোর্ড', icon: 'dashboard', tooltip: 'কর্মকর্তা, আয়োজন, ছুটি ও নিয়োগ এক নজরে' },
-      { path: '/hr', label: 'স্টাফ ও কর্মী', icon: 'users', tooltip: 'কর্মকর্তা, বেতন, দায়ি�্ব, আয়োজন, ছুটি, ভিজিটর ও নিয়োগ' },
-      { path: '/hr/events', label: 'আয়োজন', icon: 'calendar', tooltip: 'আয়োজন তৈরি, নাম নিবন্ধন ও নিবন্ধন ব্যবস্থাপনা' },
-      { path: '/hr/holidays', label: 'ছুটির দিন', icon: 'calendar', tooltip: 'ছুটি, ছুটির প্রকার ও বার্ষিক ছুটি হিসাব' },
-      { path: '/hr/recruitments', label: 'নিয়োগ', icon: 'users', tooltip: 'নিয়োগ বিজ্ঞপ্তি, আবেদন ও নিয়োগ প্রক্রিয়া' },
-
-      // অপারেশনস
-      { path: '/hostel', label: 'হোস্টেল', icon: 'building', tooltip: 'হোস্টেল কক্ষ, ওয়ার্ডেন ও ভিজিটর' },
-      { path: '/hostel/rooms', label: 'কক্ষ ব্যবস্থাপনা', icon: 'building', tooltip: 'কক্ষ তৈরি, ধারণক্ষমতা, ভাড়া ও ছাত্র বরাদ্দ' },
-      { path: '/transport', label: 'পরিবহন', icon: 'bus', tooltip: 'রুট, বাস, চালক ও শিক্ষার্থী বরাদ্দ' },
-      { path: '/transport/routes', label: 'রুট ব্যবস্থাপনা', icon: 'bus', tooltip: 'রুট তৈরি, দূরত্ব, ভাড়া ও সময়সূচি' },
-      { path: '/transport/buses', label: 'বাস ব্যবস্থাপনা', icon: 'bus', tooltip: 'বাস তথ্য, চালক, ক্ষমতা ও ডকুমেন্ট' },
-      { path: '/transport/assignments', label: 'যাতায়াত বরাদ্দ', icon: 'assignment', tooltip: 'শিক্ষার্থী-বাস-রুট বরাদ্দ' },
-
-      // সম্পত্তি
-      { path: '/properties', label: 'সম্পত্তি ও সম্পদ', icon: 'building', tooltip: 'জমি, ভবন, সম্পত্তি, মূল্য ও রক্ষণাবেক্ষণ' },
-      { path: '/properties/:id', label: 'সম্পত্তি বিবরণী', icon: 'building', tooltip: 'সম্পত্তির ডকুমেন্ট, রক্ষণাবেক্ষণ ও ভিজিটর' },
-
-      // শিক্ষক বরাদ্দ
-      { path: '/teacher-assignments', label: 'শিক্ষক বরাদ্দ', icon: 'assignment', tooltip: 'শিক্ষক-শ্রেণি-বিষয় বরাদ্দ ও সময়সূচি' },
-      { path: '/teacher/my-assignments', label: 'অফিসিয়াল বরাদ্দ', icon: 'assignment', tooltip: 'শিক্ষকের দেওয়া ক্লাস ও পাঠের তালিকা' },
-
-      // ফি ও আয়-ব্যয়
-      { path: '/fees', label: 'ফি ও আয়-ব্যয়', icon: 'fees', tooltip: 'ফি কালেকশন, আয় ও ব্যয়' },
-      { path: '/fees/collect', label: 'ফি সংগ্রহ', icon: 'money', tooltip: 'ছাত্র ফি প্রদান রেকর্ড ও পেমেন্ট' },
-
-      // রিপোর্ট ও নোটিফিকেশন
-      { path: '/reports', label: 'রিপোর্ট ও এক্সপোর্ট', icon: 'chart', tooltip: 'উপস্থাপন, প্রিন্ট ও CSV/엑সপোর্ট রিপোর্ট' },
-      { path: '/activity-log', label: 'গতিবিধি লগ', icon: 'clock', tooltip: 'সিস্টেমে সব এন্ট্রি, ব্যবহারকারী ও সময়ের রেকর্ড' },
-      { path: '/notifications', label: 'নোটিফিকেশন', icon: 'bell', tooltip: 'বিজ্ঞপ্তি, অনুপস্থিতি ও পেমেন্ট রিমাইন্ডার' },
-      { path: '/portal', label: 'অভিভাবক পোর্টাল', icon: 'users', tooltip: 'অভিভাবকদের জন্য মোবাইল-ফ্রেন্ডলি পোর্টাল' },
-      { path: '/reminder-tasks', label: 'রিমাইন্ডার টাস্ক', icon: 'clock', tooltip: 'স্মরণী বার্তা ও অটোমেটেড টাস্ক তৈরি ও ব্যবস্থাপনা' },
-      { path: '/leave-applications', label: 'ছুটি ব্যবস্থাপনা', icon: 'calendar', tooltip: 'কর্মকর্তা ও শিক্ষকদের ছুটির আবেদন, অনুমোদন ও প্রত্যাখ্যান' },
-    )
+    sections.push({
+      title: 'প্রশাসন ও যোগাযোগ',
+      items: [
+        { 
+          label: 'প্রশাসন ও সম্পদ', 
+          icon: 'mdi:domain', 
+          subItems: [
+            { path: '/administration', label: 'প্রশাসন ড্যাশবোর্ড', tooltip: 'প্রশাসনিক কাজ' },
+            { path: '/administration/complaints', label: 'অভিযোগ ও পরামর্শ', tooltip: 'অভিযোগ বাক্স' },
+            { path: '/administration/responsibilities', label: 'দায়িত্ব বণ্টন', tooltip: 'দায়িত্ব ম্যাট্রিক্স' },
+            { path: '/administration/discharge', label: 'অব্যাহতি রেজিস্টার', tooltip: 'স্টাফ অব্যাহতি' },
+            { path: '/properties', label: 'সম্পদ ও সম্পত্তি', tooltip: 'সম্পদ ব্যবস্থাপনা' },
+            { path: '/reports', label: 'রিপোর্টস', tooltip: 'প্রিন্ট ও ডেটা এক্সপোর্ট' }
+          ]
+        },
+        {
+          label: 'হোস্টেল ও বোর্ডিং',
+          icon: 'mdi:bed',
+          subItems: [
+            { path: '/hostel', label: 'হোস্টেল কক্ষ', tooltip: 'কক্ষ ব্যবস্থাপনা' },
+            { path: '/hostel/boarding-bazaar', label: 'বোর্ডিং বাজার', tooltip: 'বাজারের হিসাব' },
+            { path: '/hostel/boarding-meals', label: 'বোর্ডিং মিলস', tooltip: 'মিল হিসাব' },
+          ]
+        },
+        { 
+          label: 'যাতায়াত ও পরিবহন', 
+          icon: 'mdi:bus', 
+          subItems: [
+            { path: '/transport', label: 'রুট ও পরিবহন', tooltip: 'রুট পরিচালনা' },
+            { path: '/transport/buses', label: 'বাস ও যানবাহন', tooltip: 'বাসের তালিকা' },
+            { path: '/transport/assignments', label: 'অ্যাসাইনমেন্ট', tooltip: 'বাস, চালক ও স্টাফ' }
+          ]
+        },
+        { 
+          label: 'যোগাযোগ ও নোটিশ', 
+          icon: 'mdi:bullhorn-outline', 
+          subItems: [
+            { path: '/notice', label: 'বিজ্ঞপ্তি ও ঘোষণা', tooltip: 'সব বিজ্ঞপ্তি তৈরি' },
+            { path: '/notifications', label: 'নোটিফিকেশন', tooltip: 'সিস্টেম নোটিফিকেশন' },
+            { path: '/reminder-tasks', label: 'রিমাইন্ডার ও টাস্ক', tooltip: 'রিমাইন্ডার এবং করণীয়' }
+          ]
+        },
+      ],
+    })
   }
 
-  // settings always last; separate sub-items for depth
-  items.push(
-    { path: '/settings', label: 'সিস্টেম সেটিংস', icon: 'settings', tooltip: 'সিস্টেম কনফিগারেশন, ব্যবহারকারী, ভাষা ও বিজ্ঞপ্তি' },
-    { path: '/settings/admin-users', label: 'ব্যবহারকারী ও ভূমিকা', icon: 'users', tooltip: 'ব্যবহারকারী তৈরি, ভূমিকা ও অনুমতি' },
-    { path: '/settings/sessions', label: 'সেশন সেটআপ', icon: 'calendar', tooltip: 'শিক্ষাবর্ষ, সেশন ও পরীক্ষা সেশন' },
-    { path: '/settings/classes', label: 'শ্রেণি ব্যবস্থাপনা', icon: 'academic', tooltip: 'শ্রেণি, বিভাগ, শিক্ষক নিয়োগ ও সিট' },
-    { path: '/settings/sections', label: 'বিভাগ ব্যবস্থাপনা', icon: 'academic', tooltip: 'বিভাগ, শিক্ষক-বিষয় বরাদ্দ' },
-    { path: '/settings/subjects', label: 'বিষয় ব্যবস্থাপনা', icon: 'academic', tooltip: 'বিষয় তৈরি, পাঠ্যক্রম, বই ও শিক্ষক নিয়োগ' },
-    { path: '/settings/subject-assignment', label: 'বিষয় বরাদ্দ', icon: 'assignment', tooltip: 'শিক্ষক-বিষয়-শ্রেণি বরাদ্দ ও ক্লাস রুটিন' },
-  )
+  // System Settings
+  sections.push({
+    title: 'সিস্টেম',
+    items: [
+      { 
+        label: 'সেটিংস ও লগ', 
+        icon: 'mdi:cog-outline', 
+        subItems: [
+          { path: '/settings', label: 'সেটিংস', tooltip: 'সিস্টেম কনফিগারেশন' },
+          { path: '/activity-log', label: 'কার্যকলাপ লগ', tooltip: 'ব্যবহারকারীর কার্যকলাপ' },
+          { path: '/changelog', label: 'পরিবর্তন লগ', tooltip: 'সিস্টেম আপডেট লগ' }
+        ]
+      },
+    ],
+  })
 
-  return items
+  return sections
 })
 
-function isActive(path: string): boolean {
-  return useRoute().path.startsWith(path)
+function isActive(path?: string): boolean {
+  if (!path) return false
+  const current = useRoute().path
+  if (path === '/dashboard') return current === '/dashboard'
+  if (path === '/settings') return current === '/settings'
+  if (path === '/finance') return current === '/finance'
+  if (path === '/academic') return current === '/academic'
+  if (path === '/hr') return current === '/hr'
+  if (path === '/hostel') return current === '/hostel'
+  if (path === '/transport') return current === '/transport'
+  if (path === '/results') return current === '/results'
+  if (path === '/fees') return current === '/fees'
+  return current === path || current.startsWith(`${path}/`)
+}
+
+function handleNavClick() {
+  if (import.meta.client && window.innerWidth <= 768) {
+    emit('close')
+  }
 }
 
 function handleLogout() {
   logout()
   navigateTo('/login')
 }
+
+// Auto-expand menus containing active route on mount
+onMounted(() => {
+  navSections.value.forEach(section => {
+    section.items.forEach(item => {
+      if (item.subItems && isAnySubItemActive(item.subItems)) {
+        expandedItems.value.add(item.label)
+      }
+    })
+  })
+})
 </script>
 
 <style scoped>
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 95;
+  display: none;
+}
+
 .sidebar {
   position: fixed;
   top: 0;
+  bottom: 0;
   left: 0;
-  width: var(--sidebar-width);
-  height: 100vh;
-  background: var(--color-bg-sidebar);
-  color: white;
+  width: var(--sidebar-width, 260px);
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  color: var(--color-text);
+  z-index: 40;
   display: flex;
   flex-direction: column;
-  z-index: 100;
-  transition: transform var(--transition-normal);
+  transition: width var(--transition-normal, 0.3s), transform var(--transition-normal, 0.3s);
+}
+
+@media (min-width: 769px) {
+  .sidebar:not(.open) {
+    width: 80px;
+  }
+  .sidebar:not(.open) .brand-text,
+  .sidebar:not(.open) .tenant-label,
+  .sidebar:not(.open) .tenant-name,
+  .sidebar:not(.open) .nav-section-label,
+  .sidebar:not(.open) .nav-label,
+  .sidebar:not(.open) .language-selector,
+  .sidebar:not(.open) .logout-btn span,
+  .sidebar:not(.open) .nav-arrow,
+  .sidebar:not(.open) .sub-nav-list {
+    display: none;
+  }
+  .sidebar:not(.open) .nav-item {
+    justify-content: center;
+    padding: 0.6rem;
+  }
+  .sidebar:not(.open) .sidebar-brand {
+    justify-content: center;
+  }
+  .sidebar:not(.open) .sidebar-footer {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar-backdrop {
+    display: block;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close {
+    display: flex;
+  }
 }
 
 .sidebar-header {
@@ -222,7 +458,7 @@ function handleLogout() {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .sidebar-brand {
@@ -232,8 +468,8 @@ function handleLogout() {
 }
 
 .brand-logo {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   color: var(--color-accent);
   flex-shrink: 0;
 }
@@ -250,21 +486,32 @@ function handleLogout() {
 
 .brand-name {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1.2;
+  letter-spacing: 0.02em;
 }
 
 .brand-subtitle {
   font-size: 0.75rem;
-  opacity: 0.65;
+  opacity: 0.7;
 }
 
 .sidebar-close {
   display: none;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.sidebar-close svg {
+  width: 20px;
+  height: 20px;
 }
 
 .sidebar-tenant {
-  padding: 0.75rem 1.25rem 0;
+  padding: 0.75rem 1.25rem 0.25rem;
 }
 
 .tenant-label {
@@ -275,9 +522,9 @@ function handleLogout() {
 }
 
 .tenant-name {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.35;
   opacity: 0.9;
 }
 
@@ -285,17 +532,20 @@ function handleLogout() {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0.75rem 0.5rem;
+  padding: 0.5rem 0.65rem;
+}
+
+.nav-section {
+  margin-bottom: 0.75rem;
 }
 
 .nav-section-label {
   font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
-  padding: 0.5rem 0.65rem 0.4rem;
-  margin-top: 0.2rem;
+  color: var(--color-text-muted);
+  padding: 0.4rem 0.5rem 0.25rem;
 }
 
 .nav-list {
@@ -304,17 +554,17 @@ function handleLogout() {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.08rem;
+  gap: 0.12rem;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.85rem;
-  border-radius: 0.5rem;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.85rem;
+  gap: 0.65rem;
+  padding: 0.48rem 0.75rem;
+  border-radius: 0.45rem;
+  color: var(--color-text);
+  font-size: 0.84rem;
   font-weight: 500;
   text-decoration: none;
   transition: all 0.15s ease;
@@ -323,21 +573,22 @@ function handleLogout() {
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  background: var(--color-primary-50);
+  color: var(--color-text);
 }
 
 .nav-item.active {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  background: var(--color-primary-100);
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .nav-item.active::before {
   content: '';
   position: absolute;
-  left: -0.5rem;
-  top: 0.45rem;
-  bottom: 0.45rem;
+  left: -0.65rem;
+  top: 0.35rem;
+  bottom: 0.35rem;
   width: 3px;
   background: var(--color-accent);
   border-radius: 0 3px 3px 0;
@@ -350,6 +601,12 @@ function handleLogout() {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.nav-item.active .nav-icon {
+  opacity: 1;
+  color: var(--color-accent-light);
 }
 
 .nav-item .nav-label {
@@ -357,13 +614,68 @@ function handleLogout() {
   text-overflow: ellipsis;
 }
 
+.nav-item-parent {
+  cursor: pointer;
+  user-select: none;
+}
+
+.nav-arrow {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+  opacity: 0.6;
+}
+
+.nav-arrow.rotated {
+  transform: rotate(180deg);
+}
+
+.sub-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0 0.25rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.sub-nav-item {
+  display: block;
+  padding: 0.35rem 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  text-decoration: none;
+  border-radius: 0.35rem;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.sub-nav-item:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-50);
+}
+
+.sub-nav-item.active {
+  color: var(--color-primary);
+  background: var(--color-primary-50);
+  font-weight: 600;
+}
+
+.sub-nav-item.active::before {
+  content: '•';
+  position: absolute;
+  left: -0.75rem;
+  color: var(--color-primary);
+}
+
 .sidebar-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  gap: 0.6rem;
+  padding: 0.65rem 0.85rem;
+  border-top: 1px solid var(--glass-border);
+  gap: 0.5rem;
 }
 
 .sidebar-bottom-item {
@@ -373,20 +685,20 @@ function handleLogout() {
 }
 
 .language-selector select {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--glass-bg);
+  color: var(--color-text);
+  border: 1px solid var(--glass-border);
   border-radius: 0.35rem;
-  padding: 0.28rem 0.3rem;
-  font-size: 0.7rem;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.72rem;
   font-weight: 500;
   cursor: pointer;
   outline: none;
 }
 
 .language-selector select option {
-  background: #000;
-  color: #fff;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .logout-btn {
@@ -395,7 +707,7 @@ function handleLogout() {
   gap: 0.35rem;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
@@ -405,26 +717,12 @@ function handleLogout() {
 }
 
 .logout-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--color-primary-50);
+  color: var(--color-text);
 }
 
 .logout-btn svg {
   width: 14px;
   height: 14px;
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-  }
-
-  .sidebar-close {
-    display: flex;
-  }
 }
 </style>

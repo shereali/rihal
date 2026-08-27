@@ -28,16 +28,13 @@ class ReportController extends ApiController
         ]);
 
         $user = $request->user();
-        $class = AcademicClass::where('tenant_id', $user->tenant_id)
-            ->where('id', $request->input('class_id'))
-            ->firstOrFail();
+        $class = AcademicClass::findOrFail($request->input('class_id'));
 
         $from = $request->input('from', Carbon::now()->startOfMonth()->toDateString());
         $to = $request->input('to', Carbon::now()->toDateString());
 
         // Students enrolled in this class
-        $studentIds = Student::where('tenant_id', $user->tenant_id)
-            ->whereHas('enrollments', fn($e) => $e->where('class_id', $class->id))
+        $studentIds = Student::whereHas('enrollments', fn($e) => $e->where('class_id', $class->id))
             ->with('user:id,name_bn,name_en')
             ->get();
 
@@ -98,13 +95,10 @@ class ReportController extends ApiController
         ]);
 
         $user = $request->user();
-        $exam = Exam::where('tenant_id', $user->tenant_id)
-            ->where('id', $request->input('exam_id'))
-            ->firstOrFail();
+        $exam = Exam::findOrFail($request->input('exam_id'));
 
-        $results = Result::where('tenant_id', $user->tenant_id)
-            ->where('exam_id', $exam->id)
-            ->with('student:id,name_bn,name_en')
+        $results = Result::where('exam_id', $exam->id)
+            ->with(['student:id,name_bn,name_en', 'studentProfile'])
             ->get();
 
         $rows = [];
@@ -124,7 +118,7 @@ class ReportController extends ApiController
                 'student_id' => $r->student?->id,
                 'name_bn' => $r->student?->name_bn ?? null,
                 'name_en' => $r->student?->name_en ?? null,
-                'admission_number' => optional(\App\Models\Student::where('user_id', $r->student_id)->first())->admission_number,
+                'admission_number' => $r->studentProfile?->admission_number,
                 'total_marks' => $r->marks_obtained,
                 'total_max' => $r->total_marks,
                 'percentage' => $r->percentage,

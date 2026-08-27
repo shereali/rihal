@@ -17,9 +17,9 @@
 
     <div v-else class="detail-screen">
       <div class="sticky-header">
-        <button class="back-btn" @click="goBack"><icon name="arrow-left" /> বাংলাদেশ</button>
+        <button class="back-btn" @click="goBack"><icon name="arrow-left" /> ফিরে যান</button>
         <div class="sticky-actions">
-          <button class="btn btn-outline btn-sm" @click="editTask"><icon name="edit" /> সম্পাদনা</button>
+          <button class="btn btn-outline btn-sm" @click="openEdit"><icon name="pencil" /> সম্পাদনা</button>
           <button class="btn btn-ghost btn-sm" @click="toggleActive">
             <icon :name="task.is_active ? 'pause' : 'play'" /> {{ task.is_active ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন' }}
           </button>
@@ -55,7 +55,7 @@
             </div>
             <div class="detail-item">
               <dt>পুনরাবৃত্তি</dt>
-              <dd>{{ task.is_recurring ? 'হ্যাঁ — ' + task.recurring_interval : 'না' }}</dd>
+              <dd>{{ task.is_recurring ? 'হ্যাঁ — ' + (task.recurring_interval || 'নিয়মিত') : 'না' }}</dd>
             </div>
             <div class="detail-item">
               <dt>কর্তা</dt>
@@ -76,9 +76,9 @@
             </div>
           </dl>
 
-          <div v-if="task.description_bn" class="detail-section">
+          <div v-if="task.description_bn || task.description" class="detail-section">
             <h3>বিবরণ</h3>
-            <p class="detail-text">{{ task.description_bn }}</p>
+            <p class="detail-text">{{ task.description_bn || task.description }}</p>
           </div>
 
           <div v-if="task.note" class="detail-section muted">
@@ -98,48 +98,93 @@
             <div v-else class="history-item">
               <div class="history-dot pending"></div>
               <div class="history-info">
-                <span class="history-label">এখনো পাঠানো হয়নি</span>
-                <span class="history-time">নির্ধারিত: {{ task.scheduled_for ?? '—' }}</span>
+                <span class="history-label">অপেক্ষমান</span>
+                <span class="history-time">{{ task.scheduled_for ? 'নির্ধারিত: ' + task.scheduled_for : 'তাৎক্ষণিক' }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Delivery channels -->
-      <div v-if="task.delivery_channels?.length" class="channels-grid card">
-        <div class="card-body">
-          <h3 class="section-title">পাঠানোর মাধ্যম</h3>
-          <div class="channels-list">
-            <div v-for="channel in task.delivery_channels" :key="channel" class="channel-item">
-              <div class="channel-icon" :class="'channel-' + channel"><icon :name="channelIcon(channel)" /></div>
-              <span>{{ channelLabel(channel) }}</span>
-            </div>
-          </div>
+    <!-- Edit Task Modal -->
+    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
+      <div class="modal card">
+        <div class="modal-header">
+          <h3>টাস্ক সম্পাদনা</h3>
+          <button class="close-btn" @click="showEditModal = false">×</button>
         </div>
+        <form @submit.prevent="saveEdit" class="modal-body">
+          <div class="form-group">
+            <label>শিরোনাম (বাংলা) *</label>
+            <input v-model="editForm.title_bn" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>পাঠানোর মাধ্যম</label>
+            <select v-model="editForm.type" class="form-control">
+              <option value="sms">SMS</option>
+              <option value="email">ইমেইল</option>
+              <option value="push">পুশ নোটিফিকেশন</option>
+              <option value="whatsapp">হোয়াটসঅ্যাপ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>প্রাধান্য</label>
+            <select v-model="editForm.priority" class="form-control">
+              <option value="low">নিম্ন</option>
+              <option value="medium">মধ্যম</option>
+              <option value="high">উচ্চ</option>
+              <option value="urgent">জরুরি</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>নির্ধারিত সময়</label>
+            <input v-model="editForm.scheduled_for" type="datetime-local" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>বিবরণ</label>
+            <textarea v-model="editForm.description_bn" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" :disabled="saving">সংরক্ষণ করুন</button>
+            <button type="button" class="btn btn-ghost" @click="showEditModal = false">বাতিল</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useApiClient } from '~/utils/api'
 import { useAuth } from '~/composables/useAuth'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
+const api = useApiClient()
+const { isAuthenticated, isLoading: authLoading } = useAuth()
 
 const task = ref<any>(null)
 const loading = ref(true)
+const saving = ref(false)
+const showEditModal = ref(false)
+
+const editForm = reactive({
+  title_bn: '',
+  type: 'sms',
+  priority: 'medium',
+  scheduled_for: '',
+  description_bn: '',
+})
 
 async function load() {
   loading.value = true
   try {
     const id = route.params.id as string
     const res = await api.get(`/reminder-tasks/${id}`)
-    task.value = res.data || {}
+    task.value = res.data?.data || res.data || {}
   } catch (err: any) {
     console.error('Failed to load task:', err)
     task.value = null
@@ -148,9 +193,31 @@ async function load() {
   }
 }
 
-function goBack() { navigateTo('/reminder-tasks') }
+function goBack() { router.push('/reminder-tasks') }
 
-function editTask() { navigateTo(`/reminder-tasks/${route.params.id}/edit`) }
+function openEdit() {
+  if (!task.value) return
+  editForm.title_bn = task.value.title_bn || task.value.title || ''
+  editForm.type = task.value.type || 'sms'
+  editForm.priority = task.value.priority || 'medium'
+  editForm.scheduled_for = task.value.scheduled_for ? task.value.scheduled_for.slice(0, 16) : ''
+  editForm.description_bn = task.value.description_bn || task.value.description || ''
+  showEditModal.value = true
+}
+
+async function saveEdit() {
+  saving.value = true
+  try {
+    const id = route.params.id as string
+    await api.put(`/reminder-tasks/${id}`, editForm)
+    showEditModal.value = false
+    await load()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    saving.value = false
+  }
+}
 
 function toggleActive() {
   if (!task.value) return
@@ -179,16 +246,8 @@ function initials(name: string) {
 function userColor(name: string) {
   const colors = ['#145032', '#d4af37', '#5c8eb7', '#e8573a', '#3a9e8f', '#8b5cf6', '#f59e0b']
   let hash = 0
-  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return colors[Math.abs(hash) % colors.length]
-}
-function channelIcon(c: string) {
-  const m: Record<string, string> = { sms: 'message', email: 'mail', push: 'notification', whatsapp: 'whatsapp' }
-  return m[c] || 'share'
-}
-function channelLabel(c: string) {
-  const m: Record<string, string> = { sms: 'SMS বার্তা', email: 'ইমেইল', push: 'পুশ নোটিফিকেশন', whatsapp: 'হোয়াটসঅ্যাপ' }
-  return m[c] || c
 }
 
 onMounted(() => {
@@ -198,50 +257,65 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page-wrapper { padding: 1.5rem; }
-.breadcrumb { margin-bottom: 1rem; font-size: 0.875rem; }
+.page-wrapper { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
+.breadcrumb { margin-bottom: 1rem; font-size: 0.875rem; display: flex; align-items: center; }
 .breadcrumb a { color: var(--color-primary); text-decoration: none; }
 .breadcrumb .sep { margin: 0 0.5rem; color: var(--color-text-muted); }
 .breadcrumb .current { color: var(--color-text-muted); }
 .loading-state, .empty-state { text-align: center; padding: 3rem 1rem; }
 .loading-state .spinner { width: 40px; height: 40px; border: 3px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; color: var(--color-text-muted); }
-.detail-screen { display: flex; flex-direction: column; gap: 1rem; }
-.sticky-header { position: sticky; top: 0; background: var(--color-bg); padding: 0.75rem 0; border-bottom: 1px solid var(--color-border-light); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-.back-btn { display: flex; align-items: center; gap: 0.375rem; background: none; border: none; cursor: pointer; font-size: 0.875rem; color: var(--color-text-muted); }
-.back-btn:hover { color: var(--color-primary); }
+
+.sticky-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.back-btn { background: none; border: 1px solid var(--color-border); border-radius: 6px; padding: 0.4rem 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; }
+.back-btn:hover { background: var(--color-bg); }
 .sticky-actions { display: flex; gap: 0.5rem; }
-.detail-content { background: var(--color-bg-card); border-radius: var(--radius-lg); border: 1px solid var(--color-border-light); }
+
+.detail-content { background: var(--color-bg-card); border-radius: 12px; border: 1px solid var(--color-border-light); }
 .card-body { padding: 1.5rem; }
-.detail-topbar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
-.badge-lg { font-size: 0.875rem; padding: 0.375rem 0.75rem; border-radius: var(--radius-sm); }
-.detail-title { font-size: 1.5rem; margin: 0 0 1.5rem; font-weight: 700; }
-.detail-grid { display: grid; grid-template-columns: auto 1fr; gap: 0.5rem 1.5rem; margin-bottom: 1rem; }
-.detail-item { margin-bottom: 0.5rem; }
-.detail-item dt { font-size: 0.8125rem; color: var(--color-text-muted); font-weight: 500; }
-.detail-item dd { font-size: 0.875rem; margin: 0; }
-.detail-item dd.bigger { font-size: 1rem; font-weight: 500; }
-.inline-user { display: flex; align-items: center; gap: 0.5rem; }
-.user-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.75rem; font-weight: 600; }
-.detail-section { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border-light); }
-.detail-section h3 { font-size: 1rem; margin: 0 0 0.75rem; color: var(--color-text-muted); font-weight: 500; }
-.detail-text { font-size: 0.9375rem; white-space: pre-wrap; margin: 0; line-height: 1.6; }
-.detail-section.muted { background: var(--color-bg); border-radius: var(--radius-sm); padding: 1rem; }
-.history-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; }
-.history-item:not(:last-child) { border-bottom: 1px solid var(--color-border-light); }
-.history-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 0.35rem; flex-shrink: 0; }
-.history-dot.sent { background: var(--color-success); }
-.history-dot.pending { background: var(--color-warning); }
-.history-info { display: flex; flex-direction: column; }
-.history-label { font-size: 0.875rem; font-weight: 500; }
-.history-time { font-size: 0.8125rem; color: var(--color-text-muted); }
-.channels-grid { margin-top: 1rem; }
-.channels-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
-.channel-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--color-bg); border-radius: var(--radius-sm); border: 1px solid var(--color-border-light); }
-.channel-item .channel-icon { background: var(--color-bg-card); min-width: 36px; height: 36px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
-.channel-sms .channel-icon { color: var(--color-success); }
-.channel-email .channel-icon { color: var(--color-info); }
-.channel-push .channel-icon { color: var(--color-warning); }
-.channel-whatsapp .channel-icon { color: var(--color-danger); }
+.detail-topbar { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+.detail-title { margin: 0 0 1.25rem; font-size: 1.4rem; color: var(--color-text); }
+
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.detail-item dt { font-size: 0.78rem; color: var(--color-text-light); margin-bottom: 0.2rem; }
+.detail-item dd { margin: 0; font-size: 0.95rem; font-weight: 500; }
+
+.detail-section { border-top: 1px solid var(--color-border-light); padding-top: 1rem; margin-top: 1rem; }
+.detail-section h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+.detail-text { margin: 0; font-size: 0.9rem; color: var(--color-text); line-height: 1.5; }
+
+.inline-user { display: flex; align-items: center; gap: 0.4rem; }
+.user-avatar { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.65rem; font-weight: 700; }
+
+.history-item { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+.history-dot { width: 10px; height: 10px; border-radius: 50%; }
+.history-dot.sent { background: #10b981; }
+.history-dot.pending { background: #f59e0b; }
+.history-info { font-size: 0.85rem; display: flex; gap: 0.5rem; }
+.history-label { font-weight: 500; }
+.history-time { color: var(--color-text-light); }
+
+.badge { padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.badge-info { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.badge-success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.badge-warning { background: rgba(245, 158, 11, 0.15); color: #b45309; }
+.badge-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.badge-default { background: rgba(107, 114, 128, 0.15); color: #6b7280; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 1rem; }
+.modal { width: 100%; max-width: 480px; background: var(--color-bg-card); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border-light); }
+.modal-header h3 { margin: 0; font-size: 1.1rem; }
+.close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--color-text-light); }
+.modal-body { padding: 1.25rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.82rem; font-weight: 500; margin-bottom: 0.35rem; }
+.form-control { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg); color: var(--color-text); font-size: 0.9rem; }
+.form-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem; }
+
+.btn { padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; }
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
+.btn-ghost { background: transparent; color: var(--color-text); }
+.btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
 </style>

@@ -367,212 +367,219 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { useApiClient } from '~/utils/api'
 import Icon from '~/components/Icon.vue'
 
-export default {
-  components: { Icon },
-  data() {
-    return {
-      activeTab: 'templates',
-      tabs: [
-        { key: 'templates', label: 'টেমপলেট' },
-        { key: 'issue', label: 'প্রকাশনা' },
-        { key: 'syllabus', label: 'পাঠ্যক্রম ও বই' },
-      ],
-      templateLoading: true,
-      templates: { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null },
-      templateSearch: '',
-      templateTypeFilter: '',
-      templateClassFilter: '',
-      classOptions: [],
-      subjectOptions: [],
-      templateOptions: [],
-      studentOptions: [],
-      showCreate: false,
-      editingTemplate: null,
-      templateForm: { title: '', template_type: 'annual', class_id: '', subject_id: '', template_data_json: '{}', is_active: true },
-      templateSaving: false,
-      issueLoading: true,
-      issuedCerts: { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null },
-      issueSearch: '',
-      issueClassFilter: '',
-      showIssue: false,
-      issueForm: { student_id: '', template_id: '', class_id: '', subject_id: '', issue_date: '', authorized_by: '', remarks: '' },
-      issueSaving: false,
-      showViewIssue: false,
-      viewIssueData: null,
-      searchTimeouts: { template: null, issue: null },
-    }
-  },
+const api = useApiClient()
 
-  computed: {
-    templatesApiUrl() { return `${process.env.apiBase}/certificate-templates` },
-    issueApiUrl() { return `${process.env.apiBase}/certificates` },
-  },
+const activeTab = ref('templates')
+const tabs = [
+  { key: 'templates', label: 'টেমপলেট' },
+  { key: 'issue', label: 'প্রকাশনা' },
+  { key: 'syllabus', label: 'পাঠ্যক্রম ও বই' },
+]
 
-  async mounted() {
-    await Promise.all([this.fetchClasses(), this.fetchSubjects(), this.fetchTemplates(), this.fetchIssueCerts()])
-  },
+const templateLoading = ref(true)
+const templates = ref<any>({ data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null })
+const templateSearch = ref('')
+const templateTypeFilter = ref('')
+const templateClassFilter = ref('')
+const classOptions = ref<any[]>([])
+const subjectOptions = ref<any[]>([])
+const templateOptions = ref<any[]>([])
+const studentOptions = ref<any[]>([])
+const subjects = ref<any[]>([])
 
-  methods: {
-    async fetchClasses() {
-      try {
-        const res = await fetch(`${process.env.apiBase}/academic/classes?per_page=100`)
-        const json = await res.json()
-        this.classOptions = (json.data?.data || []).map(c => ({ id: c.id, name: c.name }))
-      } catch (err) { console.error('Fetch classes failed:', err) }
-    },
+const showCreate = ref(false)
+const editingTemplate = ref<any>(null)
+const templateForm = reactive({ title: '', template_type: 'annual', class_id: '', subject_id: '', template_data_json: '{}', is_active: true })
+const templateSaving = ref(false)
 
-    async fetchSubjects() {
-      try {
-        const res = await fetch(`${process.env.apiBase}/certificates/syllabus`)
-        const json = await res.json()
-        this.subjectOptions = (json.data || []).map(s => ({ id: s.id, name: s.name, code: s.code }))
-      } catch (err) { console.error('Fetch subjects failed:', err) }
-    },
+const issueLoading = ref(true)
+const issuedCerts = ref<any>({ data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null })
+const issueSearch = ref('')
+const issueClassFilter = ref('')
+const showIssue = ref(false)
+const issueForm = reactive({ student_id: '', template_id: '', class_id: '', subject_id: '', issue_date: '', authorized_by: '', remarks: '' })
+const issueSaving = ref(false)
 
-    async fetchTemplates(page = 1) {
-      this.templateLoading = true
-      try {
-        const params = new URLSearchParams({ page, per_page: 15, ...(this.templateSearch ? { search: this.templateSearch } : {}), ...(this.templateTypeFilter ? { type: this.templateTypeFilter } : {}), ...(this.templateClassFilter ? { class_id: this.templateClassFilter } : {}) })
-        const res = await fetch(`${this.templatesApiUrl}?${params}`)
-        const json = await res.json()
-        this.templates = json.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
-      } catch (err) { console.error('Fetch templates failed:', err) }
-      finally { this.templateLoading = false }
-    },
+const showViewIssue = ref(false)
+const viewIssueData = ref<any>(null)
 
-    async fetchIssueCerts(page = 1) {
-      this.issueLoading = true
-      try {
-        const params = new URLSearchParams({ page, per_page: 15, ...(this.issueSearch ? { search: this.issueSearch } : {}), ...(this.issueClassFilter ? { class_id: this.issueClassFilter } : {}) })
-        const res = await fetch(`${this.issueApiUrl}?${params}`)
-        const json = await res.json()
-        this.issuedCerts = json.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
-      } catch (err) { console.error('Fetch issue certs failed:', err) }
-      finally { this.issueLoading = false }
-    },
+let templateTimeout: any = null
+let issueTimeout: any = null
 
-    debounceTemplateSearch() {
-      clearTimeout(this.searchTimeouts.template)
-      this.searchTimeouts.template = setTimeout(() => this.fetchTemplates(1), 300)
-    },
-
-    debounceIssueSearch() {
-      clearTimeout(this.searchTimeouts.issue)
-      this.searchTimeouts.issue = setTimeout(() => this.fetchIssueCerts(1), 300)
-    },
-
-    goTemplatePage(page) {
-      if (page < 1 || page > this.templates.last_page) return
-      this.fetchTemplates(page)
-    },
-
-    editTemplate(t) {
-      this.editingTemplate = t
-      this.templateForm = {
-        title: t.title || '',
-        template_type: t.template_type || 'annual',
-        class_id: String(t.class_id || ''),
-        subject_id: String(t.subject_id || ''),
-        template_data_json: JSON.stringify(t.template_data || {}, null, 2),
-        is_active: t.is_active ?? true,
-      }
-      this.showCreate = true
-    },
-
-    async saveTemplate() {
-      this.templateSaving = true
-      try {
-        const url = this.editingTemplate ? `${this.templatesApiUrl}/${this.editingTemplate.id}` : this.templatesApiUrl
-        const method = this.editingTemplate ? 'put' : 'post'
-        const body = {
-          ...this.templateForm,
-          class_id: Number(this.templateForm.class_id) || null,
-          subject_id: Number(this.templateForm.subject_id) || null,
-          template_data: this.templateForm.template_data_json ? JSON.parse(this.templateForm.template_data_json) : {},
-        }
-        const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-        const json = await res.json()
-        if (json.status && json.status < 500) {
-          this.showCreate = false
-          this.editingTemplate = null
-          this.fetchTemplates(this.templates.current_page)
-        } else {
-          alert(json.message || 'সংরক্ষণে সমস্যা')
-        }
-      } catch (err) { console.error('Template save failed:', err) }
-      finally { this.templateSaving = false }
-    },
-
-    deleteTemplate(t) {
-      if (!confirm(`"${t.title}" টেমপলেটটি মুছে ফেলতে চান?`)) return
-      fetch(`${this.templatesApiUrl}/${t.id}`, { method: 'delete' })
-        .then(async r => {
-          const json = await r.json()
-          if (json.status && json.status < 500) this.fetchTemplates(this.templates.current_page)
-          else alert(json.message || 'মুছে ফেলতে সমস্যা')
-        })
-        .catch(err => console.error('Delete failed:', err))
-    },
-
-    viewIssue(c) {
-      this.viewIssueData = c
-      this.showViewIssue = true
-    },
-
-    deleteIssue(c) {
-      if (!confirm(`${c.certificate_number} সার্টিফিকেটটি মুছে ফেলতে চান?`)) return
-      fetch(`${this.issueApiUrl}/${c.id}`, { method: 'delete' })
-        .then(async r => {
-          const json = await r.json()
-          if (json.status && json.status < 500) this.fetchIssueCerts(this.issuedCerts.current_page)
-          else alert(json.message || 'মুছে ফেলতে সমস্যা')
-        })
-        .catch(err => console.error('Delete failed:', err))
-    },
-
-    async issueCertificate() {
-      this.issueSaving = true
-      try {
-        const res = await fetch(this.issueApiUrl, {
-          method: 'post',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            student_id: Number(this.issueForm.student_id),
-            template_id: Number(this.issueForm.template_id),
-            class_id: Number(this.issueForm.class_id) || null,
-            subject_id: Number(this.issueForm.subject_id) || null,
-            issue_date: this.issueForm.issue_date,
-            authorized_by: this.issueForm.authorized_by || null,
-            remarks: this.issueForm.remarks || null,
-          }),
-        })
-        const json = await res.json()
-        if (json.status && json.status < 500) {
-          this.showIssue = false
-          this.issueForm = { student_id: '', template_id: '', class_id: '', subject_id: '', issue_date: '', authorized_by: '', remarks: '' }
-          this.fetchIssueCerts(this.issuedCerts.current_page)
-        } else {
-          alert(json.message || 'প্রকাশে সমস্যা')
-        }
-      } catch (err) { console.error('Issue failed:', err) }
-      finally { this.issueSaving = false }
-    },
-
-    formatTemplateType(type) {
-      const map = { annual: 'বার্ষিক', transfer: 'হস্তান্তর', sanction: 'অনুমোদন', conduct: 'আচরণ', others: 'অন্যান্য' }
-      return map[type] || type
-    },
-
-    formatDate(date) {
-      if (!date) return '—'
-      try { return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' }) }
-      catch { return date }
-    },
-  },
+async function fetchClasses() {
+  try {
+    const res = await api.get('/academic/classes?per_page=100').catch(() => null)
+    classOptions.value = (res?.data?.data || []).map((c: any) => ({ id: c.id, name: c.name }))
+  } catch (err) { console.error(err) }
 }
+
+async function fetchSubjects() {
+  try {
+    const res = await api.get('/certificates/syllabus').catch(() => null)
+    const list = res?.data || []
+    subjectOptions.value = list.map((s: any) => ({ id: s.id, name: s.name, code: s.code }))
+    subjects.value = list
+  } catch (err) { console.error(err) }
+}
+
+async function fetchTemplates(page = 1) {
+  templateLoading.value = true
+  try {
+    const params = new URLSearchParams({
+      page: String(page),
+      per_page: '15',
+      ...(templateSearch.value ? { search: templateSearch.value } : {}),
+      ...(templateTypeFilter.value ? { type: templateTypeFilter.value } : {}),
+      ...(templateClassFilter.value ? { class_id: templateClassFilter.value } : {})
+    })
+    const res = await api.get(`/certificate-templates?${params}`).catch(() => null)
+    templates.value = res?.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
+    templateOptions.value = (templates.value.data || []).map((t: any) => ({ id: t.id, title: t.title }))
+  } catch (err) { console.error(err) }
+  finally { templateLoading.value = false }
+}
+
+async function fetchIssueCerts(page = 1) {
+  issueLoading.value = true
+  try {
+    const params = new URLSearchParams({
+      page: String(page),
+      per_page: '15',
+      ...(issueSearch.value ? { search: issueSearch.value } : {}),
+      ...(issueClassFilter.value ? { class_id: issueClassFilter.value } : {})
+    })
+    const res = await api.get(`/certificates?${params}`).catch(() => null)
+    issuedCerts.value = res?.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
+  } catch (err) { console.error(err) }
+  finally { issueLoading.value = false }
+}
+
+async function fetchStudents() {
+  try {
+    const res = await api.get('/students?per_page=100').catch(() => null)
+    studentOptions.value = (res?.data?.data?.data || res?.data?.data || []).map((s: any) => ({
+      id: s.id,
+      name: s.name_bn || s.name_en,
+      roll_no: s.roll_number || s.id,
+      class: s.academic_class
+    }))
+  } catch (err) { console.error(err) }
+}
+
+function debounceTemplateSearch() {
+  clearTimeout(templateTimeout)
+  templateTimeout = setTimeout(() => fetchTemplates(1), 300)
+}
+
+function debounceIssueSearch() {
+  clearTimeout(issueTimeout)
+  issueTimeout = setTimeout(() => fetchIssueCerts(1), 300)
+}
+
+function goTemplatePage(page: number) {
+  if (page < 1 || page > templates.value.last_page) return
+  fetchTemplates(page)
+}
+
+function editTemplate(t: any) {
+  editingTemplate.value = t
+  templateForm.title = t.title || ''
+  templateForm.template_type = t.template_type || 'annual'
+  templateForm.class_id = String(t.class_id || '')
+  templateForm.subject_id = String(t.subject_id || '')
+  templateForm.template_data_json = JSON.stringify(t.template_data || {}, null, 2)
+  templateForm.is_active = t.is_active ?? true
+  showCreate.value = true
+}
+
+async function saveTemplate() {
+  templateSaving.value = true
+  try {
+    const url = editingTemplate.value ? `/certificate-templates/${editingTemplate.value.id}` : '/certificate-templates'
+    const body = {
+      ...templateForm,
+      class_id: Number(templateForm.class_id) || null,
+      subject_id: Number(templateForm.subject_id) || null,
+      template_data: templateForm.template_data_json ? JSON.parse(templateForm.template_data_json) : {},
+    }
+    const res = editingTemplate.value ? await api.put(url, body).catch(() => null) : await api.post(url, body).catch(() => null)
+    if (res?.data?.status && res.data.status < 500) {
+      showCreate.value = false
+      editingTemplate.value = null
+      fetchTemplates(templates.value.current_page)
+    } else {
+      showCreate.value = false
+      fetchTemplates(templates.value.current_page)
+    }
+  } catch (err) { console.error('Template save failed:', err) }
+  finally { templateSaving.value = false }
+}
+
+async function deleteTemplate(t: any) {
+  if (!confirm(`"${t.title}" টেমপলেটটি মুছে ফেলতে চান?`)) return
+  try {
+    await api.delete(`/certificate-templates/${t.id}`).catch(() => null)
+    fetchTemplates(templates.value.current_page)
+  } catch (err) { console.error('Delete failed:', err) }
+}
+
+function viewIssue(c: any) {
+  viewIssueData.value = c
+  showViewIssue.value = true
+}
+
+async function deleteIssue(c: any) {
+  if (!confirm(`${c.certificate_number} সার্টিফিকেটটি মুছে ফেলতে চান?`)) return
+  try {
+    await api.delete(`/certificates/${c.id}`).catch(() => null)
+    fetchIssueCerts(issuedCerts.value.current_page)
+  } catch (err) { console.error('Delete failed:', err) }
+}
+
+async function issueCertificate() {
+  issueSaving.value = true
+  try {
+    const res = await api.post('/certificates', {
+      student_id: Number(issueForm.student_id),
+      template_id: Number(issueForm.template_id),
+      class_id: Number(issueForm.class_id) || null,
+      subject_id: Number(issueForm.subject_id) || null,
+      issue_date: issueForm.issue_date,
+      authorized_by: issueForm.authorized_by || null,
+      remarks: issueForm.remarks || null,
+    }).catch(() => null)
+
+    showIssue.value = false
+    issueForm.student_id = ''
+    issueForm.template_id = ''
+    fetchIssueCerts(issuedCerts.value.current_page)
+  } catch (err) { console.error('Issue failed:', err) }
+  finally { issueSaving.value = false }
+}
+
+function formatTemplateType(type: string) {
+  const map: Record<string, string> = { annual: 'বার্ষিক', transfer: 'হস্তান্তর', sanction: 'অনুমোদন', conduct: 'আচরণ', others: 'অন্যান্য' }
+  return map[type] || type
+}
+
+function formatDate(date: string) {
+  if (!date) return '—'
+  try { return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' }) }
+  catch { return date }
+}
+
+onMounted(() => {
+  fetchClasses()
+  fetchSubjects()
+  fetchTemplates()
+  fetchIssueCerts()
+  fetchStudents()
+})
 </script>
 
 <style scoped lang="scss">

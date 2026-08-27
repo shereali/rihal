@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Models\AcademicSession;
+use App\Models\Enrollment;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class StudentController extends ApiController
@@ -19,14 +24,18 @@ class StudentController extends ApiController
             ->when($request->has('search'), function ($q) use ($request) {
                 $search = $request->input('search');
                 $q->where(function ($sq) use ($search) {
-                    $sq->whereHas('user', fn($u) => $u->where('name_bn', 'like', "%{$search}%"))
+                    $sq->where('name_bn', 'like', "%{$search}%")
+                        ->orWhere('name_en', 'like', "%{$search}%")
+                        ->orWhereHas('user', fn($u) => $u->where('name_bn', 'like', "%{$search}%")
+                            ->orWhere('name_en', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%"))
                         ->orWhere('roll_number', 'like', "%{$search}%")
                         ->orWhere('admission_number', 'like', "%{$search}%");
                 });
             })
             ->when($request->has('class_id'), fn($q) => $q->whereHas('enrollments', fn($e) => $e->where('class_id', $request->input('class_id'))))
             ->when($request->has('is_active'), fn($q) => $q->where('is_active', filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN)))
-            ->with('user')
+            ->with(['user', 'enrollments.class'])
             ->orderBy('created_at', 'desc');
 
         $students = $query->paginate($perPage);
@@ -40,9 +49,7 @@ class StudentController extends ApiController
 
         $student = Student::where('tenant_id', $user->tenant_id)
             ->where('id', $id)
-            ->with('user')
-            ->with('guardian')
-            ->with('enrollments')
+            ->with(['user', 'guardian', 'enrollments.class', 'enrollments.section'])
             ->first();
 
         if (!$student) {
@@ -55,14 +62,22 @@ class StudentController extends ApiController
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required|integer|exists:users,id',
+            'name_bn' => 'required_without:user_id|nullable|string|max:255',
+            'name_en' => 'nullable|string|max:255',
+            'email' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:50',
+            'user_id' => 'nullable|integer|exists:users,id',
             'class_id' => 'nullable|integer',
             'section_id' => 'nullable|integer',
             'roll_number' => 'nullable|string|max:50',
             'admission_number' => 'nullable|string|max:50',
             'date_of_birth' => 'nullable|date',
-            'gender' => 'nullable|in:ছেলে,মেয়ে,অন্যান্য',
-            'blood_group' => 'nullable|string|max:5',
+            'gender' => 'nullable|string|max:50',
+            'blood_group' => 'nullable|string|max:10',
+            'father_name' => 'nullable|string|max:255',
+            'mother_name' => 'nullable|string|max:255',
+            'guardian_name' => 'nullable|string|max:255',
+            'address_bn' => 'nullable|string',
             'guardian_id' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
         ]);
@@ -72,13 +87,80 @@ class StudentController extends ApiController
         }
 
         $data = $validator->validated();
-        $data['tenant_id'] = $request->user()->tenant_id;
+        $tenantId = $request->user()->tenant_id;
 
-        $student = Student::create($data);
+        return DB::transaction(function () use ($data, $tenantId) {
+            $userId = $data['user_id'] ?? null;
+            $nameBn = $data['name_bn'] ?? '';
+            $nameEn = $data['name_en'] ?? '';
 
-        $student->load('user');
+            if (!$userId) {
+                $email = !empty($data['email']) ? $data['email'] : 'student_' . time() . '_' . rand(100, 999) . '@rihal.local';
+                $existingUser = User::where('tenant_id', $tenantId)->where('email', $email)->first();
+                if ($existingUser) {
+                    $userId = $existingUser->id;
+                } else {
+                    $user = User::create([
+                        'tenant_id' => $tenantId,
+                        'name_bn' => $nameBn ?: 'শিক্ষার্থী',
+                        'name_en' => $nameEn,
+                        'email' => $email,
+                        'phone' => $data['phone'] ?? null,
+                        'password' => Hash::make('student123'),
+                        'role' => 'student',
+                    ]);
+                    $userId = $user->id;
+                }
+            } else {
+                $user = User::find($userId);
+                if ($user && empty($nameBn)) {
+                    $nameBn = $user->name_bn;
+                    $nameEn = $user->name_en;
+                }
+            }
 
-        return $this->successResponse($student, 'ছাত্র তৈরি সফল', 201);
+            $studentData = [
+                'tenant_id' => $tenantId,
+                'user_id' => $userId,
+                'name_bn' => $nameBn ?: 'শিক্ষার্থী',
+                'name_en' => $nameEn,
+                'email' => $data['email'] ?? null,
+                'admission_number' => $data['admission_number'] ?? ('ADM-' . date('Y') . '-' . rand(1000, 9999)),
+                'roll_number' => $data['roll_number'] ?? null,
+                'date_of_birth' => $data['date_of_birth'] ?? null,
+                'gender' => $data['gender'] ?? null,
+                'blood_group' => $data['blood_group'] ?? null,
+                'father_name' => $data['father_name'] ?? null,
+                'mother_name' => $data['mother_name'] ?? null,
+                'guardian_name' => $data['guardian_name'] ?? null,
+                'address_bn' => $data['address_bn'] ?? null,
+                'guardian_id' => $data['guardian_id'] ?? null,
+                'status' => 'active',
+                'admission_date' => now(),
+                'is_active' => $data['is_active'] ?? true,
+            ];
+
+            $student = Student::create($studentData);
+
+            // Create initial enrollment if class_id is present
+            if (!empty($data['class_id'])) {
+                $session = AcademicSession::where('tenant_id', $tenantId)->first();
+                Enrollment::create([
+                    'tenant_id' => $tenantId,
+                    'student_id' => $userId,
+                    'class_id' => $data['class_id'],
+                    'section_id' => $data['section_id'] ?? null,
+                    'session_id' => $session?->id ?? 1,
+                    'enrollment_number' => 'ENR-' . date('Y') . '-' . $student->id,
+                    'enrollment_date' => now(),
+                    'status' => 'enrolled',
+                ]);
+            }
+
+            $student->load(['user', 'enrollments.class']);
+
+            return $this->successResponse($student, 'ছাত্র তৈরি সফল', 201);
+        });
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -94,14 +176,22 @@ class StudentController extends ApiController
         }
 
         $validator = Validator::make($request->all(), [
+            'name_bn' => 'nullable|string|max:255',
+            'name_en' => 'nullable|string|max:255',
+            'email' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:50',
             'user_id' => 'nullable|integer|exists:users,id',
             'class_id' => 'nullable|integer',
             'section_id' => 'nullable|integer',
             'roll_number' => 'nullable|string|max:50',
             'admission_number' => 'nullable|string|max:50',
             'date_of_birth' => 'nullable|date',
-            'gender' => 'nullable|in:ছেলে,মেয়ে,অন্যান্য',
-            'blood_group' => 'nullable|string|max:5',
+            'gender' => 'nullable|string|max:50',
+            'blood_group' => 'nullable|string|max:10',
+            'father_name' => 'nullable|string|max:255',
+            'mother_name' => 'nullable|string|max:255',
+            'guardian_name' => 'nullable|string|max:255',
+            'address_bn' => 'nullable|string',
             'guardian_id' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
         ]);
@@ -110,9 +200,23 @@ class StudentController extends ApiController
             return $this->errorResponse('বৈধতা ত্রুটি', 422, $validator->errors());
         }
 
-        $student->update($validator->validated());
+        $data = $validator->validated();
 
-        $student->load('user');
+        $student->update($data);
+
+        // Sync name/email with associated user if provided
+        if ($student->user) {
+            $userUpdates = [];
+            if (!empty($data['name_bn'])) $userUpdates['name_bn'] = $data['name_bn'];
+            if (!empty($data['name_en'])) $userUpdates['name_en'] = $data['name_en'];
+            if (!empty($data['phone'])) $userUpdates['phone'] = $data['phone'];
+            if (!empty($data['email'])) $userUpdates['email'] = $data['email'];
+            if (!empty($userUpdates)) {
+                $student->user->update($userUpdates);
+            }
+        }
+
+        $student->load(['user', 'enrollments.class']);
 
         return $this->successResponse($student->fresh(), 'ছাত্র আপডেট সফল');
     }

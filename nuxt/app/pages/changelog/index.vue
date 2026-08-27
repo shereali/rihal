@@ -38,10 +38,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useApiClient } from '~/utils/api'
 
+const api = useApiClient()
 const loading = ref(false)
+const systemVersion = ref('2.0.0')
 
-// Static changelog data (could be fetched from API if a changelog endpoint exists)
 const versions = ref([
   {
     version: '2.0.0',
@@ -80,9 +82,21 @@ const versions = ref([
   },
 ])
 
-onMounted(() => {
-  loading.value = false
-})
+async function loadVersionInfo() {
+  loading.value = true
+  try {
+    const res = await api.get('/settings/general').catch(() => null)
+    if (res?.data?.version) {
+      systemVersion.value = res.data.version
+    }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadVersionInfo)
 </script>
 
 <style scoped>

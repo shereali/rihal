@@ -30,7 +30,7 @@ export function useAuth() {
       const response = await apiClient.post('/auth/login', data)
       const { user, token } = response.data.data
       store.setAuth({ user: user as User, token })
-      try { navigateTo('/dashboard') } catch { /* SSR-safe */ }
+      // Redirect is handled by the calling page to allow success messages
       return { user, token }
     } finally {
       store.setLoading(false)

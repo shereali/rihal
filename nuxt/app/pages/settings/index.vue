@@ -68,12 +68,42 @@
         </div>
       </NuxtLink>
 
-      <NuxtLink :to="'/settings/subject-assignment'" class="setting-card">
+      <NuxtLink :to="'/settings/invoice-design'" class="setting-card">
         <div class="setting-header">
-          <icon name="assignment" class="setting-icon" />
+          <icon name="document-text" class="setting-icon" />
           <div>
-            <h3 class="setting-title">বিষয় বরাদ্দ</h3>
-            <p class="setting-desc">শিক্ষক-বিষয়-শ্রেণি বরাদ্দ ও ক্লাস রুটিন তৈরি</p>
+            <h3 class="setting-title">মানি রিসিট ও ইনভয়েস ডিজাইন</h3>
+            <p class="setting-desc">রসিদের আকার, লোগো ও জলছাপ কাস্টমাইজেশন</p>
+          </div>
+        </div>
+      </NuxtLink>
+
+      <NuxtLink :to="'/settings/signatures'" class="setting-card">
+        <div class="setting-header">
+          <icon name="pencil" class="setting-icon" />
+          <div>
+            <h3 class="setting-title">ডিজিটাল স্বাক্ষর ও সিল</h3>
+            <p class="setting-desc">মুহতামিম ও পরীক্ষা নিয়ন্ত্রকের স্বাক্ষর ও সিল</p>
+          </div>
+        </div>
+      </NuxtLink>
+
+      <NuxtLink :to="'/settings/needy'" class="setting-card">
+        <div class="setting-header">
+          <icon name="users" class="setting-icon" />
+          <div>
+            <h3 class="setting-title">দরিদ্র ও এতিম তহবিল সহায়তা</h3>
+            <p class="setting-desc">লিল্লাহ বোর্ডিং ও যাকাত তহবিল শিক্ষার্থী তালিকা</p>
+          </div>
+        </div>
+      </NuxtLink>
+
+      <NuxtLink :to="'/settings/cache'" class="setting-card">
+        <div class="setting-header">
+          <icon name="trash" class="setting-icon" />
+          <div>
+            <h3 class="setting-title">ক্যাশ ও ডাটা সিঙ্ক</h3>
+            <p class="setting-desc">সিস্টেম ক্যাশ পরিষ্কার ও পারফরম্যান্স অপ্টিমাইজেশন</p>
           </div>
         </div>
       </NuxtLink>
@@ -82,7 +112,24 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useApiClient } from '~/utils/api'
+
 definePageMeta({ layout: 'dashboard' })
+
+const api = useApiClient()
+const tenantInfo = ref<any>(null)
+
+onMounted(async () => {
+  try {
+    const res = await api.get('/settings/general').catch(() => null)
+    if (res?.data) {
+      tenantInfo.value = res.data
+    }
+  } catch (e) {
+    console.error(e)
+  }
+})
 </script>
 
 <style scoped>

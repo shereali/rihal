@@ -2,14 +2,14 @@
   <div class="notice-edit">
     <div class="page-header">
       <NuxtLink to="/notice" class="btn btn-outline btn-sm">
-        <icon :name="mdiArrowLeft" /> ফিরে যান
+        <icon name="arrow-left" /> ফিরে যান
       </NuxtLink>
       <div class="header-actions">
         <NuxtLink to="/notice" class="btn btn-secondary btn-sm">
-          <icon :name="mdiClose" /> বাতিল
+          <icon name="close" /> বাতিল
         </NuxtLink>
         <button class="btn btn-primary btn-sm" :disabled="saving || !isFormValid" @click="saveNotice">
-          <icon v-if="saving" :name="mdiLoad" /><icon v-else :name="mdiContentSave" />
+          <icon v-if="saving" name="loader" /><icon v-else name="save" />
           {{ editing ? 'আপডেট' : 'প্রকাশ' }}
         </button>
       </div>
@@ -96,7 +96,7 @@
 
           <div class="form-actions">
             <button type="submit" class="btn btn-primary" :disabled="saving || !isFormValid">
-              <icon v-if="saving" :name="mdiLoad" /><icon v-else :name="mdiContentSave" />
+              <icon v-if="saving" name="loader" /><icon v-else name="save" />
               {{ editing ? 'আপডেট' : 'প্রকাশ' }}
             </button>
           </div>

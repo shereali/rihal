@@ -103,7 +103,7 @@ async function loadData() {
   try {
     const [recRes, fyRes] = await Promise.all([
       api.get('/hr/recruitments'),
-      api.get('/academic/fiscal-years'),
+      api.get('/settings/sessions').catch(() => ({ data: { data: [] } })),
     ])
     recruitments.value = recRes.data?.data?.data || recRes.data?.data || []
     fiscalYears.value = fyRes.data?.data?.data || fyRes.data?.data || []

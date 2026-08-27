@@ -50,7 +50,7 @@
               <input v-model="filters.to" type="date" @change="applyFilters" />
             </div>
             <button class="btn btn-outline btn-sm" @click="resetFilters">
-              <icon :name="mdiCancel" /> রিসেট
+              <icon name="cancel" /> রিসেট
             </button>
           </div>
         </div>

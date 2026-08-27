@@ -4,13 +4,6 @@
       <button class="mobile-menu-btn" type="button" aria-label="মেনু" @click="emit('toggle-sidebar')">
         <span></span><span></span><span></span>
       </button>
-      <!-- Support banner: compact inline strip -->
-      <div class="topbar-support">
-        <span class="support-label">সাপোর্ট: প্রতিদিন ১০ AM – ৭ PM</span>
-        <NuxtLink to="https://wa.me/8801749240901" target="_blank" class="support-wa">
-          <Icon name="whatsapp" size="14" />
-        </NuxtLink>
-      </div>
     </div>
     <div class="topbar-right">
       <!-- Dual-mode search: student or invoice -->
@@ -39,10 +32,7 @@
         <span>নতুন</span>
       </NuxtLink>
 
-      <button class="topbar-badge" type="button" title="SMS ব্যালেন্স">
-        <Icon name="message" />
-        <span>SMS: ৫৮৯ টাকা</span>
-      </button>
+
 
       <!-- Notifications popover -->
       <div class="topbar-menu">
@@ -83,18 +73,7 @@
         </div>
       </div>
 
-      <!-- Language selector (বাংলা/ইংরেজি/আরবি) -->
-      <div class="topbar-menu">
-        <button class="language-button" type="button" @click="languageOpen = !languageOpen">
-          বাংলা <Icon name="chevron-down" />
-        </button>
-        <div v-if="languageOpen" class="popover language-popover">
-          <strong>ভাষা</strong>
-          <button class="active">বাংলা <span>✓</span></button>
-          <button disabled>English <small>শীঘ্রই</small></button>
-          <button disabled>العربية <small>শীঘ্রই</small></button>
-        </div>
-      </div>
+
 
       <!-- User menu -->
       <div class="topbar-menu">
@@ -129,7 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import { useApiClient } from '~/utils/api'
 import AiChatControl from './AiChatControl.vue'
@@ -160,7 +139,18 @@ const roleLabel = computed(() =>
   ({ admin: 'অ্যাডমিন', super_admin: 'সুপার অ্যাডমিন', teacher: 'শিক্ষক', student: 'শিক্ষার্থী', guardian: 'অভিভাবক' } as any)[currentUser.value?.role] || 'ব্যবহারকারী'
 )
 
+function handleDocumentClick(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (!target.closest('.topbar-menu')) {
+    notificationOpen.value = false
+    themeOpen.value = false
+    languageOpen.value = false
+    userOpen.value = false
+  }
+}
+
 onMounted(async () => {
+  document.addEventListener('click', handleDocumentClick)
   const saved = localStorage.getItem('rihal_theme')
   if (saved && themes.some(t => t.value === saved)) {
     currentTheme.value = saved
@@ -170,6 +160,10 @@ onMounted(async () => {
     const r = await api.get('/notifications?per_page=8')
     notifications.value = r.data?.data?.data || r.data?.data || []
   } catch {}
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick)
 })
 
 function setTheme(value: string) {
@@ -203,15 +197,19 @@ function handleSearch() {
   right: 0;
   left: 0;
   height: var(--header-height);
-  background: var(--color-bg-header);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1.35rem;
   z-index: 90;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--glass-shadow);
+  transition: left var(--transition-normal);
 }
+
+
 
 .topbar-left {
   display: flex;
@@ -220,7 +218,7 @@ function handleSearch() {
 }
 
 .mobile-menu-btn {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 4px;
   padding: .5rem;

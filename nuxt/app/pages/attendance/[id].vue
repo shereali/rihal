@@ -2,14 +2,14 @@
   <div class="attendance-show">
     <div class="page-header">
       <NuxtLink to="/attendance" class="btn btn-outline btn-sm">
-        <icon :name="mdiArrowLeft" /> ফিরে যান
+        <icon name="arrow-left" /> ফিরে যান
       </NuxtLink>
       <div class="header-actions">
         <NuxtLink :to="`/attendance/${record?.id}/edit`" class="btn btn-primary btn-sm">
-          <icon :name="mdiPencil" /> সম্পাদনা
+          <icon name="pencil" /> সম্পাদনা
         </NuxtLink>
         <button class="btn btn-outline-danger btn-sm" @click="confirmDelete">
-          <icon :name="mdiDelete" /> মুছুন
+          <icon name="delete" /> মুছুন
         </button>
       </div>
     </div>
@@ -40,9 +40,9 @@
             </div>
             <div class="detail-item">
               <label class="detail-label">অবস্থা</label>
-              <span v-if="record.status === 'present'" class="status-badge status-present"><icon :name="mdiCheckCircle" /> উপস্থিত</span>
-              <span v-else-if="record.status === 'absent'" class="status-badge status-absent"><icon :name="mdiCloseCircle" /> অনুপস্থিত</span>
-              <span v-else-if="record.status === 'late'" class="status-badge status-late"><icon :name="mdiClockOutline" /> দেরি</span>
+              <span v-if="record.status === 'present'" class="status-badge status-present"><icon name="check-circle" /> উপস্থিত</span>
+              <span v-else-if="record.status === 'absent'" class="status-badge status-absent"><icon name="close-circle" /> অনুপস্থিত</span>
+              <span v-else-if="record.status === 'late'" class="status-badge status-late"><icon name="clock-outline" /> দেরি</span>
               <span v-else class="text-muted">{{ record.status }}</span>
             </div>
             <div class="detail-item">

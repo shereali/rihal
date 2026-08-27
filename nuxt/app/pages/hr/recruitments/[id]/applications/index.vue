@@ -6,46 +6,196 @@
           <div class="breadcrumb">
             <NuxtLink to="/hr">স্টাফ ও কর্মী</NuxtLink>
             <span class="sep">/</span>
-            <NuxtLink :to="`/hr/recruitments/${recruitmentId}`">{{ recruitmentTitle }}</NuxtLink>
+            <NuxtLink to="/hr/recruitments">নিয়োগ বিজ্ঞপ্তি</NuxtLink>
             <span class="sep">/</span>
-            <span class="current">আবেদন</span>
+            <span class="current">{{ recruitmentTitle }}</span>
           </div>
         </div>
-        <button class="btn btn-primary" @click="showForm = !showForm"><icon name="plus" /> নতুন আবেদন</button>
+        <div class="header-actions">
+          <button class="btn btn-primary" @click="showForm = !showForm">
+            <icon name="plus" /> নতুন আবেদন
+          </button>
+          <NuxtLink to="/hr/recruitments" class="btn btn-outline">
+            <icon name="arrow-left" /> ফিরে যান
+          </NuxtLink>
+        </div>
       </div>
-      <h1>আবেদন তালিকা</h1>
+      <h1>নিয়োগ আবেদন তালিকা</h1>
     </div>
 
+    <!-- Create Application Panel -->
     <form v-if="showForm" class="create-panel card" @submit.prevent="createApplication">
-      <div class="form-heading"><div><h2>নতুন আবেদন</h2><p>আবেদনকারীর তথ্য ও যোগাযোগ উল্লেখ করুন</p></div><button type="button" class="close-btn" @click="showForm = false">×</button></div>
+      <div class="form-heading">
+        <div>
+          <h2>নতুন আবেদন যোগ করুন</h2>
+          <p>আবেদনকারীর তথ্য ও যোগাযোগ উল্লেখ করুন</p>
+        </div>
+        <button type="button" class="close-btn" @click="showForm = false">×</button>
+      </div>
+
       <div v-if="error" class="alert alert-error">{{ error }}</div>
-      <div class="form-row"><div class="form-group wide"><label>আবেদনকারীর নাম *</label><input v-model="formData.guest_name_bn" class="form-control" required placeholder="আবেদনকারীর পূর্ণ নাম (বাংলা)" /></div></div>
-      <div class="form-row"><div class="form-group"><label>নাম (ইংরেজি)</label><input v-model="formData.guest_name_en" class="form-control" placeholder="আবেদনকারীর পূর্ণ নাম (ইংরেজি)" /></div><div class="form-group"><label>ভোটার/জাতীয় পরিচয়পত্র নম্বর</label><input v-model="formData.nid_number" class="form-control" placeholder="১২ ডিজিটের নাম্বার" /></div></div>
-      <div class="form-row"><div class="form-group"><label>ফোন</label><input v-model="formData.guest_phone" class="form-control" placeholder="০১৭১২৩৪৫৬৭৮" /></div><div class="form-group"><label>ইমেইল</label><input v-model="formData.guest_email" type="email" class="form-control" placeholder="চিঠি@গ্রহীতা.com" /></div></div>
-      <div class="form-row"><div class="form-group wide"><label>ঠিকানা</label><input v-model="formData.guest_address_bn" class="form-control" placeholder="ঠিকানা..." /></div></div>
-      <div class="form-group wide"><label>সংক্ষিপ্ত পরিচয় / আবেদনের কারণ</label><textarea v-model="formData.guest_bio_bn" class="form-control" rows="3" placeholder="আপনার পরিচয় ও এই পদের জন্য আবেদনের কারণ..."></textarea></div>
-      <div class="form-row"><div class="form-group"><label>পাসপোর্ট/ছবির লিংক</label><input v-model="formData.photo_url" class="form-control" placeholder="ছবির URL লিংক..." /></div><div class="form-group"><label>অবস্থা</label><select v-model="formData.status" class="form-control"><option value="pending">মুলতুবি</option><option value="reviewed">পর্যালোচনা করা হয়েছে</option><option value="accepted">গ্রহণযোগ্য</option><option value="rejected">প্রত্যাখ্যাত</option></select></div></div>
-      <div class="form-actions"><button class="btn btn-primary" :disabled="saving">{{ saving ? 'সংরক্ষণ হচ্ছে...' : 'আবেদন জমা করুন' }}</button><button class="btn btn-ghost" type="button" @click="showForm = false">বাতিল</button></div>
+
+      <div class="form-row">
+        <div class="form-group wide">
+          <label>আবেদনকারীর নাম (বাংলা) *</label>
+          <input v-model="formData.guest_name_bn" class="form-control" required placeholder="আবেদনকারীর পূর্ণ নাম (বাংলা)" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>নাম (ইংরেজি)</label>
+          <input v-model="formData.guest_name_en" class="form-control" placeholder="Full Name in English" />
+        </div>
+        <div class="form-group">
+          <label>জাতীয় পরিচয়পত্র নম্বর</label>
+          <input v-model="formData.nid_number" class="form-control" placeholder="NID নম্বর" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>ফোন নম্বর *</label>
+          <input v-model="formData.guest_phone" class="form-control" required placeholder="০১৭১২৩৪৫৬৭৮" />
+        </div>
+        <div class="form-group">
+          <label>ইমেইল</label>
+          <input v-model="formData.guest_email" type="email" class="form-control" placeholder="applicant@email.com" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group wide">
+          <label>ঠিকানা</label>
+          <input v-model="formData.guest_address_bn" class="form-control" placeholder="বর্তমান ঠিকানা..." />
+        </div>
+      </div>
+      <div class="form-group wide">
+        <label>সংক্ষিপ্ত পরিচয় / আবেদনের কারণ</label>
+        <textarea v-model="formData.guest_bio_bn" class="form-control" rows="2" placeholder="অভিজ্ঞতা ও সংক্ষিপ্ত পরিচয়..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>অবস্থা</label>
+          <select v-model="formData.status" class="form-control">
+            <option value="pending">মুলতুবি (Pending)</option>
+            <option value="reviewed">পর্যালোচিত (Reviewed)</option>
+            <option value="accepted">গৃহীত (Accepted)</option>
+            <option value="rejected">প্রত্যাখ্যাত (Rejected)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" :disabled="saving">
+          {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'আবেদন জমা করুন' }}
+        </button>
+        <button class="btn btn-ghost" type="button" @click="showForm = false">বাতিল</button>
+      </div>
     </form>
 
-    <div v-if="loading" class="loading-overlay"><div class="spinner" /></div>
-    <div v-else-if="!applications.length" class="empty-card"><div class="empty-icon"><icon name="file-text" /></div><h3>কোনো আবেদন নেই</h3><p>আবেদন আসা শুরু করবে</p></div>
-    <div v-else class="applications-table">
+    <div v-if="loading" class="loading-overlay"><div class="spinner" /><p>আবেদন লোড হচ্ছে...</p></div>
+
+    <div v-else-if="!applications.length" class="empty-card">
+      <div class="empty-icon"><icon name="file-text" /></div>
+      <h3>কোনো আবেদন নেই</h3>
+      <p>এই বিজ্ঞপ্তির জন্য এখনও কোনো আবেদন জমা পড়েনি</p>
+      <button class="btn btn-primary" @click="showForm = true">প্রথম আবেদন যোগ করুন</button>
+    </div>
+
+    <div v-else class="applications-table card">
       <div class="table-responsive">
-        <table class="table">
-          <thead><tr><th>#</th><th>আবেদনকারীর নাম</th><th>ফোন</th><th>ইমেইল</th><th>আবেদনের তারিখ</th><th>অবস্থা</th><th>কর্ম</th></tr></thead>
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>আবেদনকারীর নাম</th>
+              <th>ফোন</th>
+              <th>ইমেইল</th>
+              <th>তারিখ</th>
+              <th>অবস্থা</th>
+              <th></th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="(app, idx) in applications" :key="app.id">
-              <td class="text-center">{{ (currentPage - 1) * perPage + idx + 1 }}</td>
-              <td class="applicant-name">{{ app.guest_name_bn || app.guest_name_en }}</td>
-              <td>{{ app.guest_phone || '-' }}</td>
-              <td>{{ app.guest_email || '-' }}</td>
-              <td class="text-center">{{ formatDate(app.registered_at) }}</td>
-              <td><span class="status-badge" :class="statusClass(app.status)">{{ formatStatus(app.status) }}</span></td>
-              <td class="text-center"><button class="btn btn-ghost btn-sm" @click="viewApplication(app.id)"><icon name="eye" /> দেখুন</button></td>
+              <td>{{ idx + 1 }}</td>
+              <td class="applicant-name">
+                <strong>{{ app.guest_name_bn || app.guest_name_en }}</strong>
+                <small v-if="app.guest_name_en && app.guest_name_bn" class="text-muted d-block">{{ app.guest_name_en }}</small>
+              </td>
+              <td>{{ app.guest_phone || '—' }}</td>
+              <td>{{ app.guest_email || '—' }}</td>
+              <td>{{ formatDate(app.created_at || app.registered_at) }}</td>
+              <td>
+                <span class="status-badge" :class="statusClass(app.status)">
+                  {{ formatStatus(app.status) }}
+                </span>
+              </td>
+              <td class="text-right">
+                <button class="btn btn-outline btn-sm" @click="openViewModal(app)">
+                  <icon name="eye" /> বিস্তারিত
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Application Detail Modal -->
+    <div v-if="selectedApp" class="modal-overlay" @click.self="selectedApp = null">
+      <div class="modal card">
+        <div class="modal-header">
+          <h3>আবেদনকারীর বিস্তারিত তথ্য</h3>
+          <button class="close-btn" @click="selectedApp = null">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="app-detail-grid">
+            <div class="detail-item">
+              <label>নাম (বাংলা)</label>
+              <p><strong>{{ selectedApp.guest_name_bn || '—' }}</strong></p>
+            </div>
+            <div class="detail-item">
+              <label>নাম (ইংরেজি)</label>
+              <p>{{ selectedApp.guest_name_en || '—' }}</p>
+            </div>
+            <div class="detail-item">
+              <label>ফোন নম্বর</label>
+              <p>{{ selectedApp.guest_phone || '—' }}</p>
+            </div>
+            <div class="detail-item">
+              <label>ইমেইল</label>
+              <p>{{ selectedApp.guest_email || '—' }}</p>
+            </div>
+            <div class="detail-item">
+              <label>জাতীয় পরিচয়পত্র নং</label>
+              <p>{{ selectedApp.nid_number || '—' }}</p>
+            </div>
+            <div class="detail-item">
+              <label>বর্তমান অবস্থা</label>
+              <p>
+                <span class="status-badge" :class="statusClass(selectedApp.status)">
+                  {{ formatStatus(selectedApp.status) }}
+                </span>
+              </p>
+            </div>
+            <div class="detail-item full-width" v-if="selectedApp.guest_address_bn">
+              <label>ঠিকানা</label>
+              <p>{{ selectedApp.guest_address_bn }}</p>
+            </div>
+            <div class="detail-item full-width" v-if="selectedApp.guest_bio_bn">
+              <label>পরিচিতি / কারণ</label>
+              <p class="bio-text">{{ selectedApp.guest_bio_bn }}</p>
+            </div>
+          </div>
+
+          <div class="status-change-box">
+            <label>অবস্থা পরিবর্তন করুন:</label>
+            <div class="status-buttons">
+              <button class="btn btn-sm btn-outline" @click="updateStatus(selectedApp, 'pending')">মুলতুবি</button>
+              <button class="btn btn-sm btn-outline" @click="updateStatus(selectedApp, 'reviewed')">পর্যালোচিত</button>
+              <button class="btn btn-sm btn-success" @click="updateStatus(selectedApp, 'accepted')">গ্রহণযোগ্য</button>
+              <button class="btn btn-sm btn-danger" @click="updateStatus(selectedApp, 'rejected')">প্রত্যাখ্যাত</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -59,107 +209,345 @@ import { useApiClient } from '~/utils/api'
 const route = useRoute()
 const api = useApiClient()
 const recruitmentId = computed(() => Number(route.params.id))
-const recruitmentTitle = ref<string>('')
+const recruitmentTitle = ref<string>('নিয়োগ')
 const applications = ref<any[]>([])
 const loading = ref(true)
 const saving = ref(false)
 const showForm = ref(false)
+const selectedApp = ref<any>(null)
 const error = ref('')
-const currentPage = ref(1)
-const perPage = 15
 
-interface ApplicationFormData {
-  guest_name_bn: string; guest_name_en: string; nid_number: string
-  guest_phone: string; guest_email: string; guest_address_bn: string
-  guest_bio_bn: string; photo_url: string; status: string
-}
-
-const formData = reactive<ApplicationFormData>({
-  guest_name_bn: '', guest_name_en: '', nid_number: '',
-  guest_phone: '', guest_email: '', guest_address_bn: '',
-  guest_bio_bn: '', photo_url: '', status: 'pending',
+const formData = reactive({
+  guest_name_bn: '',
+  guest_name_en: '',
+  nid_number: '',
+  guest_phone: '',
+  guest_email: '',
+  guest_address_bn: '',
+  guest_bio_bn: '',
+  photo_url: '',
+  status: 'pending',
 })
 
 async function loadApplications() {
   loading.value = true
   try {
     const id = recruitmentId.value
-    const r = await api.get(`/hr/recruitments/${id}/applications`)
-    applications.value = r.data?.data?.data || r.data?.data || []
-    recruitmentTitle.value = (await api.get(`/hr/recruitments/${id}`)).data?.data?.post_title_bn || 'নিয়োগ'
-  } catch (e) { console.error('Failed to load:', e) }
-  finally { loading.value = false }
+    const [appsRes, recRes] = await Promise.all([
+      api.get(`/hr/recruitments/${id}/applications`).catch(() => ({ data: { data: [] } })),
+      api.get(`/hr/recruitments/${id}`).catch(() => ({ data: { data: {} } })),
+    ])
+    applications.value = appsRes.data?.data?.data || appsRes.data?.data || []
+    recruitmentTitle.value = recRes.data?.data?.post_title_bn || recRes.data?.data?.post_title_en || 'নিয়োগ'
+  } catch (e) {
+    console.error('Failed to load:', e)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function createApplication() {
-  saving.value = true; error.value = ''
+  saving.value = true
+  error.value = ''
   try {
     await api.post('/hr/applications', { ...formData, event_id: recruitmentId.value })
     showForm.value = false
-    formData.guest_name_bn = ''; formData.guest_name_en = ''; formData.nid_number = ''
-    formData.guest_phone = ''; formData.guest_email = ''; formData.guest_address_bn = ''
-    formData.guest_bio_bn = ''; formData.photo_url = ''; formData.status = 'pending'
+    formData.guest_name_bn = ''
+    formData.guest_name_en = ''
+    formData.nid_number = ''
+    formData.guest_phone = ''
+    formData.guest_email = ''
+    formData.guest_address_bn = ''
+    formData.guest_bio_bn = ''
+    formData.status = 'pending'
     await loadApplications()
-  } catch (e: any) { error.value = e?.response?.data?.message || 'আবেদন জমা করা যায়নি' }
-  finally { saving.value = false }
+  } catch (e: any) {
+    error.value = e?.response?.data?.message || 'আবেদন জমা করা যায়নি'
+  } finally {
+    saving.value = false
+  }
 }
 
-function viewApplication(id: number) { window.location.href = `/hr/recruitments/${recruitmentId.value}/applications/${id}` }
-function formatDate(date: string) { return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' }) }
-function formatStatus(status: string) { const map: Record<string,string> = { pending: 'মুলতুবি', reviewed: 'পর্যালোচনা করা হয়েছে', accepted: 'গ্রহণযোগ্য', rejected: 'প্রত্যাখ্যাত' }; return map[status] || status || '-' }
-function statusClass(status: string) { const classes: Record<string,string> = { pending: 'status-pending', reviewed: 'status-reviewed', accepted: 'status-accepted', rejected: 'status-rejected' }; return classes[status] || 'status-pending' }
+function openViewModal(app: any) {
+  selectedApp.value = app
+}
+
+async function updateStatus(app: any, newStatus: string) {
+  try {
+    await api.put(`/hr/applications/${app.id}`, { status: newStatus })
+    app.status = newStatus
+    if (selectedApp.value && selectedApp.value.id === app.id) {
+      selectedApp.value.status = newStatus
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+function formatDate(date: string) {
+  if (!date) return '—'
+  try {
+    return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' })
+  } catch {
+    return date
+  }
+}
+
+function formatStatus(status: string) {
+  const map: Record<string, string> = {
+    pending: 'মুলতুবি',
+    reviewed: 'পর্যালোচিত',
+    accepted: 'গ্রহণযোগ্য',
+    rejected: 'প্রত্যাখ্যাত',
+  }
+  return map[status] || status || '-'
+}
+
+function statusClass(status: string) {
+  if (status === 'accepted') return 'status-accepted'
+  if (status === 'reviewed') return 'status-reviewed'
+  if (status === 'rejected') return 'status-rejected'
+  return 'status-pending'
+}
 
 onMounted(loadApplications)
 </script>
 
 <style scoped>
-.page-wrapper { max-width: 1200px; margin: 0 auto; padding-bottom: 2rem; }
-.page-header { margin-bottom: 1.2rem; }
-.page-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem; }
-.breadcrumb { display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: var(--color-text-muted); }
-.breadcrumb .sep { color: var(--color-text-muted); }
-.breadcrumb .current { color: var(--color-text); font-weight: 500; }
-.breadcrumb a { color: var(--color-primary); text-decoration: none; }
-.page-header h1 { font-size: 1.4rem; color: var(--color-primary); margin: 0; font-family: var(--font-bn); }
-.create-panel { margin-bottom: 1.2rem; border: 1px solid var(--color-primary-100); }
-.form-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
-.form-heading h2 { font-size: 1.05rem; font-family: var(--font-bn); margin: 0; }
-.close-btn { background: none; border: none; font-size: 1.5rem; color: var(--color-text-muted); cursor: pointer; padding: 0; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 0.7rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.3rem; }
-.form-group.wide { grid-column: span 2; }
-.form-group label { font-size: 0.78rem; font-weight: 600; color: var(--color-text-muted); font-family: var(--font-bn); text-transform: uppercase; letter-spacing: 0.02em; }
-.form-control { padding: 0.6rem 0.8rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.85rem; font-family: var(--font-bn); background: var(--color-bg); color: var(--color-text); outline: none; }
-.form-control:focus { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-100); }
-.form-actions { display: flex; gap: 0.6rem; margin-top: 0.6rem; justify-content: flex-end; }
-.alert { padding: 0.6rem 0.9rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 0.8rem; }
-.alert-error { background: #fde8e8; color: #a03030; border: 1px solid #f5c6c6; }
-.applications-table { background: white; border: 1px solid var(--color-border-light); border-radius: 15px; overflow: hidden; }
+.page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+}
+
+.page-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.breadcrumb a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.create-panel {
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--color-primary-light);
+}
+
+.form-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.form-heading h2 { font-size: 1.15rem; margin: 0; }
+.form-heading p { font-size: 0.8rem; color: var(--color-text-light); margin: 0.2rem 0 0; }
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-text-light);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.form-group.wide {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  justify-content: flex-end;
+}
+
 .table-responsive { overflow-x: auto; }
-.table { width: 100%; border-collapse: collapse; font-size: 0.82rem; font-family: var(--font-bn); }
-.table thead tr { background: rgba(0,0,0,0.03); }
-.table th { padding: 0.6rem 0.8rem; text-align: left; font-weight: 600; color: var(--color-text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.02em; border-bottom: 1px solid var(--color-border-light); white-space: nowrap; }
-.table td { padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--color-border-light); color: var(--color-text); }
-.table tbody tr:last-child td { border-bottom: none; }
-.table tbody tr:hover { background: var(--color-bg-muted); }
-.applicant-name { font-weight: 600; }
-.text-center { text-align: center; }
-.status-badge { padding: 0.2rem 0.55rem; border-radius: 99px; font-size: 0.65rem; font-weight: 600; white-space: nowrap; }
-.status-pending { background: #fff0e4; color: #a05c35; }
-.status-reviewed { background: #e3f2fa; color: #1a5276; }
-.status-accepted { background: #e6f4ec; color: #19724a; }
-.status-rejected { background: #fde8e8; color: #a03030; }
-.btn { padding: 0.5rem 0.9rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: var(--font-bn); font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem; border: 1px solid transparent; transition: all 0.15s; }
-.btn-primary { background: var(--color-primary); color: white; border-color: var(--color-primary); }
-.btn-primary:hover:not(:disabled) { opacity: 0.9; }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-ghost { background: transparent; border: none; color: var(--color-text-muted); }
-.btn-ghost:hover { color: var(--color-text); background: var(--color-bg-muted); }
-.btn-sm { padding: 0.35rem 0.7rem; font-size: 0.72rem; }
-.empty-card { text-align: center; padding: 3rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
-.empty-icon { width: 48px; height: 48px; color: var(--color-text-muted); margin-bottom: 0.3rem; }
-.empty-card h3 { font-size: 1rem; color: var(--color-text); margin: 0; font-family: var(--font-bn); }
-.empty-card p { font-size: 0.82rem; color: var(--color-text-muted); margin: 0; font-family: var(--font-bn); }
-.loading-overlay { display: flex; justify-content: center; padding: 3rem 0; }
-@media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+.table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.table th, .table td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--color-border-light); }
+.table th { background: rgba(0, 0, 0, 0.02); font-weight: 600; color: var(--color-text-light); font-size: 0.8rem; }
+.table-hover tr:hover { background: rgba(0, 0, 0, 0.015); }
+
+.status-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+}
+
+.status-pending { background: rgba(245, 158, 11, 0.15); color: #b45309; }
+.status-reviewed { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.status-accepted { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.status-rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 1rem;
+}
+
+.modal {
+  width: 100%;
+  max-width: 540px;
+  background: var(--color-bg-card);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.modal-header h3 { margin: 0; font-size: 1.1rem; }
+.modal-body { padding: 1.25rem; }
+
+.app-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.app-detail-grid .full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-item label {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.detail-item p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.bio-text {
+  background: var(--color-bg);
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-light);
+  font-size: 0.85rem !important;
+}
+
+.status-change-box {
+  border-top: 1px solid var(--color-border-light);
+  padding-top: 1rem;
+}
+
+.status-change-box label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-success { background: #10b981; color: #fff; }
+.btn-danger { background: #ef4444; color: #fff; }
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
+.btn-ghost { background: transparent; color: var(--color-text); }
+.btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+
+.card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+}
+
+.empty-card, .loading-overlay {
+  padding: 3rem;
+  text-align: center;
+  color: var(--color-text-light);
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+}
+
+.empty-icon { font-size: 2.5rem; color: var(--color-primary); margin-bottom: 0.5rem; }
+.spinner { width: 28px; height: 28px; border: 3px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 0.75rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.alert { padding: 0.65rem 0.9rem; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.85rem; }
+.alert-error { background: #fce4e4; color: var(--color-error); }
 </style>

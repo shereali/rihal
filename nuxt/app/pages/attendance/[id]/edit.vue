@@ -2,14 +2,14 @@
   <div class="attendance-edit">
     <div class="page-header">
       <NuxtLink to="/attendance" class="btn btn-outline btn-sm">
-        <icon :name="mdiArrowLeft" /> ফিরে যান
+        <icon name="arrow-left" /> ফিরে যান
       </NuxtLink>
       <div class="header-actions">
         <NuxtLink to="/attendance" class="btn btn-secondary btn-sm">
-          <icon :name="mdiClose" /> বাতিল
+          <icon name="close" /> বাতিল
         </NuxtLink>
         <button class="btn btn-primary btn-sm" :disabled="saving || !isFormValid" @click="saveRecord">
-          <icon v-if="saving" :name="mdiLoad" /><icon v-else :name="mdiContentSave" />
+          <icon v-if="saving" name="loader" /><icon v-else name="save" />
           {{ editing ? 'আপডেট' : 'সংরক্ষণ' }}
         </button>
       </div>
@@ -90,7 +90,7 @@
 
           <div class="form-actions">
             <button type="submit" class="btn btn-primary" :disabled="saving || !isFormValid">
-              <icon v-if="saving" :name="mdiLoad" /><icon v-else :name="mdiContentSave" />
+              <icon v-if="saving" name="loader" /><icon v-else name="save" />
               {{ editing ? 'আপডেট' : 'সংরক্ষণ' }}
             </button>
           </div>

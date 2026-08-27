@@ -1,113 +1,145 @@
 <template>
-  <div class="loans-page">
-    <div class="page-header">
-      <div class="header-left">
-        <NuxtLink to="/dashboard" class="back-link"><icon name="arrow-left" /> ফিরে যান</NuxtLink>
-        <h1>লোন ও ডিউ</h1>
-        <p class="subtitle">ঋণ, কিস্তি ও বাকিয়া ব্যবস্থাপনা</p>
+  <div class="page-wrapper">
+    <div class="page-header-row">
+      <div class="header-title-block">
+        <span class="eyebrow">আর্থিক হিসাব</span>
+        <h1>লোন ও কর্জে হাসানা ব্যবস্থাপনা</h1>
+        <p class="page-subtitle">ঋণ গ্রহণ, কিস্তি পরিশোধ, বিলম্বিত হিসাব ও বকেয়া আদায় পর্যবেক্ষণ</p>
       </div>
       <div class="header-actions">
-        <button class="btn btn-outline btn-sm" :disabled="exporting" @click="downloadExport"><icon name="document" /> {{ exporting ? 'তৈরি হচ্ছে...' : 'CSV রিপোর্ট' }}</button>
-        <NuxtLink to="/loan-due/create" class="btn btn-primary btn-sm"><icon name="plus" /> নতুন ঋণ</NuxtLink>
+        <button class="btn btn-outline" :disabled="exporting" @click="downloadExport">
+          <icon name="download" /> {{ exporting ? 'তৈরি হচ্ছে...' : 'CSV রিপোর্ট' }}
+        </button>
+        <NuxtLink to="/loan-due/create" class="btn btn-primary">
+          <icon name="plus" /> নতুন ঋণ অনুমোদন
+        </NuxtLink>
+        <button class="btn btn-outline" @click="loadLoans(currentPage)">
+          <icon name="refresh" /> রিফ্রেশ
+        </button>
       </div>
     </div>
 
     <!-- Summary Stats -->
-    <div class="stats-row">
+    <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-icon"><icon name="document" /></div>
-        <div class="stat-info">
-          <p class="stat-value">{{ summary?.total_loans || 0 }}</p>
-          <p class="stat-label">মোট ঋণ</p>
+        <div class="stat-icon-wrap blue"><icon name="document-text" /></div>
+        <div class="stat-content">
+          <span class="stat-value">{{ (summary?.total_loans || 0).toLocaleString('bn-BD') }}</span>
+          <span class="stat-label">মোট ঋণ হিসাব</span>
         </div>
       </div>
-      <div class="stat-card stat-warning">
-        <div class="stat-icon"><icon name="cash" /></div>
-        <div class="stat-info">
-          <p class="stat-value">৳{{ summary?.total_outstanding ? Number(summary.total_outstanding).toLocaleString('bn-BD') : 0 }}</p>
-          <p class="stat-label">বকেয়া পরিমাণ</p>
+      <div class="stat-card">
+        <div class="stat-icon-wrap amber"><icon name="cash-multiple" /></div>
+        <div class="stat-content">
+          <span class="stat-value">{{ formatCurrency(summary?.total_outstanding) }} ৳</span>
+          <span class="stat-label">মোট বকেয়া স্থিতি</span>
         </div>
       </div>
-      <div class="stat-card stat-danger">
-        <div class="stat-icon"><icon name="alert" /></div>
-        <div class="stat-info">
-          <p class="stat-value">৳{{ summary?.total_overdue ? Number(summary.total_overdue).toLocaleString('bn-BD') : 0 }}</p>
-          <p class="stat-label">বিলম্বিত</p>
+      <div class="stat-card">
+        <div class="stat-icon-wrap red"><icon name="alert-circle" /></div>
+        <div class="stat-content">
+          <span class="stat-value">{{ formatCurrency(summary?.total_overdue) }} ৳</span>
+          <span class="stat-label">মেয়াদোত্তীর্ণ / বিলম্বিত</span>
         </div>
       </div>
-      <div class="stat-card stat-success">
-        <div class="stat-icon"><icon name="cash" /></div>
-        <div class="stat-info">
-          <p class="stat-value">৳{{ summary?.total_paid ? Number(summary.total_paid).toLocaleString('bn-BD') : 0 }}</p>
-          <p class="stat-label">মোট প্রদান</p>
+      <div class="stat-card">
+        <div class="stat-icon-wrap green"><icon name="check-circle" /></div>
+        <div class="stat-content">
+          <span class="stat-value">{{ formatCurrency(summary?.total_paid) }} ৳</span>
+          <span class="stat-label">মোট আদায়কৃত কিস্তি</span>
         </div>
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="filters-bar">
-      <input v-model="search" type="text" placeholder="সার্চ করুন..." @input="debouncedLoad" class="search-input" />
-      <select v-model="filterStatus" @change="loadLoans" class="filter-select">
-        <option value="">সকল স্ট্যাটাস</option>
-        <option value="active">সক্রিয়</option>
-        <option value="paid">পূর্ণ প্রদান</option>
-        <option value="overdue">বিলম্বিত</option>
-        <option value="closed">বন্ধ</option>
+    <!-- Filters Toolbar -->
+    <div class="toolbar card">
+      <div class="search-box">
+        <icon name="search" class="search-icon" />
+        <input v-model="search" placeholder="ঋণের শিরোনাম বা গ্রহীতার নাম খুঁজুন..." @input="debouncedLoad" />
+        <button v-if="search" class="clear-search-btn" @click="search = ''; loadLoans(1)">×</button>
+      </div>
+      <select v-model="filterStatus" class="form-select" @change="loadLoans(1)">
+        <option value="">সকল স্ট্যাটাস (All Status)</option>
+        <option value="active">সক্রিয় ঋণ</option>
+        <option value="paid">সম্পূর্ণ পরিশোধিত</option>
+        <option value="overdue">মেয়াদোত্তীর্ণ / বকেয়া</option>
+        <option value="closed">বন্ধ হিসাব</option>
       </select>
-      <select v-if="false" v-model="filterType" @change="loadLoans" class="filter-select">
-        <option value="">সকল ধরণ</option>
-      </select>
+      <div class="pagination-info" v-if="loans?.total">
+        মোট <span class="highlight">{{ (loans?.total || 0).toLocaleString('bn-BD') }}</span> টি রেকর্ড
+      </div>
     </div>
 
     <!-- Loans Table -->
-    <div class="card">
-      <div class="card-body">
-        <div v-if="loading" class="loading-state"><div class="spinner" /></div>
-        <div v-else-if="(loans?.data || []).length === 0" class="empty-state"><p>কোনো ঋণ নেই</p></div>
-        <table v-else class="table table-hover">
+    <div v-if="loading" class="loading-state card"><div class="spinner" /><p>ঋণ তালিকা লোড হচ্ছে...</p></div>
+    <div v-else-if="!(loans?.data || []).length" class="empty-state card">
+      <div class="empty-icon-wrap"><icon name="money" /></div>
+      <h3>কোনো ঋণ বা লোন রেকর্ড নেই</h3>
+      <p>নতুন কর্জে হাসানা বা ঋণ এন্ট্রি করে কিস্তি হিসাব শুরু করুন</p>
+      <NuxtLink to="/loan-due/create" class="btn btn-primary"><icon name="plus" /> নতুন ঋণ অনুমোদন</NuxtLink>
+    </div>
+    <div v-else class="card table-card">
+      <div class="table-responsive">
+        <table class="premium-table">
           <thead>
             <tr>
-              <th>#</th>
               <th>শিরোনাম</th>
               <th>ধরণ</th>
-              <th>প্রতিষ্ঠানকর্তা</th>
-              <th>মূল (৳)</th>
-              <th>প্রদত্ত (৳)</th>
-              <th>বকেয়া (৳)</th>
-              <th>স্ট্যাটাস</th>
-              <th>ক্রিয়া</th>
+              <th>ঋণগ্রহীতা</th>
+              <th>মূলধন</th>
+              <th>পরিশোধিত</th>
+              <th>অবশিষ্ট বকেয়া</th>
+              <th class="text-center">অবস্থা</th>
+              <th class="text-right">অ্যাকশন</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="loan in (loans?.data || [])" :key="loan.id">
-              <td>{{ loan.id }}</td>
               <td>
-                <p class="font-medium">{{ loan.title_bn }}</p>
-                <p v-if="loan.title_en" class="text-muted text-sm">{{ loan.title_en }}</p>
+                <div class="user-cell">
+                  <div>
+                    <strong>{{ loan.title_bn }}</strong>
+                    <div class="sub-text" v-if="loan.title_en">{{ loan.title_en }}</div>
+                  </div>
+                </div>
               </td>
-              <td>{{ loan.loan_type || 'সাধারণ' }}</td>
-              <td>{{ loan.user?.name_bn || loan.user?.name_en || loan.user_id || '-' }}</td>
-              <td>{{ loan.principal_amount ? Number(loan.principal_amount).toLocaleString('bn-BD') : 0 }}</td>
-              <td>{{ loan.total_paid ? Number(loan.total_paid).toLocaleString('bn-BD') : 0 }}</td>
-              <td>{{ loan.remaining_amount ? Number(loan.remaining_amount).toLocaleString('bn-BD') : 0 }}</td>
+              <td><span class="type-tag">{{ loan.loan_type || 'কর্জে হাসানা' }}</span></td>
               <td>
-                <span class="badge" :class="statusClass(loan.status)">
+                <div class="user-cell">
+                  <div class="user-avatar-initials" :style="{ backgroundColor: getAvatarColor(loan.user?.name_bn || loan.user?.name_en || 'গ') }">
+                    {{ (loan.user?.name_bn || loan.user?.name_en || 'গ').charAt(0) }}
+                  </div>
+                  <span>{{ loan.user?.name_bn || loan.user?.name_en || 'কর্মী' }}</span>
+                </div>
+              </td>
+              <td><strong>{{ formatCurrency(loan.principal_amount) }} ৳</strong></td>
+              <td><strong class="text-success">{{ formatCurrency(loan.total_paid) }} ৳</strong></td>
+              <td><strong :class="Number(loan.remaining_amount) > 0 ? 'text-danger' : 'text-muted'">{{ formatCurrency(loan.remaining_amount) }} ৳</strong></td>
+              <td class="text-center">
+                <span class="status-pill" :class="statusClass(loan.status)">
+                  <span class="status-dot" />
                   {{ statusLabel(loan.status) }}
                 </span>
               </td>
-              <td>
-                <NuxtLink :to="`/loan-due/${loan.id}`" class="btn btn-sm btn-outline"><icon name="eye" /></NuxtLink>
+              <td class="text-right">
+                <NuxtLink :to="`/loan-due/${loan.id}`" class="action-btn" title="কিস্তি ও বিবরণ">
+                  <icon name="eye" />
+                </NuxtLink>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
 
-        <!-- Pagination -->
-        <div v-if="loans?.last_page > 1" class="pagination">
-          <button class="btn btn-sm btn-outline" :disabled="!loans.prev_page_url" @click="loadPage(loans.current_page - 1)">পূর্ব</button>
-          <span class="page-info">পৃষ্ঠা {{ loans.current_page }} / {{ loans.last_page }}</span>
-          <button class="btn btn-sm btn-outline" :disabled="!loans.next_page_url" @click="loadPage(loans.current_page + 1)">পরবর্তী</button>
-        </div>
+      <!-- Pagination -->
+      <div v-if="loans?.last_page > 1" class="pagination-footer">
+        <button class="btn btn-sm btn-outline" :disabled="currentPage <= 1" @click="loadLoans(currentPage - 1)">
+          পূর্ববর্তী
+        </button>
+        <span class="page-indicator">{{ currentPage.toLocaleString('bn-BD') }} / {{ (loans.last_page || 1).toLocaleString('bn-BD') }}</span>
+        <button class="btn btn-sm btn-outline" :disabled="currentPage >= loans.last_page" @click="loadLoans(currentPage + 1)">
+          পরবর্তী
+        </button>
       </div>
     </div>
   </div>
@@ -148,55 +180,65 @@ async function loadLoans(page = 1) {
 
 async function loadSummary() {
   try {
-    const r = await api.get('/loans-summary')
+    const r = await api.get('/loans/summary')
     summary.value = r.data?.data
-  } catch (e: any) {
+  } catch (e) {
     console.error(e)
   }
+}
+
+function debouncedLoad() {
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => loadLoans(1), 300)
 }
 
 async function downloadExport() {
   exporting.value = true
   try {
-    const response = await api.get('/reports/loans.csv', { responseType: 'blob' })
-    const url = URL.createObjectURL(response.data)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `loans-${new Date().toISOString().slice(0, 10)}.csv`
-    link.click()
-    URL.revokeObjectURL(url)
+    const res = await api.get('/reports/loans.csv', { responseType: 'blob' })
+    const blob = res.data as Blob
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `loans_${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error(e)
   } finally {
     exporting.value = false
   }
 }
 
-function debouncedLoad() {
-  if (debounceTimer) clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => {
-    loadLoans(1)
-  }, 500)
+function formatCurrency(val: any) {
+  if (!val) return '০'
+  return Number(val).toLocaleString('bn-BD')
 }
 
-function loadPage(page: number) {
-  loadLoans(page)
+function statusClass(s: string) {
+  if (s === 'paid') return 'badge-approved'
+  if (s === 'overdue') return 'badge-rejected'
+  return 'badge-pending'
 }
 
-function statusClass(status: string): string {
-  switch (status) {
-    case 'paid': return 'badge-success'
-    case 'overdue': return 'badge-danger'
-    case 'closed': return 'badge-secondary'
-    default: return 'badge-outline'
+function statusLabel(s: string) {
+  const map: Record<string, string> = {
+    active: 'চলমান',
+    paid: 'পরিশোধিত',
+    overdue: 'মেয়াদোত্তীর্ণ',
+    closed: 'বন্ধ',
   }
+  return map[s] || s || 'সক্রিয়'
 }
 
-function statusLabel(status: string): string {
-  switch (status) {
-    case 'paid': return 'পূর্ণ'
-    case 'overdue': return 'বিলম্বিত'
-    case 'closed': return 'বন্ধ'
-    default: return 'সক্রিয়'
-  }
+const colorPalette = ['#145032', '#1e40af', '#b45309', '#6b21a8', '#047857', '#be185d', '#0369a1']
+function getAvatarColor(name: string) {
+  if (!name) return colorPalette[0]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return colorPalette[Math.abs(hash) % colorPalette.length]
 }
 
 onMounted(() => {
@@ -206,45 +248,41 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.loans-page { padding: 1.5rem; }
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-.header-left h1 { margin: 0; font-family: 'Noto Sans Bengali', sans-serif; }
-.subtitle { color: var(--color-text-light); font-size: 0.9rem; font-family: 'Noto Sans Bengali', sans-serif; }
-.back-link { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--color-primary); text-decoration: none; font-family: 'Noto Sans Bengali', sans-serif; }
-.header-actions { display: flex; gap: 0.5rem; }
-.btn { padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-family: 'Noto Sans Bengali', sans-serif; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; }
-.btn-sm { padding: 0.35rem 0.8rem; }
-.btn-primary { background: var(--color-primary); color: var(--color-text-on-primary); }
-.btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
-.btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-.stat-card { background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 12px; padding: 1rem; display: flex; align-items: center; gap: 0.7rem; }
-.stat-icon { width: 36px; height: 36px; flex-shrink: 0; color: var(--color-primary); display: flex; align-items: center; justify-content: center; }
-.stat-info p { margin: 0; font-family: 'Noto Sans Bengali', sans-serif; }
-.stat-value { font-size: 1.3rem; font-weight: 700; color: var(--color-text); }
-.stat-label { font-size: 0.8rem; color: var(--color-text-light); }
-.stat-warning .stat-icon { color: #d97706; }
-.stat-danger .stat-icon { color: #dc2626; }
-.stat-success .stat-icon { color: #16a34a; }
-.filters-bar { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
-.search-input { padding: 0.5rem 0.9rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.9rem; font-family: 'Noto Sans Bengali', sans-serif; width: 220px; }
-.filter-select { padding: 0.5rem 0.9rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.9rem; font-family: 'Noto Sans Bengali', sans-serif; background: var(--color-bg); cursor: pointer; }
-.card { background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 12px; }
-.card-body { padding: 1rem; }
-.loading-state { display: flex; justify-content: center; padding: 2rem; }
-.spinner { width: 24px; height: 24px; border: 3px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.empty-state { padding: 1.5rem; text-align: center; color: var(--color-text-light); font-family: 'Noto Sans Bengali', sans-serif; }
-.table { width: 100%; border-collapse: collapse; font-family: 'Noto Sans Bengali', sans-serif; }
-.table th, .table td { padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid var(--color-border-light); }
-.table th { font-weight: 600; font-size: 0.8rem; color: var(--color-text-light); }
-.font-medium { font-weight: 500; }
-.text-sm { font-size: 0.8rem; }
-.badge { padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.75rem; font-family: 'Noto Sans Bengali', sans-serif; white-space: nowrap; }
-.badge-success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
-.badge-danger { background: rgba(220, 38, 38, 0.15); color: #dc2626; }
-.badge-secondary { background: rgba(107, 114, 128, 0.15); color: #6b7280; }
-.badge-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text-light); }
-.pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem; font-family: 'Noto Sans Bengali', sans-serif; }
-.page-info { font-size: 0.85rem; color: var(--color-text-light); }
+.page-wrapper { max-width: 1320px; margin: 0 auto; padding: 1.75rem; }
+.page-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
+.eyebrow { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--color-primary); letter-spacing: 0.08em; }
+.header-title-block h1 { font-size: 1.6rem; font-weight: 800; margin: 0.2rem 0 0.35rem; color: var(--color-text); }
+.page-subtitle { color: var(--color-text-light); font-size: 0.88rem; margin: 0; }
+.header-actions { display: flex; gap: 0.6rem; align-items: center; }
+
+.clear-search-btn { background: none; border: none; font-size: 1.1rem; color: var(--color-text-light); cursor: pointer; padding: 0 0.2rem; }
+.pagination-info { margin-left: auto; font-size: 0.85rem; color: var(--color-text-light); }
+.pagination-info .highlight { font-weight: 700; color: var(--color-primary); }
+
+.table-card { border-radius: 14px; overflow: hidden; }
+.table-responsive { overflow-x: auto; }
+.user-cell { display: flex; align-items: center; gap: 0.65rem; }
+.user-avatar-initials { width: 30px; height: 30px; border-radius: 50%; color: #fff; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sub-text { font-size: 0.76rem; color: var(--color-text-light); }
+.type-tag { display: inline-block; padding: 0.15rem 0.55rem; background: rgba(0, 0, 0, 0.05); border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+.text-success { color: #15803d; }
+.text-danger { color: #dc2626; }
+
+.pagination-footer { display: flex; justify-content: center; align-items: center; gap: 1rem; padding: 1rem; border-top: 1px solid var(--color-border-light); }
+.page-indicator { font-size: 0.85rem; font-weight: 600; color: var(--color-text-light); }
+
+.action-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--color-border-light); background: var(--color-bg); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--color-text-light); transition: all 0.15s ease; text-decoration: none; }
+.action-btn:hover { background: rgba(0, 0, 0, 0.05); color: var(--color-text); transform: translateY(-1px); }
+
+.btn { padding: 0.6rem 1.15rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease; text-decoration: none; }
+.btn-sm { padding: 0.45rem 0.85rem; font-size: 0.82rem; }
+.btn-primary { background: linear-gradient(135deg, #145032 0%, #1a6b43 100%); color: #fff; box-shadow: 0 3px 10px rgba(20, 80, 50, 0.25); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(20, 80, 50, 0.35); }
+.btn-outline { background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-text); }
+.btn-outline:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+.empty-icon-wrap { width: 60px; height: 60px; border-radius: 16px; background: rgba(20, 80, 50, 0.08); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1rem; }
+.empty-state { padding: 3rem 1.5rem; text-align: center; }
+.empty-state h3 { font-size: 1.2rem; margin: 0 0 0.35rem; color: var(--color-text); }
+.empty-state p { font-size: 0.88rem; margin: 0 0 1.25rem; }
 </style>

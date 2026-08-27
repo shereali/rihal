@@ -210,178 +210,151 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, reactive, onMounted } from 'vue'
+import { useApiClient } from '~/utils/api'
 import Icon from '~/components/Icon.vue'
 
-export default {
-  components: { Icon },
-  data() {
-    return {
-      loading: true,
-      devices: { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null },
-      search: '',
-      statusFilter: '',
-      showCreate: false,
-      editingDevice: null,
-      form: {
-        name: '',
-        serial_number: '',
-        device_type: 'biometric',
-        ip_address: '',
-        port: null,
-        status: 'active',
-        location: '',
-      },
-      showDelete: false,
-      deleteTarget: null,
-      saving: false,
-      deleting: false,
-      searchTimeout: null,
-      per_page: 15,
-    }
-  },
+const api = useApiClient()
 
-  computed: {
-    apiUrl() {
-      return `${process.env.apiBase}/digital-attendance/devices`
-    },
-  },
+const loading = ref(true)
+const devices = ref<any>({ data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null })
+const search = ref('')
+const statusFilter = ref('')
+const showCreate = ref(false)
+const editingDevice = ref<any>(null)
+const form = reactive({
+  name: '',
+  serial_number: '',
+  device_type: 'biometric',
+  ip_address: '',
+  port: null as any,
+  status: 'active',
+  location: '',
+})
+const showDelete = ref(false)
+const deleteTarget = ref<any>(null)
+const saving = ref(false)
+const deleting = ref(false)
+let searchTimeout: any = null
+const per_page = 15
 
-  async mounted() {
-    await this.fetchDevices()
-  },
-
-  methods: {
-    async fetchDevices(page = 1) {
-      this.loading = true
-      try {
-        const params = new URLSearchParams({
-          page: page,
-          per_page: this.per_page,
-          ...(this.search ? { search: this.search } : {}),
-          ...(this.statusFilter ? { status: this.statusFilter } : {}),
-        })
-        const res = await fetch(`${this.apiUrl}?${params}`)
-        const json = await res.json()
-        this.devices = json.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
-      } catch (err) {
-        console.error('Failed to fetch devices:', err)
-      } finally {
-        this.loading = false
-      }
-    },
-
-    debounceSearch() {
-      clearTimeout(this.searchTimeout)
-      this.searchTimeout = setTimeout(() => this.fetchDevices(1), 300)
-    },
-
-    goPage(page) {
-      if (page < 1 || page > this.devices.last_page) return
-      this.fetchDevices(page)
-    },
-
-    editDevice(device) {
-      this.editingDevice = device
-      this.form = {
-        name: device.name || '',
-        serial_number: device.serial_number || '',
-        device_type: device.device_type || 'biometric',
-        ip_address: device.ip_address || '',
-        port: device.port || null,
-        status: device.status || 'active',
-        location: device.location || '',
-      }
-      this.showCreate = true
-    },
-
-    async saveDevice() {
-      this.saving = true
-      try {
-        const url = this.editingDevice
-          ? `${this.apiUrl}/${this.editingDevice.id}`
-          : this.apiUrl
-        const method = this.editingDevice ? 'put' : 'post'
-        const res = await fetch(url, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(this.form),
-        })
-        const json = await res.json()
-        if (json.status && json.status < 500) {
-          this.showCreate = false
-          this.editingDevice = null
-          this.resetForm()
-          this.fetchDevices(this.devices.current_page)
-        } else {
-          alert(json.message || 'সংরক্ষণে সমস্যা হয়েছে')
-        }
-      } catch (err) {
-        console.error('Save failed:', err)
-      } finally {
-        this.saving = false
-      }
-    },
-
-    resetForm() {
-      this.form = {
-        name: '',
-        serial_number: '',
-        device_type: 'biometric',
-        ip_address: '',
-        port: null,
-        status: 'active',
-        location: '',
-      }
-    },
-
-    confirmDelete() {
-      if (!this.deleteTarget) return
-      this.deleting = true
-      fetch(`${this.apiUrl}/${this.deleteTarget.id}`, { method: 'delete' })
-        .then(async r => {
-          const json = await r.json()
-          if (json.status && json.status < 500) {
-            this.showDelete = false
-            this.deleteTarget = null
-            this.fetchDevices(this.devices.current_page)
-          } else {
-            alert(json.message || 'মুছে ফেলতে সমস্যা হয়েছে')
-          }
-        })
-        .catch(err => console.error('Delete failed:', err))
-        .finally(() => { this.deleting = false })
-    },
-
-    deleteDevice(device) {
-      this.deleteTarget = device
-      this.showDelete = true
-    },
-
-    deviceTypeClass(type) {
-      const map = { biometric: 'green', rfid: 'blue', scanner: 'purple', manual: 'gray' }
-      return map[type] || 'gray'
-    },
-
-    formatDeviceType(type) {
-      const map = { biometric: 'বায়োমেট্রিক', rfid: 'RFID', scanner: 'স্ক্যানার', manual: 'ম্যানুয়াল' }
-      return map[type] || type
-    },
-
-    formatStatus(status) {
-      const map = { active: 'সক্রিয়', inactive: 'নিষ্ক্রিয়', syncing: 'সিঙ্ক করছে', error: 'ত্রুটি' }
-      return map[status] || status
-    },
-
-    formatDate(date) {
-      if (!date) return ''
-      try {
-        const d = new Date(date)
-        return d.toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' })
-      } catch { return date }
-    },
-  },
+async function fetchDevices(page = 1) {
+  loading.value = true
+  try {
+    const params = new URLSearchParams({
+      page: String(page),
+      per_page: String(per_page),
+      ...(search.value ? { search: search.value } : {}),
+      ...(statusFilter.value ? { status: statusFilter.value } : {}),
+    })
+    const res = await api.get(`/digital-attendance/devices?${params}`).catch(() => null)
+    devices.value = res?.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
+  } catch (err) {
+    console.error('Failed to fetch devices:', err)
+  } finally {
+    loading.value = false
+  }
 }
+
+function debounceSearch() {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => fetchDevices(1), 300)
+}
+
+function goPage(page: number) {
+  if (page < 1 || page > devices.value.last_page) return
+  fetchDevices(page)
+}
+
+function editDevice(device: any) {
+  editingDevice.value = device
+  form.name = device.name || ''
+  form.serial_number = device.serial_number || ''
+  form.device_type = device.device_type || 'biometric'
+  form.ip_address = device.ip_address || ''
+  form.port = device.port || null
+  form.status = device.status || 'active'
+  form.location = device.location || ''
+  showCreate.value = true
+}
+
+async function saveDevice() {
+  saving.value = true
+  try {
+    const url = editingDevice.value
+      ? `/digital-attendance/devices/${editingDevice.value.id}`
+      : '/digital-attendance/devices'
+    if (editingDevice.value) {
+      await api.put(url, form).catch(() => null)
+    } else {
+      await api.post(url, form).catch(() => null)
+    }
+    showCreate.value = false
+    editingDevice.value = null
+    resetForm()
+    fetchDevices(devices.value.current_page)
+  } catch (err) {
+    console.error('Save failed:', err)
+  } finally {
+    saving.value = false
+  }
+}
+
+function resetForm() {
+  form.name = ''
+  form.serial_number = ''
+  form.device_type = 'biometric'
+  form.ip_address = ''
+  form.port = null
+  form.status = 'active'
+  form.location = ''
+}
+
+async function confirmDelete() {
+  if (!deleteTarget.value) return
+  deleting.value = true
+  try {
+    await api.delete(`/digital-attendance/devices/${deleteTarget.value.id}`).catch(() => null)
+    showDelete.value = false
+    deleteTarget.value = null
+    fetchDevices(devices.value.current_page)
+  } catch (err) {
+    console.error('Delete failed:', err)
+  } finally {
+    deleting.value = false
+  }
+}
+
+function deleteDevice(device: any) {
+  deleteTarget.value = device
+  showDelete.value = true
+}
+
+function deviceTypeClass(type: string) {
+  const map: Record<string, string> = { biometric: 'green', rfid: 'blue', scanner: 'purple', manual: 'gray' }
+  return map[type] || 'gray'
+}
+
+function formatDeviceType(type: string) {
+  const map: Record<string, string> = { biometric: 'বায়োমেট্রিক', rfid: 'RFID', scanner: 'স্ক্যানার', manual: 'ম্যানুয়াল' }
+  return map[type] || type
+}
+
+function formatStatus(status: string) {
+  const map: Record<string, string> = { active: 'সক্রিয়', inactive: 'নিষ্ক্রিয়', syncing: 'সিঙ্ক করছে', error: 'ত্রুটি' }
+  return map[status] || status
+}
+
+function formatDate(date: string) {
+  if (!date) return '—'
+  try { return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' }) }
+  catch { return date }
+}
+
+onMounted(() => {
+  fetchDevices()
+})
 </script>
 
 <style scoped lang="scss">

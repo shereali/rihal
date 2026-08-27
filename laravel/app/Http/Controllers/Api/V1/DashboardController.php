@@ -125,7 +125,8 @@ class DashboardController extends ApiController
         $currentMonthEnd = today()->endOfMonth()->toDateString();
 
         $classWiseDues = \DB::table('fee_payments')
-            ->join('academic_classes', 'fee_payments.class_id', '=', 'academic_classes.id')
+            ->join('fee_structures', 'fee_payments.fee_structure_id', '=', 'fee_structures.id')
+            ->join('academic_classes', 'fee_structures.class_id', '=', 'academic_classes.id')
             ->where('fee_payments.tenant_id', $tenantId)
             ->where('fee_payments.due_date', '>=', $currentMonthStart)
             ->where('fee_payments.due_date', '<=', $currentMonthEnd)
@@ -184,13 +185,14 @@ class DashboardController extends ApiController
         $classWiseAttendance = \DB::table('attendance_records')
             ->join('students', 'attendance_records.student_id', '=', 'students.user_id')
             ->join('enrollments', 'students.id', '=', 'enrollments.student_id')
+            ->join('academic_classes', 'enrollments.class_id', '=', 'academic_classes.id')
             ->where('attendance_records.tenant_id', $tenantId)
             ->whereDate('attendance_records.date', $today)
             ->selectRaw('enrollments.class_id, academic_classes.name_bn,
                 SUM(CASE WHEN attendance_records.status = ? THEN 1 ELSE 0 END) as present,
                 SUM(CASE WHEN attendance_records.status = ? THEN 1 ELSE 0 END) as absent,
                 SUM(CASE WHEN attendance_records.status = ? THEN 1 ELSE 0 END) as late,
-                SUM(CASE WHEN attendance_records.status = ? THEN 1 ELSE 0 END) as leave',
+                SUM(CASE WHEN attendance_records.status = ? THEN 1 ELSE 0 END) as on_leave',
                 ['present', 'absent', 'late', 'leave'])
             ->groupBy('enrollments.class_id', 'academic_classes.name_bn')
             ->get();
@@ -201,8 +203,8 @@ class DashboardController extends ApiController
                 'present' => (int) ($row->present ?? 0),
                 'absent' => (int) ($row->absent ?? 0),
                 'late' => (int) ($row->late ?? 0),
-                'leave' => (int) ($row->leave ?? 0),
-                'total' => (int) ($row->present + $row->absent + $row->late + $row->leave),
+                'leave' => (int) ($row->on_leave ?? 0),
+                'total' => (int) ($row->present + $row->absent + $row->late + $row->on_leave),
             ];
         })->values();
 
