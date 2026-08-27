@@ -25,7 +25,7 @@ class NoticeController extends ApiController
             ->when($request->has('is_pinned'), fn($q) => $q->where('is_pinned', filter_var($request->input('is_pinned'), FILTER_VALIDATE_BOOLEAN)))
             ->when($request->has('is_active'), fn($q) => $q->where('is_active', filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN)))
             ->when($request->has('category'), fn($q) => $q->where('category', $request->input('category')))
-            ->with('creator')
+            ->with('creator:id,name_bn,name_en')
             ->orderBy('is_pinned', 'desc')
             ->orderBy('published_at', 'desc')
             ->orderBy('created_at', 'desc');
@@ -41,7 +41,7 @@ class NoticeController extends ApiController
 
         $notice = Notice::where('tenant_id', $user->tenant_id)
             ->where('id', $id)
-            ->with('creator')
+            ->with('creator:id,name_bn,name_en')
             ->first();
 
         if (!$notice) {
@@ -81,7 +81,7 @@ class NoticeController extends ApiController
 
         $notice = Notice::create($data);
 
-        $notice->load('creator');
+        $notice->load('creator:id,name_bn,name_en');
 
         return $this->successResponse($notice, 'বিজ্ঞপ্তি তৈরি সফল', 201);
     }
@@ -121,7 +121,7 @@ class NoticeController extends ApiController
 
         $notice->update($validator->validated());
 
-        $notice->load('creator');
+        $notice->load('creator:id,name_bn,name_en');
 
         return $this->successResponse($notice->fresh(), 'বিজ্ঞপ্তি আপডেট সফল');
     }

@@ -60,7 +60,7 @@ class BoardingController extends Controller
     public function meals(Request $request): JsonResponse
     {
         $date = $request->query('date', now()->toDateString());
-        $meals = BoardingMeal::with('student')
+        $meals = BoardingMeal::with('student.user:id,name_bn,name_en')
             ->where('date', $date)
             ->get();
 

@@ -117,7 +117,7 @@ class AttendanceController extends ApiController
 
         $record->update($validator->validated());
 
-        $record->load('student.user');
+        $record->load('student:id,name_bn,name_en');
 
         return $this->successResponse($record->fresh(), 'উপস্থিতি রেকর্ড আপডেট সফল');
     }

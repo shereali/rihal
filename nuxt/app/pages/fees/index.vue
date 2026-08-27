@@ -91,11 +91,11 @@
             <tr v-for="p in filteredPayments" :key="p.id">
               <td>
                 <div class="user-cell">
-                  <div class="user-avatar-initials" :style="{ backgroundColor: getAvatarColor(p.student?.name_bn || p.student?.name_en || 'শ') }">
-                    {{ (p.student?.name_bn || p.student?.name_en || 'শ').charAt(0) }}
+                  <div class="user-avatar-initials" :style="{ backgroundColor: getAvatarColor(p.student?.user?.name_bn || p.student?.name_bn || p.student?.user?.name_en || p.student?.name_en || 'শ') }">
+                    {{ (p.student?.user?.name_bn || p.student?.name_bn || p.student?.user?.name_en || p.student?.name_en || 'শ').charAt(0) }}
                   </div>
                   <div>
-                    <strong>{{ p.student?.name_bn || p.student?.name_en || '—' }}</strong>
+                    <strong>{{ p.student?.user?.name_bn || p.student?.name_bn || p.student?.user?.name_en || p.student?.name_en || '—' }}</strong>
                     <div class="sub-text" v-if="p.student?.admission_number">রোল: {{ p.student.admission_number }}</div>
                   </div>
                 </div>
@@ -146,7 +146,7 @@ const paymentsList = computed(() => payments.value?.data?.data || payments.value
 const filteredPayments = computed(() => {
   if (!search.value) return paymentsList.value
   return paymentsList.value.filter((p: any) => {
-    const name = (p.student?.name_bn || '') + ' ' + (p.student?.name_en || '') + ' ' + (p.student?.admission_number || '')
+    const name = (p.student?.user?.name_bn || p.student?.name_bn || '') + ' ' + (p.student?.user?.name_en || p.student?.name_en || '') + ' ' + (p.student?.admission_number || '')
     return name.toLowerCase().includes(search.value.toLowerCase())
   })
 })

@@ -42,7 +42,7 @@
 
             <div class="notice-card-footer">
               <span class="notice-meta"><icon name="calendar" /> {{ formatDate(notice.published_at) }}</span>
-              <span class="notice-meta"><icon name="account" /> {{ notice.created_by_user?.name_bn || 'অজ্ঞাত' }}</span>
+              <span class="notice-meta"><icon name="account" /> {{ notice.creator?.name_bn || 'অজ্ঞাত' }}</span>
               <div class="notice-actions">
                 <span v-if="notice.read_by_count !== undefined" class="read-count">{{ notice.read_by_count }} জন পড়েছে</span>
                 <NuxtLink :to="`/notice/${notice.id}`" class="btn btn-sm btn-primary"><icon name="eye" /> দেখুন</NuxtLink>

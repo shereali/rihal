@@ -234,12 +234,12 @@ Route::prefix('v1')->group(function () {
         Route::delete('/hostel-rooms/{id}', [HostelController::class, 'destroy']);
 
         // ─── Transport ────────────────────────────────────────────────────────
-        Route::get('/transport/routes', [TransportController::class, 'indexRoutes']);
+        Route::get('/transport/routes', [TransportController::class, 'routes']);
         Route::post('/transport/routes', [TransportController::class, 'storeRoute']);
         Route::get('/transport/routes/{id}', [TransportController::class, 'showRoute']);
         Route::put('/transport/routes/{id}', [TransportController::class, 'updateRoute']);
         Route::delete('/transport/routes/{id}', [TransportController::class, 'destroyRoute']);
-        Route::get('/transport/buses', [TransportController::class, 'indexBuses']);
+        Route::get('/transport/buses', [TransportController::class, 'buses']);
         Route::post('/transport/buses', [TransportController::class, 'storeBus']);
         Route::get('/transport/buses/{id}', [TransportController::class, 'showBus']);
         Route::put('/transport/buses/{id}', [TransportController::class, 'updateBus']);
@@ -273,11 +273,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/hr/registrations', [HRController::class, 'storeRegistration']);
 
         // ─── Transport Assignments ────────────────────────────────────────────
-        Route::get('/transport/assignments', [TransportAssignmentController::class, 'index']);
-        Route::post('/transport/assignments', [TransportAssignmentController::class, 'store']);
-        Route::get('/transport/assignments/{id}', [TransportAssignmentController::class, 'show']);
-        Route::put('/transport/assignments/{id}', [TransportAssignmentController::class, 'update']);
-        Route::delete('/transport/assignments/{id}', [TransportAssignmentController::class, 'destroy']);
+        Route::get('/transport/assignments', [TransportController::class, 'assignments']);
+        Route::post('/transport/assignments', [TransportController::class, 'storeAssignment']);
+        Route::put('/transport/assignments/{id}', [TransportController::class, 'updateAssignment']);
+        Route::delete('/transport/assignments/{id}', [TransportController::class, 'destroyAssignment']);
 
         // ─── Properties ───────────────────────────────────────────────────────
         Route::get('/properties', [PropertyController::class, 'index']);
