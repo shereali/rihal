@@ -10,10 +10,8 @@ return new class extends Migration
     public function up(): void
     {
         if (!Schema::hasColumn('exams', 'seat_plan')) {
-            DB::transaction(function () {
-                Schema::table('exams', function (Blueprint $table) {
-                    $table->json('seat_plan')->nullable()->after('seat_number');
-                });
+            Schema::table('exams', function (Blueprint $table) {
+                $table->json('seat_plan')->nullable()->after('seat_number');
             });
         }
     }
