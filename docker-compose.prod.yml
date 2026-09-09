@@ -73,6 +73,7 @@ services:
   db:
     image: mysql:8
     container_name: attashil-db-1
+    command: --log_bin_trust_function_creators=1
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: "${DB_DATABASE:-attashil}"
