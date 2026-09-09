@@ -23,8 +23,9 @@ RUN composer install --no-interaction --prefer-dist --no-scripts --no-dev --opti
 # Copy application source
 COPY . .
 
-# Generate key + permissions at build (overridden at runtime if .env present)
-RUN chown -R www-data:www-data storage bootstrap/cache \
+# Generate directories and set permissions
+RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8000
