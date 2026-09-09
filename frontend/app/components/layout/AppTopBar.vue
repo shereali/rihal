@@ -1,7 +1,7 @@
 <template>
   <header class="topbar">
     <div class="topbar-left">
-      <button class="mobile-menu-btn" type="button" aria-label="মেনু" @click="emit('toggle-sidebar')">
+      <button class="mobile-menu-btn" type="button" aria-label="মেনু খুলুন" @click="emit('toggle-sidebar')">
         <span></span><span></span><span></span>
       </button>
     </div>
@@ -36,7 +36,7 @@
 
       <!-- Notifications popover -->
       <div class="topbar-menu">
-        <button class="round-action" type="button" aria-label="নোটিফিকেশন" @click="notificationOpen = !notificationOpen">
+        <button class="round-action" type="button" aria-label="নোটিফিকেশন" :aria-expanded="notificationOpen" @click="notificationOpen = !notificationOpen">
           <Icon name="bell" />
           <i v-if="unreadCount" />
         </button>
@@ -55,8 +55,10 @@
 
       <!-- 4-theme switcher: light, dark, islamic, professional -->
       <div class="topbar-menu">
-        <button class="round-action" type="button" aria-label="থিম" @click="themeOpen = !themeOpen">
-          <Icon :name="currentTheme === 'dark' || currentTheme === 'professional' ? 'moon' : 'sun'" />
+        <button class="round-action" type="button" aria-label="থিম বাছাই" :aria-expanded="themeOpen" @click="themeOpen = !themeOpen">
+          <Transition name="icon-swap" mode="out-in">
+            <Icon :key="currentTheme === 'dark' || currentTheme === 'professional' ? 'moon' : 'sun'" :name="currentTheme === 'dark' || currentTheme === 'professional' ? 'moon' : 'sun'" />
+          </Transition>
         </button>
         <div v-if="themeOpen" class="popover theme-popover">
           <strong>থিম বেছে নিন</strong>
@@ -77,7 +79,7 @@
 
       <!-- User menu -->
       <div class="topbar-menu">
-        <button class="user-menu-trigger" type="button" @click="userOpen = !userOpen">
+        <button class="user-menu-trigger" type="button" aria-label="ব্যবহারকারী মেনু" :aria-expanded="userOpen" @click="userOpen = !userOpen">
           <div class="user-avatar">
             <img v-if="currentUser?.avatar_url" :src="currentUser.avatar_url" :alt="currentUser.name_bn" />
             <span v-else>{{ (currentUser?.name_bn || currentUser?.name_en || 'U').charAt(0) }}</span>
@@ -149,8 +151,34 @@ function handleDocumentClick(e: MouseEvent) {
   }
 }
 
+function closeAllMenus(returnFocus = false) {
+  const wasOpen = notificationOpen.value || themeOpen.value || languageOpen.value || userOpen.value
+  if (returnFocus && wasOpen && import.meta.client) {
+    const trigger = document.querySelector<HTMLElement>(
+      '.topbar-menu button[aria-expanded="true"]'
+    )
+    notificationOpen.value = false
+    themeOpen.value = false
+    languageOpen.value = false
+    userOpen.value = false
+    trigger?.focus()
+  } else {
+    notificationOpen.value = false
+    themeOpen.value = false
+    languageOpen.value = false
+    userOpen.value = false
+  }
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    closeAllMenus(true)
+  }
+}
+
 onMounted(async () => {
   document.addEventListener('click', handleDocumentClick)
+  document.addEventListener('keydown', handleKeydown)
   const saved = localStorage.getItem('rihal_theme')
   if (saved && themes.some(t => t.value === saved)) {
     currentTheme.value = saved
@@ -164,6 +192,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   document.removeEventListener('click', handleDocumentClick)
+  document.removeEventListener('keydown', handleKeydown)
 })
 
 function setTheme(value: string) {
@@ -194,19 +223,18 @@ function handleSearch() {
 .topbar {
   position: fixed;
   top: 0;
-  right: 0;
-  left: 0;
-  height: var(--header-height);
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--glass-border);
+  inset-inline: 0;
+  height: calc(var(--header-height) + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
+  background: var(--color-bg-header);
+  border-bottom: 1px solid var(--color-border-light);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.35rem;
+  padding-inline: 1.35rem;
   z-index: 90;
-  box-shadow: var(--glass-shadow);
-  transition: left var(--transition-normal);
+  box-shadow: var(--elevation-1);
+  transition: inset-inline-start var(--transition-normal);
 }
 
 
@@ -258,7 +286,7 @@ function handleSearch() {
   display: flex;
   align-items: center;
   gap: .55rem;
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .topbar-search-wrap {
@@ -280,9 +308,9 @@ function handleSearch() {
   color: var(--color-text-light);
   padding: .3rem .6rem;
   border-radius: 999px;
-  font: .68rem var(--font-bn);
+  font: var(--text-xs) var(--font-bn);
   cursor: pointer;
-  transition: all .12s;
+  transition: background-color .12s, color .12s;
 }
 .search-mode-toggle button.active {
   background: var(--color-primary);
@@ -306,7 +334,7 @@ function handleSearch() {
   outline: 0;
   background: transparent;
   color: var(--color-text);
-  font: .82rem var(--font-bn);
+  font: 0.82rem var(--font-bn);
 }
 
 .new-action,
@@ -322,6 +350,7 @@ function handleSearch() {
   color: var(--color-text);
   font: .78rem var(--font-bn);
   cursor: pointer;
+  touch-action: manipulation;
 }
 .new-action {
   color: #fff;
@@ -339,7 +368,18 @@ function handleSearch() {
   background: var(--color-bg-card);
   color: var(--color-text);
   cursor: pointer;
+  transition: background .15s ease, transform .15s ease;
+  touch-action: manipulation;
 }
+/* Expand the hit area to the 44px touch minimum without growing the visual */
+.round-action::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+}
+.round-action:active { transform: scale(0.94); }
+.round-action:hover { background: var(--color-bg-muted); }
 .round-action i {
   position: absolute;
   right: 5px;
@@ -355,15 +395,21 @@ function handleSearch() {
 }
 .popover {
   position: absolute;
-  right: 0;
+  inset-inline-end: 0;
   top: calc(100% + .65rem);
   min-width: 260px;
   padding: .75rem;
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: 14px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--elevation-popover);
   z-index: 110;
+  transform-origin: top right;
+  animation: popover-in 0.18s cubic-bezier(0.2, 0, 0, 1);
+}
+@keyframes popover-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .popover-head,
 .profile-head {
@@ -471,7 +517,7 @@ function handleSearch() {
   background: transparent;
   color: var(--color-text);
   font: .78rem var(--font-bn);
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   border-radius: 8px;
   transition: background .12s;
@@ -484,8 +530,8 @@ function handleSearch() {
 }
 .language-popover button span {
   color: var(--color-primary-100);
-  font-size: .65rem;
-  margin-left: .3rem;
+  font-size: var(--text-xs);
+  margin-inline-start: .3rem;
 }
 .language-popover button:disabled {
   opacity: .4;
@@ -523,11 +569,11 @@ function handleSearch() {
   line-height: 1.2;
 }
 .user-name {
-  font: 600 .75rem var(--font-bn);
+  font: 600 var(--text-sm) var(--font-bn);
   color: var(--color-text);
 }
 .user-role {
-  font: .65rem var(--font-bn);
+  font: var(--text-xs) var(--font-bn);
   color: var(--color-text-muted);
 }
 .user-popover {
@@ -578,12 +624,33 @@ function handleSearch() {
   background: transparent;
   color: var(--color-error);
   font: .78rem var(--font-bn);
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   border-radius: 8px;
   transition: background .12s;
 }
 .logout-link:hover { background: var(--color-error-bg); }
+
+/* Icon swap (theme sun/moon): cross-fade with a small scale, per motion system */
+.icon-swap-enter-active,
+.icon-swap-leave-active {
+  transition: opacity 0.18s cubic-bezier(0.2, 0, 0, 1), transform 0.18s cubic-bezier(0.2, 0, 0, 1);
+}
+.icon-swap-enter-from {
+  opacity: 0;
+  transform: scale(0.25);
+}
+.icon-swap-leave-to {
+  opacity: 0;
+  transform: scale(0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon-swap-enter-active,
+  .icon-swap-leave-active {
+    transition: none;
+  }
+}
 
 @media (max-width: 768px) {
   .mobile-menu-btn { display: flex; }
@@ -603,6 +670,7 @@ function handleSearch() {
 }
 @media (max-width: 640px) {
   .topbar-search { width: 140px; }
+  .topbar-search input { font-size: 1rem; }
   .new-action span { display: none; }
 }
 </style>

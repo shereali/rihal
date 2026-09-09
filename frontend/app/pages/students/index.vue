@@ -20,6 +20,11 @@
           <p>ছাত্র তথ্য লোড হচ্ছে...</p>
         </div>
 
+        <div v-else-if="loadError" class="empty-state" role="alert">
+          <p>{{ loadError }}</p>
+          <button type="button" class="btn btn-primary" @click="loadStudents(currentPage)">আবার চেষ্টা করুন</button>
+        </div>
+
         <div v-else-if="(students?.data?.data || []).length === 0" class="empty-state">
           <p>কোনো ছাত্র নেই</p>
           <NuxtLink to="/students/create" class="btn btn-primary">প্রথম ছাত্র যোগ করুন</NuxtLink>
@@ -106,16 +111,24 @@ import { useApiClient } from '~/utils/api'
 
 const api = useApiClient()
 const loading = ref(true)
+const loadError = ref('')
 const students = ref<any>(null)
 const totalPages = ref(1)
+const currentPage = ref(1)
 
 async function loadStudents(page = 1) {
   loading.value = true
+  loadError.value = ''
   try {
     const res = await api.get(`/students?page=${page}&per_page=20`)
     students.value = res.data
+    currentPage.value = page
     totalPages.value = res.data.meta?.last_page || 1
-  } catch (error) {
+  } catch (error: any) {
+    students.value = null
+    loadError.value = error?.code === 'ECONNABORTED'
+      ? 'সার্ভার থেকে সাড়া পেতে বেশি সময় লেগেছে। নেটওয়ার্ক ঠিক আছে কিনা দেখে আবার চেষ্টা করুন।'
+      : 'ছাত্র তালিকা লোড করা যায়নি। আবার চেষ্টা করুন।'
     console.error('Failed to load students:', error)
   } finally {
     loading.value = false
@@ -149,7 +162,7 @@ loadStudents()
 .student-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .student-avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 600; }
 .pagination { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
-.page-btn { padding: 0.5rem 0.75rem; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.2s; }
-.page-btn:hover:not(.active) { background: var(--color-bg-hover); border-color: var(--color-border-dark); }
+.page-btn { padding: 0.5rem 0.75rem; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); border-radius: var(--radius-sm); font-size: 1rem; font-family: var(--font-bn); cursor: pointer; transition: all 0.2s; }
+.page-btn:hover:not(.active) { background: var(--color-bg-muted); border-color: var(--color-border); }
 .page-btn.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
 </style>

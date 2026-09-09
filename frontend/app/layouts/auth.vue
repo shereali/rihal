@@ -1,0 +1,56 @@
+<template>
+  <div class="auth-layout">
+    <div class="auth-pattern" aria-hidden="true" />
+    <div class="auth-layout-inner">
+      <slot />
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+// Auth layout — clean standalone screen with no sidebar/topbar
+</script>
+
+<style scoped>
+.auth-layout {
+  min-height: 100vh;
+  width: 100%;
+  background: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(1.5rem + env(safe-area-inset-top)) 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+  position: relative;
+  overflow: hidden;
+}
+
+/* Domain-earned texture: Islamic geometric star lattice (JS girih-style) */
+.auth-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.14;
+  background-image:
+    linear-gradient(30deg, rgba(212, 175, 55, 0.55) 12%, transparent 12.5%, transparent 87%, rgba(212, 175, 55, 0.55) 87.5%, rgba(212, 175, 55, 0.55)),
+    linear-gradient(150deg, rgba(212, 175, 55, 0.55) 12%, transparent 12.5%, transparent 87%, rgba(212, 175, 55, 0.55) 87.5%, rgba(212, 175, 55, 0.55)),
+    linear-gradient(30deg, rgba(212, 175, 55, 0.55) 12%, transparent 12.5%, transparent 87%, rgba(212, 175, 55, 0.55) 87.5%, rgba(212, 175, 55, 0.55)),
+    linear-gradient(150deg, rgba(212, 175, 55, 0.55) 12%, transparent 12.5%, transparent 87%, rgba(212, 175, 55, 0.55) 87.5%, rgba(212, 175, 55, 0.55)),
+    linear-gradient(60deg, rgba(212, 175, 55, 0.55) 25%, transparent 25.5%, transparent 75%, rgba(212, 175, 55, 0.55) 75%, rgba(212, 175, 55, 0.55)),
+    linear-gradient(60deg, rgba(212, 175, 55, 0.55) 25%, transparent 25.5%, transparent 75%, rgba(212, 175, 55, 0.55) 75%, rgba(212, 175, 55, 0.55));
+  background-size: 80px 140px;
+  background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+}
+
+.auth-layout-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-pattern {
+    display: none;
+  }
+}
+</style>

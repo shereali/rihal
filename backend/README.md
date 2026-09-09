@@ -11,7 +11,7 @@ docker-compose up -d
 # Or develop locally (needs PHP 8.2+ and Node 20+)
 
 # Backend
-cd laravel
+cd backend
 composer install
 cp .env.example .env
 php artisan key:generate
@@ -19,7 +19,7 @@ php artisan migrate
 php artisan serve --port 8000
 
 # Frontend
-cd nuxt
+cd frontend
 npm install
 npm run dev
 ```
@@ -42,7 +42,7 @@ Auth: Bearer token (Laravel Sanctum)
 
 ```
 SabaaqNext/
-├── laravel/           # Laravel 13 API
+├── backend/           # Laravel 13 API
 │   ├── app/
 │   │   ├── Http/
 │   │   │   ├── Controllers/Api/V1/
@@ -57,7 +57,7 @@ SabaaqNext/
 │   │   └── api.php
 │   └── tests/
 │       └── Feature/
-├── nuxt/              # Nuxt 4 Frontend
+├── frontend/          # Nuxt 4 Frontend
 │   ├── app/
 │   │   ├── pages/
 │   │   ├── components/

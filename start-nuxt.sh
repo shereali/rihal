@@ -3,7 +3,7 @@
 # Sabaaq Next — Start Frontend
 #
 
-cd "$(dirname "$0")/nuxt" || exit 1
+cd "$(dirname "$0")/frontend" || exit 1
 
 # Install dependencies if node_modules doesn't exist
 if [ ! -d "node_modules" ] || [ ! -f "package-lock.json" ]; then

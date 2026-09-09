@@ -21,7 +21,7 @@ services:
   # ─── Laravel API (port 8000) ────────────────────────────────
   api:
     build:
-      context: ./laravel
+      context: ./backend
       dockerfile: Dockerfile
     depends_on:
       mysql:
@@ -41,7 +41,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./laravel:/var/www/html
+      - ./backend:/var/www/html
     command: >
       sh -c "php artisan key:generate --force &&
              php artisan migrate:fresh --seed --force &&
@@ -50,7 +50,7 @@ services:
   # ─── Nuxt frontend (port 3000) ──────────────────────────────
   web:
     build:
-      context: ./nuxt
+      context: ./frontend
       dockerfile: Dockerfile
     depends_on:
       - api
@@ -59,7 +59,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./nuxt:/app
+      - ./frontend:/app
       - /app/node_modules
       - /app/.output
 

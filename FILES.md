@@ -6,7 +6,7 @@ This document lists every file in the Rihal project as of Week 1 completion.
 
 ---
 
-## Laravel Backend (146 files)
+## Backend (146 files)
 
 ### Models (57 files)
 - Tenant.php
@@ -174,7 +174,7 @@ This document lists every file in the Rihal project as of Week 1 completion.
 
 ---
 
-## Nuxt Frontend (20 files)
+## Frontend (20 files)
 
 ### Core
 - nuxt.config.ts

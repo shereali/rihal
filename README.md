@@ -6,8 +6,7 @@ attendance, exams & results, fees/finance, and notices — with multi-tenant iso
 and role-based access control.
 
 > Source-level branding note: the project was originally scaffolded as "Sabaaq / Sabaaq
-> Next"; all user-facing copy and code identifiers now read **Rihal**. (No filename-level
-> rename was performed — dirs are still `laravel/` and `nuxt/`.)
+> Next"; all user-facing copy and code identifiers now read **Rihal**.
 
 ---
 
@@ -35,7 +34,7 @@ and role-based access control.
 
 ```
 SabaaqNext/
-├── laravel/            # Laravel 11 API (backend)
+├── backend/            # Laravel 11 API (backend)
 │   ├── app/
 │   │   ├── Http/Controllers/Api/V1/   # ~30 resource controllers
 │   │   ├── Models/                    # 57 Eloquent models
@@ -44,7 +43,7 @@ SabaaqNext/
 │   │   ├── migrations/                # 16 base + 2 fix migrations
 │   │   └── seeders/                   # 5 seeders (see below)
 │   └── routes/api.php                 # 164 route definitions
-└── nuxt/               # Nuxt 4 SPA/SSR (frontend)
+└── frontend/           # Nuxt 4 SPA/SSR (frontend)
     └── app/
         ├── pages/                     # 24+ route pages
         ├── components/layout/         # AppSidebar, AppTopBar
@@ -68,7 +67,7 @@ SabaaqNext/
 ### 1. Backend (Laravel)
 
 ```bash
-cd laravel
+cd backend
 
 # Dependencies
 composer install
@@ -96,7 +95,7 @@ The seeder chain (`DatabaseSeeder`) runs:
 ### 2. Frontend (Nuxt)
 
 ```bash
-cd nuxt
+cd frontend
 
 npm install
 
@@ -127,7 +126,7 @@ docker compose up --build
 - Override the API base the frontend calls with `NUXT_PUBLIC_API_BASE`
   (defaults to `http://api:8000/api/v1` inside the compose network).
 
-> Images: `laravel/Dockerfile` (PHP 8.3 FPM + Composer) and `nuxt/Dockerfile`
+> Images: `backend/Dockerfile` (PHP 8.3 FPM + Composer) and `frontend/Dockerfile`
 > (Node 22, production `nuxt build`).
 
 ---
@@ -151,7 +150,7 @@ docker compose up --build
 
 The frontend is a custom, dependency-free **premium design system** (no UI library):
 
-- **Global tokens** — `nuxt/app/assets/css/main.css` defines the full theme (brand green `#145032`, gold accent `#d4af37`, semantic colors, shadows, radii, layout vars) and shared component styles (buttons, cards, tables, forms, badges, alerts).
+- **Global tokens** — `frontend/app/assets/css/main.css` defines the full theme (brand green `#145032`, gold accent `#d4af37`, semantic colors, shadows, radii, layout vars) and shared component styles (buttons, cards, tables, forms, badges, alerts).
 - **Loaded globally** via the `css:` key in `nuxt.config.js` (previously the file existed but was never imported — that was the "plain text / no style" bug).
 - **Bengali-first typography** — Noto Sans Bengali + Inter from Google Fonts in `nuxt.config.js` `app.head`; applied via `app.vue` (`<NuxtLayout>` wraps every page so the sidebar/topbar chrome renders) and `body.font-bn`.
 - **Auth screens** use a branded gradient + centered card. Fully **responsive**.
@@ -226,7 +225,7 @@ component for iconography.
 Backend feature tests (auth, B-controllers, finance, exam-results publish workflow):
 
 ```bash
-cd laravel
+cd backend
 php artisan test
 # or: php vendor/bin/phpunit tests/Feature/
 ```
@@ -254,14 +253,13 @@ expenses list/create/detail + summary), notices, and a live dashboard.
 ## Common Commands
 
 ```bash
-# Backend
-cd laravel && php artisan migrate:fresh --seed   # reset + demo data
-cd laravel && php artisan serve                   # API on :8000
-cd laravel && php artisan test                    # run suite
+cd backend && php artisan migrate:fresh --seed   # reset + demo data
+cd backend && php artisan serve                   # API on :8000
+cd backend && php artisan test                    # run suite
 
 # Frontend
-cd nuxt && npm run dev                            # dev server on :3000
-cd nuxt && npm run build                          # production build (.output/)
+cd frontend && npm run dev                            # dev server on :3000
+cd frontend && npm run build                          # production build (.output/)
 ```
 
 ---

@@ -29,7 +29,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: laravel
+        working-directory: backend
 
     steps:
       - name: Checkout
@@ -45,8 +45,8 @@ jobs:
       - name: Cache composer deps
         uses: actions/cache@v4
         with:
-          path: laravel/vendor
-          key: composer-${{ hashFiles('laravel/composer.lock') }}
+          path: backend/vendor
+          key: composer-${{ hashFiles('backend/composer.lock') }}
 
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-scripts
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: nuxt
+        working-directory: frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: nuxt/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: npm install

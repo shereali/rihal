@@ -1,8 +1,8 @@
 <template>
   <Teleport to="body">
     <Transition name="floating">
-      <div v-if="open" class="ai-float-overlay" @click.self="open = false">
-        <div class="ai-chat-popover">
+      <div v-if="open" class="ai-float-overlay" @click.self="closeChat">
+        <div class="ai-chat-popover" ref="chatPopoverRef" role="dialog" aria-modal="true" aria-label="আর্টিফিশিয়াল ইন্টেলিজেন্স সহায়ক">
           <div class="ai-chat-header">
             <div>
               <div class="ai-chat-title">
@@ -11,7 +11,7 @@
               </div>
               <small class="text-muted">সমস্যা আছে? আমাকে জিজ্ঞাসা করুন</small>
             </div>
-            <button class="ai-close-btn" type="button" @click="open = false">
+            <button class="ai-close-btn" type="button" aria-label="AI সহায়ক বন্ধ করুন" @click="closeChat">
               <Icon name="close" size="18" />
             </button>
           </div>
@@ -26,18 +26,20 @@
           <div class="ai-chat-footer">
             <div class="ai-input-wrap">
               <input
+                ref="chatInputRef"
                 v-model="userMessage"
                 type="text"
                 class="ai-input"
+                aria-label="AI সহায়ককে বার্তা লিখুন"
                 placeholder="এখানে লিখুন..."
                 @keyup.enter="sendMessage"
               />
-              <button class="ai-send-btn" type="button" @click="sendMessage" :disabled="!userMessage.trim()">
+              <button class="ai-send-btn" type="button" aria-label="বার্তা পাঠান" @click="sendMessage" :disabled="!userMessage.trim()">
                 <Icon name="chat" size="18" />
               </button>
             </div>
             <div class="ai-hint">
-              <small>AI প্রস্তাবনা — আসল AI সংযোগ শীঘ্রই আসছে</small>
+              <small>AI প্রস্তাবনা, আসল AI সংযোগ শীঘ্রই আসছে</small>
             </div>
           </div>
         </div>
@@ -48,7 +50,8 @@
       type="button"
       :class="{ 'ai-float-btn--active': open }"
       aria-label="AI সহায়ক"
-      @click="open = !open"
+      :aria-expanded="open"
+      @click="open ? closeChat() : openChat()"
     >
       <span class="ai-float-icon">
         <Icon name="bot" size="22" />
@@ -64,13 +67,31 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 const open = ref(false)
 const userMessage = ref('')
 const chatBodyRef = ref<HTMLElement | null>(null)
+const chatInputRef = ref<HTMLInputElement | null>(null)
+const chatPopoverRef = ref<HTMLElement | null>(null)
 const chatHistory = ref<{ role: 'bot' | 'user', text: string }[]>([])
+let lastFocused: HTMLElement | null = null
 
 function scrollToBottom() {
   nextTick(() => {
     if (chatBodyRef.value) {
       chatBodyRef.value.scrollTop = chatBodyRef.value.scrollHeight
     }
+  })
+}
+
+function openChat() {
+  lastFocused = document.activeElement as HTMLElement | null
+  open.value = true
+  nextTick(() => chatInputRef.value?.focus())
+}
+
+function closeChat() {
+  open.value = false
+  // Return focus to the floating trigger once the overlay has left the DOM
+  nextTick(() => {
+    lastFocused?.focus?.()
+    lastFocused = null
   })
 }
 
@@ -98,15 +119,34 @@ onUnmounted(() => {
 })
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') open.value = false
+  if (e.key === 'Escape') {
+    closeChat()
+    return
+  }
+  // Trap focus within the chat dialog while open
+  if (e.key === 'Tab' && open.value && chatPopoverRef.value) {
+    const focusables = chatPopoverRef.value.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    if (!focusables.length) return
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
 }
 </script>
 
 <style scoped>
 .ai-float-btn {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  right: calc(1.5rem + env(safe-area-inset-right));
   z-index: 200;
   display: flex;
   align-items: center;
@@ -162,7 +202,7 @@ function handleKeydown(e: KeyboardEvent) {
   backdrop-filter: blur(2px);
   display: flex;
   justify-content: flex-end;
-  padding: 2rem;
+  padding: calc(2rem + env(safe-area-inset-top)) 2rem calc(2rem + env(safe-area-inset-bottom));
 }
 
 .ai-chat-popover {
@@ -173,15 +213,15 @@ function handleKeydown(e: KeyboardEvent) {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--elevation-popover);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: popIn 0.2s ease;
+  animation: popIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes popIn {
-  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
@@ -253,7 +293,7 @@ function handleKeydown(e: KeyboardEvent) {
   padding: 0.6rem 0.9rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-family: var(--font-bn);
   background: var(--color-bg);
   color: var(--color-text);
@@ -278,6 +318,15 @@ function handleKeydown(e: KeyboardEvent) {
   cursor: pointer;
   transition: background var(--transition-fast);
   flex-shrink: 0;
+  position: relative;
+  touch-action: manipulation;
+}
+/* Expand hit area to the 44px touch minimum without growing the visual */
+.ai-send-btn::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
 }
 
 .ai-send-btn:hover:not(:disabled) {
@@ -294,13 +343,24 @@ function handleKeydown(e: KeyboardEvent) {
   text-align: center;
 }
 
-/* Transition */
-.floating-enter-active,
+/* Transition: enter 200ms, exit ~150ms (exits run shorter), sharp deceleration */
+.floating-enter-active {
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
 .floating-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .floating-enter-from,
 .floating-leave-to {
   opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .floating-enter-active,
+  .floating-leave-active {
+    transition: none;
+  }
+  .ai-chat-popover {
+    animation: none;
+  }
 }
 </style>

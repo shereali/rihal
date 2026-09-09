@@ -19,7 +19,7 @@
             <span class="brand-subtitle">মাদ্রাসা ব্যবস্থাপনা</span>
           </div>
         </div>
-        <button class="sidebar-close" @click="emit('close')" title="Close sidebar">
+        <button class="sidebar-close" @click="emit('close')" aria-label="সাইডবার বন্ধ করুন" title="Close sidebar">
           <Icon name="close" size="20" />
         </button>
       </div>
@@ -49,9 +49,11 @@
               </NuxtLink>
 
               <div v-else class="nav-item-group">
-                <div 
-                  class="nav-item nav-item-parent" 
+                <button
+                  type="button"
+                  class="nav-item nav-item-parent"
                   :class="{ active: isAnySubItemActive(item.subItems), open: isExpanded(item.label) }"
+                  :aria-expanded="isExpanded(item.label)"
                   @click="toggleExpand(item.label)"
                 >
                   <span class="nav-icon">
@@ -61,21 +63,25 @@
                   <span class="nav-arrow" :class="{ rotated: isExpanded(item.label) }">
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                   </span>
-                </div>
+                </button>
                 
-                <ul v-show="isExpanded(item.label)" class="sub-nav-list">
-                  <li v-for="subItem in item.subItems" :key="subItem.path">
-                    <NuxtLink
-                      :to="subItem.path"
-                      class="sub-nav-item"
-                      :class="{ active: isActive(subItem.path) }"
-                      :title="subItem.tooltip"
-                      @click="handleNavClick"
-                    >
-                      <span class="sub-nav-label">{{ subItem.label }}</span>
-                    </NuxtLink>
-                  </li>
-                </ul>
+                <Transition name="subnav">
+                  <div v-if="isExpanded(item.label)" class="subnav-wrap">
+                    <ul class="sub-nav-list">
+                      <li v-for="subItem in item.subItems" :key="subItem.path">
+                        <NuxtLink
+                          :to="subItem.path"
+                          class="sub-nav-item"
+                          :class="{ active: isActive(subItem.path) }"
+                          :title="subItem.tooltip"
+                          @click="handleNavClick"
+                        >
+                          <span class="sub-nav-label">{{ subItem.label }}</span>
+                        </NuxtLink>
+                      </li>
+                    </ul>
+                  </div>
+                </Transition>
               </div>
             </li>
           </ul>
@@ -394,18 +400,24 @@ onMounted(() => {
   position: fixed;
   top: 0;
   bottom: 0;
-  left: 0;
+  inset-inline-start: 0;
   width: var(--sidebar-width, 260px);
-  background: var(--glass-bg) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  background: var(--color-bg-card);
+  border-inline-end: 1px solid var(--color-border-light);
+  box-shadow: var(--elevation-2);
   color: var(--color-text);
   z-index: 40;
   display: flex;
   flex-direction: column;
   transition: width var(--transition-normal, 0.3s), transform var(--transition-normal, 0.3s);
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    top: 0;
+    bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
 
 @media (min-width: 769px) {
@@ -458,7 +470,8 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-bg-muted);
 }
 
 .sidebar-brand {
@@ -522,8 +535,8 @@ onMounted(() => {
 }
 
 .tenant-name {
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   line-height: 1.35;
   opacity: 0.9;
 }
@@ -540,9 +553,9 @@ onMounted(() => {
 }
 
 .nav-section-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--color-text-muted);
   padding: 0.4rem 0.5rem 0.25rem;
@@ -561,13 +574,19 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  padding: 0.48rem 0.75rem;
+  width: 100%;
+  padding: 0.55rem 0.75rem;
   border-radius: 0.45rem;
+  border: 0;
+  background: transparent;
   color: var(--color-text);
-  font-size: 0.84rem;
-  font-weight: 500;
+  font-family: var(--font-bn);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   text-decoration: none;
-  transition: all 0.15s ease;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
   white-space: nowrap;
   position: relative;
 }
@@ -580,7 +599,7 @@ onMounted(() => {
 .nav-item.active {
   background: var(--color-primary-100);
   color: var(--color-primary);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .nav-item.active::before {
@@ -620,7 +639,7 @@ onMounted(() => {
 }
 
 .nav-arrow {
-  margin-left: auto;
+  margin-inline-start: auto;
   display: flex;
   align-items: center;
   transition: transform 0.2s ease;
@@ -634,20 +653,42 @@ onMounted(() => {
 .sub-nav-list {
   list-style: none;
   margin: 0;
-  padding: 0.25rem 0 0.25rem 2.25rem;
+  padding-block: 0.25rem;
+  padding-inline-start: 2.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+}
+
+/* Accordion expand/collapse: grid-template-rows 0fr -> 1fr, 300ms per motion system */
+.subnav-wrap {
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+  transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.subnav-wrap .sub-nav-list {
+  min-height: 0;
+  overflow: hidden;
+}
+.subnav-enter-from,
+.subnav-leave-to {
+  grid-template-rows: 0fr;
+}
+@media (prefers-reduced-motion: reduce) {
+  .subnav-wrap {
+    transition: none;
+  }
 }
 
 .sub-nav-item {
   display: block;
   padding: 0.35rem 0.5rem;
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   text-decoration: none;
   border-radius: 0.35rem;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   position: relative;
 }
 
@@ -659,7 +700,7 @@ onMounted(() => {
 .sub-nav-item.active {
   color: var(--color-primary);
   background: var(--color-primary-50);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .sub-nav-item.active::before {
@@ -674,7 +715,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 0.65rem 0.85rem;
-  border-top: 1px solid var(--glass-border);
+  border-top: 1px solid var(--color-border-light);
   gap: 0.5rem;
 }
 
@@ -685,9 +726,9 @@ onMounted(() => {
 }
 
 .language-selector select {
-  background: var(--glass-bg);
+  background: var(--color-bg-card);
   color: var(--color-text);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
   border-radius: 0.35rem;
   padding: 0.25rem 0.4rem;
   font-size: 0.72rem;
@@ -697,7 +738,7 @@ onMounted(() => {
 }
 
 .language-selector select option {
-  background: var(--color-surface);
+  background: var(--color-bg-card);
   color: var(--color-text);
 }
 
@@ -713,7 +754,7 @@ onMounted(() => {
   cursor: pointer;
   padding: 0.35rem 0.55rem;
   border-radius: 0.35rem;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .logout-btn:hover {

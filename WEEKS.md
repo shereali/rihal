@@ -64,7 +64,7 @@ Full flow tested via curl:
 | 9 | Nuxt missing `axios` package | `npm install axios pinia@^4.0.3 --legacy-peer-deps` |
 | 10 | Nuxt root `/` returned 404 | Created `app/pages/index.vue` with `navigateTo('/login')` redirect |
 | 11 | `nuxt.config.ts` — `defineNuxtConfig` not exported from `nuxt` CJS import | Created `nuxt.config.js` using `require('nuxt/config')` |
-| 12 | Laravel server unstable — MSYS bash path translation + `&` backgrounding rejected | Used `background: true` tool parameter, `cd` into laravel dir before running artisan |
+| 12 | Laravel server unstable — MSYS bash path translation + `&` backgrounding rejected | Used `background: true` tool parameter, `cd` into backend dir before running artisan |
 
 ## 🗄 Database State
 
@@ -92,7 +92,7 @@ Full flow tested via curl:
 - `app/Http/Controllers/Api/V1/AuthController.php` — unchanged
 - `database/migrations/2026_08_17_203138_create_personal_access_tokens_table.php` — published via Sanctum vendor:publish
 - `nuxt/app/utils/api.ts` — removed `useRuntimeConfig()` + `useAuthStore()` from module scope
-- `nuxt/nuxt.config.js` — new config file (CJS format for Nuxt 4 compatibility)
+- `frontend/nuxt.config.js` — new config file (CJS format for Nuxt 4 compatibility)
 - `nuxt/app/pages/index.vue` — root redirect to `/login`
 - `package.json` — upgraded `@vueuse/nuxt` and `@pinia/nuxt` versions
 

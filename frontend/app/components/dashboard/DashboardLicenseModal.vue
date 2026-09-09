@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <div v-if="isOpen" class="license-overlay" @click.self="emit('close')">
-      <div class="license-modal" role="dialog" aria-modal="true" aria-label="লাইসেন্সের বিবরণ">
+      <div class="license-modal" ref="modalRef" role="dialog" aria-modal="true" aria-label="লাইসেন্সের বিবরণ" tabindex="-1">
         <button class="license-close" type="button" @click="emit('close')" aria-label="বন্ধ করুন"><Icon name="close" /></button>
         <div class="license-header">
           <div class="license-badge" :class="licenseStatusClass">{{ licenseStatusLabel }}</div>
@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -54,6 +54,59 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ 'close': [] }>()
+
+const modalRef = ref<HTMLElement | null>(null)
+let lastFocused: HTMLElement | null = null
+
+function focusDialog() {
+  if (modalRef.value) {
+    modalRef.value.focus()
+  }
+}
+
+function handleKeydown(e: KeyboardEvent) {
+  if (!props.isOpen) return
+  if (e.key === 'Escape') {
+    emit('close')
+    return
+  }
+  if (e.key === 'Tab' && modalRef.value) {
+    // Trap focus within the dialog
+    const focusables = modalRef.value.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    if (!focusables.length) return
+    const first = focusables[0]
+    const last = focusables[focusables.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+}
+
+watch(
+  () => props.isOpen,
+  (open) => {
+    if (open) {
+      lastFocused = document.activeElement as HTMLElement | null
+      // Focus the dialog after the next tick so it's in the DOM
+      requestAnimationFrame(focusDialog)
+      document.addEventListener('keydown', handleKeydown)
+    } else {
+      document.removeEventListener('keydown', handleKeydown)
+      lastFocused?.focus?.()
+      lastFocused = null
+    }
+  }
+)
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+})
 
 const licenseStatusClass = computed(() => {
   const st = props.license?.status
@@ -83,7 +136,7 @@ const licenseWhatsapp = computed(() => 'https://wa.me/8801XXXXXXXXXX')
 
 <style scoped>
 /* License modal */
-.license-overlay { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(10, 30, 20, .55); backdrop-filter: blur(5px); padding: 1rem; }
+.license-overlay { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(10, 30, 20, .55); backdrop-filter: blur(5px); padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(1rem + env(safe-area-inset-bottom)); }
 .license-modal { position: relative; width: 100%; max-width: 480px; background: var(--color-bg-card); border-radius: 20px; box-shadow: 0 24px 60px rgba(0,0,0,.3); overflow: hidden; animation: license-modal-in .3s cubic-bezier(0.16, 1, 0.3, 1); border: 1px solid var(--color-border-light); }
 @keyframes license-modal-in { from { opacity: 0; transform: translateY(20px) scale(.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .license-close { position: absolute; top: 12px; right: 12px; z-index: 2; width: 32px; height: 32px; display: grid; place-items: center; border: 0; background: var(--color-bg-muted); color: var(--color-text-light); border-radius: 10px; cursor: pointer; font-size: 1rem; transition: background .15s; }

@@ -2,28 +2,28 @@
 /node_modules
 /.pnpm-store
 /.pnpm-debug.log
-nuxt/node_modules
-nuxt/.output
-nuxt/.nuxt
+frontend/node_modules
+frontend/.output
+frontend/.nuxt
 
 # Laravel
-laravel/vendor
-laravel/node_modules
-laravel/bootstrap/cache/*.php
-laravel/storage/*.key
-laravel/storage/framework/cache/*
-laravel/storage/framework/sessions/*
-laravel/storage/framework/views/*
-laravel/storage/framework/testing/*
-laravel/storage/logs/*.log
-laravel/storage/app/public/*
-laravel/storage/debugbar/*
-!laravel/storage/framework/cache/.gitignore
-!laravel/storage/framework/sessions/.gitignore
-!laravel/storage/framework/views/.gitignore
-!laravel/storage/framework/testing/.gitignore
-!laravel/storage/logs/.gitignore
-!laravel/storage/app/public/.gitignore
+backend/vendor
+backend/node_modules
+backend/bootstrap/cache/*.php
+backend/storage/*.key
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/views/*
+backend/storage/framework/testing/*
+backend/storage/logs/*.log
+backend/storage/app/public/*
+backend/storage/debugbar/*
+!backend/storage/framework/cache/.gitignore
+!backend/storage/framework/sessions/.gitignore
+!backend/storage/framework/views/.gitignore
+!backend/storage/framework/testing/.gitignore
+!backend/storage/logs/.gitignore
+!backend/storage/app/public/.gitignore
 
 # Build outputs
 /dist
@@ -35,13 +35,14 @@ laravel/storage/debugbar/*
 .env
 .env.local
 .env.*.local
-laravel/.env
-laravel/.env.backup
-laravel/.env.production
+backend/.env
+backend/.env.backup
+backend/.env.production
 
 # IDE
 /.vscode
 /.idea
+.commandcode/
 *.swp
 *.swo
 

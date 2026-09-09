@@ -15,11 +15,11 @@
     </div>
 
     <form @submit.prevent="handleLogin" class="login-form">
-      <div v-if="error" class="alert alert-error">
+      <div v-if="error" class="alert alert-error" role="alert">
         {{ error }}
       </div>
 
-      <div v-if="success" class="alert alert-success">
+      <div v-if="success" class="alert alert-success" role="status">
         {{ success }}
       </div>
 
@@ -29,6 +29,8 @@
           id="email"
           v-model="form.email"
           type="email"
+          inputmode="email"
+          autocomplete="username"
           placeholder="example@domain.com"
           :disabled="loading"
           autofocus
@@ -41,6 +43,7 @@
           id="password"
           v-model="form.password"
           type="password"
+          autocomplete="current-password"
           placeholder="আপনার পাসওয়ার্ড"
           :disabled="loading"
         />
@@ -54,8 +57,8 @@
       </div>
 
       <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
-        <span v-if="loading" class="spinner"></span>
-        <span v-else>লগইন করুন</span>
+        <span v-if="loading" class="spinner" aria-hidden="true"></span>
+        <span>লগইন করুন</span>
       </button>
     </form>
 
@@ -109,7 +112,6 @@ async function handleLogin() {
 <style scoped>
 .page-login {
   min-height: 100vh;
-  background: var(--color-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -120,10 +122,16 @@ async function handleLogin() {
   width: 100%;
   max-width: 420px;
   background: var(--color-bg-card);
-  border-radius: 16px;
-  box-shadow: var(--shadow-lg);
+  border-radius: 18px;
+  box-shadow: var(--elevation-3);
   padding: 2.5rem 2rem;
   border: 1px solid var(--color-border-light);
+}
+
+@media (max-width: 360px) {
+  .auth-container {
+    padding: 1.75rem 1.25rem;
+  }
 }
 
 .auth-header {
@@ -147,18 +155,18 @@ async function handleLogin() {
 }
 
 .brand-name {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: var(--text-display);
+  font-weight: var(--weight-bold);
   color: var(--color-primary);
   margin: 0 0 0.25rem;
-  font-family: 'Noto Sans Bengali', sans-serif;
+  font-family: var(--font-bn);
 }
 
 .brand-subtitle {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   color: var(--color-text-light);
   margin: 0;
-  font-family: 'Noto Sans Bengali', sans-serif;
+  font-family: var(--font-bn);
 }
 
 .login-form {
@@ -174,10 +182,10 @@ async function handleLogin() {
 }
 
 .form-group label {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   color: var(--color-text);
-  font-family: 'Noto Sans Bengali', sans-serif;
+  font-family: var(--font-bn);
 }
 
 .form-group input {
@@ -245,6 +253,10 @@ async function handleLogin() {
 .btn-primary:hover:not(:disabled) {
   background: var(--color-primary-dark);
   transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .btn-primary:disabled {

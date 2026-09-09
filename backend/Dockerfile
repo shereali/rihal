@@ -4,7 +4,7 @@ FROM php:8.3-fpm
 # System deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
-        libfreetype6-dev default-mysql-client \
+        libfreetype6-dev default-mysql-client curl \
     && rm -rf /var/lib/apt/lists/*
 
 # PHP extensions required by Laravel 11

@@ -12,7 +12,7 @@ if ! command -v php > /dev/null 2>&1; then
 fi
 
 # Change to Laravel directory
-cd "$(dirname "$0")/laravel" || exit 1
+cd "$(dirname "$0")/backend" || exit 1
 
 # Install dependencies if vendor doesn't exist
 if [ ! -d "vendor" ]; then

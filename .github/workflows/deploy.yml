@@ -1,0 +1,142 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # Support both raw private key (PEM / OpenSSH) and base64-encoded key
+          if echo "$SSH_KEY" | grep -q -- "-----BEGIN"; then
+            printf "%s\n" "$SSH_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          else
+            echo "$SSH_KEY" | tr -d '[:space:]' | base64 -d > ~/.ssh/deploy_key
+          fi
+
+          chmod 600 ~/.ssh/deploy_key
+
+          # Validate key syntax early with clear error feedback
+          ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null || {
+            echo "::error::SSH key is invalid or corrupted. Check secrets.VPS_SSH_KEY format."
+            exit 1
+          }
+
+          echo "DEPLOY KEY FILE SHA256: $(sha256sum ~/.ssh/deploy_key | cut -d' ' -f1)"
+
+          HOST=$(echo "$SSH_HOST" | tr -d '[:space:]')
+          PORT=$(echo "${SSH_PORT:-22}" | tr -d '[:space:]')
+          ssh-keyscan -p "$PORT" -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Test SSH connection & diagnose
+        env:
+          SSH_USER: ${{ secrets.VPS_USER }}
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          USER=$(echo "$SSH_USER" | tr -d '[:space:]')
+          HOST=$(echo "$SSH_HOST" | tr -d '[:space:]')
+          PORT=$(echo "${SSH_PORT:-22}" | tr -d '[:space:]')
+          echo "========================================================"
+          echo "DEPLOY PUBLIC KEY (Verify this is in ~/.ssh/authorized_keys on VPS):"
+          ssh-keygen -y -f ~/.ssh/deploy_key
+          echo "========================================================"
+
+          if ! ssh -i ~/.ssh/deploy_key \
+                  -p "$PORT" \
+                  -o StrictHostKeyChecking=accept-new \
+                  -o IdentitiesOnly=yes \
+                  -o ConnectTimeout=15 \
+                  -o BatchMode=yes \
+                  "$USER@$HOST" "echo Connected as user: \$(whoami)"; then
+            echo ""
+            echo "::error::SSH Connection failed. See diagnosis details below."
+            echo "=== TROUBLESHOOTING CHECKLIST ==="
+            echo "1. The public key above MUST be present in /home/$USER/.ssh/authorized_keys on your VPS."
+            echo "2. On your VPS, run: chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
+            echo "3. Ensure VPS_USER exactly matches the Linux username on the server."
+            echo ""
+            echo "=== Verbose SSH Logs (ssh -vvv) ==="
+            ssh -vvv -i ~/.ssh/deploy_key \
+                -p "$PORT" \
+                -o StrictHostKeyChecking=accept-new \
+                -o ConnectTimeout=10 \
+                -o BatchMode=yes \
+                "$USER@$HOST" "true" 2>&1 | tail -n 35 || true
+            exit 1
+          fi
+
+      - name: Start deploy (detached on server)
+        env:
+          SSH_USER: ${{ secrets.VPS_USER }}
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          USER=$(echo "$SSH_USER" | tr -d '[:space:]')
+          HOST=$(echo "$SSH_HOST" | tr -d '[:space:]')
+          PORT=$(echo "${SSH_PORT:-22}" | tr -d '[:space:]')
+          ssh -i ~/.ssh/deploy_key \
+              -p "$PORT" \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=20 \
+              -o BatchMode=yes \
+              "$USER@$HOST" \
+              "rm -f /var/log/attashil/deploy.done; setsid nohup bash /var/www/attashil/deploy/deploy.sh </dev/null >/dev/null 2>&1 & echo started; exit 0"
+
+      - name: Wait for deploy to finish
+        env:
+          SSH_USER: ${{ secrets.VPS_USER }}
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          USER=$(echo "$SSH_USER" | tr -d '[:space:]')
+          HOST=$(echo "$SSH_HOST" | tr -d '[:space:]')
+          PORT=$(echo "${SSH_PORT:-22}" | tr -d '[:space:]')
+          for i in $(seq 1 60); do
+            RESULT=$(ssh -i ~/.ssh/deploy_key \
+                -p "$PORT" \
+                -o StrictHostKeyChecking=accept-new \
+                "$USER@$HOST" \
+                "cat /var/log/attashil/deploy.done 2>/dev/null || echo WAITING")
+            if [ "$RESULT" = "done" ]; then
+              echo "Deploy finished."
+              break
+            fi
+            if [ "$i" -eq 60 ]; then
+              echo "Timed out waiting for deploy" >&2
+              exit 1
+            fi
+            sleep 15
+          done
+
+      - name: Show deploy result
+        env:
+          SSH_USER: ${{ secrets.VPS_USER }}
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          USER=$(echo "$SSH_USER" | tr -d '[:space:]')
+          HOST=$(echo "$SSH_HOST" | tr -d '[:space:]')
+          PORT=$(echo "${SSH_PORT:-22}" | tr -d '[:space:]')
+          ssh -i ~/.ssh/deploy_key \
+              -p "$PORT" \
+              -o StrictHostKeyChecking=accept-new \
+              "$USER@$HOST" \
+              "cat /var/log/attashil/deploy.status"

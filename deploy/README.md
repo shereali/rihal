@@ -11,7 +11,7 @@ PM2/systemd) and **Windows** (Task Scheduler + NSSM) hosts.
 
 ## 1. Environment
 
-Copy `laravel/.env.example` → `laravel/.env` and set production values:
+Copy `backend/.env.example` → `backend/.env` and set production values:
 
 ```
 APP_ENV=production
@@ -63,7 +63,7 @@ php artisan storage:link
 
 ### Linux — PHP-FPM + Nginx
 
-- Install PHP 8.3 FPM, point the FPM pool at `laravel/` with `APP_ENV=production`.
+- Install PHP 8.3 FPM, point the FPM pool at `backend/` with `APP_ENV=production`.
 - Copy `deploy/nginx-rihal.conf` into `/etc/nginx/sites-available/` (symlink to
   `sites-enabled/`), adjust `server_name`, TLS paths, and root, then
   `nginx -t && systemctl reload nginx`.
@@ -85,7 +85,7 @@ php artisan storage:link
 Build is already produced via `npx nuxt build` (output in `.output/`). To run:
 
 ```bash
-cd nuxt
+cd frontend
 NUXT_PUBLIC_API_BASE=https://yourdomain.com/api/v1 node .output/server/index.mjs
 ```
 
@@ -103,7 +103,7 @@ The `financial:send-overdue-notifications` command is scheduled daily at 08:00
 
 ```bash
 # Linux cron
-* * * * * cd /var/www/rihal/laravel && php artisan schedule:run >> storage/logs/scheduler.log 2>&1
+* * * * * cd /var/www/rihal/backend && php artisan schedule:run >> storage/logs/scheduler.log 2>&1
 
 # Windows — Task Scheduler task (every minute)
 schtasks /Create /TN "Rihal Scheduler" /XML deploy\rihal-scheduler-task.xml
@@ -134,8 +134,8 @@ Failed `notification_deliveries` rows auto-retry (status cycles
 
 ## 6. Backups & restore drill
 
-`laravel/scripts/backup.bat` creates a `mysqldump` (+ routines/triggers) and a
-ZIP of uploaded files into `laravel/storage/backups/`.
+`backend/scripts/backup.bat` creates a `mysqldump` (+ routines/triggers) and a
+ZIP of uploaded files into `backend/storage/backups/`.
 
 **Restore drill (run periodically on staging):**
 

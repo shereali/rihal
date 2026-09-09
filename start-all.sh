@@ -35,7 +35,7 @@ fi
 # Start Laravel in background
 echo ""
 echo "Starting Laravel API (port 8000)..."
-cd "$HOME/Desktop/SabaaqNext/laravel" 2>/dev/null || cd "/c/Users/shere/Desktop/SabaaqNext/laravel" 2>/dev/null || cd "$(dirname "$0")/laravel"
+cd "$HOME/Desktop/SabaaqNext/backend" 2>/dev/null || cd "/c/Users/shere/Desktop/SabaaqNext/backend" 2>/dev/null || cd "$(dirname "$0")/backend"
 
 composer install --quiet 2>/dev/null || true
 cp .env.example .env 2>/dev/null
@@ -48,7 +48,7 @@ echo "  Laravel started (PID: $LARAVEL_PID)"
 # Start Nuxt in background  
 echo ""
 echo "Starting Nuxt Frontend (port 3000)..."
-cd "$HOME/Desktop/SabaaqNext/nuxt" 2>/dev/null || cd "/c/Users/shere/Desktop/SabaaqNext/nuxt" 2>/dev/null || cd "$(dirname "$0")/nuxt"
+cd "$HOME/Desktop/SabaaqNext/frontend" 2>/dev/null || cd "/c/Users/shere/Desktop/SabaaqNext/frontend" 2>/dev/null || cd "$(dirname "$0")/frontend"
 
 npm install --quiet 2>/dev/null || true
 npm run dev -- --host 0.0.0.0 --port 3000 &
