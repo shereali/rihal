@@ -12,7 +12,11 @@ return [
     'faker_locale' => 'bn_BD',
     'cipher' => 'AES-256-CBC',
     'key' => env('APP_KEY'),
-    'previous_keys' => [env('APP_PREVIOUS_KEYS') ?: ''],
+    'previous_keys' => [
+        ...array_filter(
+            explode(',', (string) env('APP_PREVIOUS_KEYS', ''))
+        ),
+    ],
     'maintenance' => [
         'driver' => 'file',
     ],
