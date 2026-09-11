@@ -1,440 +1,431 @@
 <template>
-  <div class="register-viewport">
-    <!-- Dedicated Premium Islamic Background Layers -->
-    <div class="bg-gradient-base" aria-hidden="true"></div>
-    <div class="bg-islamic-pattern" aria-hidden="true"></div>
-    <div class="bg-ambient-orb orb-1" aria-hidden="true"></div>
-    <div class="bg-ambient-orb orb-2" aria-hidden="true"></div>
-    <div class="bg-arch-silhouette" aria-hidden="true"></div>
+  <div class="register-wrapper">
+    <!-- Main Split-Screen Panoramic Card -->
+    <div class="register-card">
+      
+      <!-- Left Column: Institutional Value & Islamic Showcase -->
+      <div class="showcase-panel">
+        <div class="showcase-bg-pattern" aria-hidden="true"></div>
+        <div class="showcase-ambient-glow" aria-hidden="true"></div>
 
-    <div class="register-card-container">
-      <!-- Main Split-Screen Panoramic Card -->
-      <div class="register-card">
-        
-        <!-- Left Column: Institutional Value & Islamic Showcase -->
-        <div class="showcase-panel">
-          <div class="showcase-bg-pattern" aria-hidden="true"></div>
-          <div class="showcase-ambient-glow" aria-hidden="true"></div>
+        <div class="showcase-content">
+          <!-- Bismillah Calligraphy -->
+          <div class="bismillah-wrap" aria-label="বিসমিল্লাহির রাহমানির রাহিম">
+            <svg class="bismillah-svg" viewBox="0 0 320 54" fill="currentColor">
+              <path d="M160 8c-6 0-11 3-14 8-3-5-8-8-14-8-11 0-20 9-20 20 0 14 17 26 34 26 17 0 34-12 34-26 0-11-9-20-20-20zm0 40c-12 0-24-9-24-20 0-7 5-12 11-12 5 0 9 3 11 8h4c2-5 6-8 11-8 6 0 11 5 11 12 0 11-12 20-23 20z" opacity="0.15"/>
+              <text x="50%" y="36" text-anchor="middle" font-family="'Amiri', 'Scheherazade New', 'Traditional Arabic', 'Noto Naskh Arabic', serif" font-size="25" font-weight="bold" fill="url(#goldGradReg)" letter-spacing="1">
+                بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+              </text>
+              <defs>
+                <linearGradient id="goldGradReg" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#e5c158" />
+                  <stop offset="50%" stop-color="#d4af37" />
+                  <stop offset="100%" stop-color="#f5e2a3" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
 
-          <div class="showcase-content">
-            <!-- Bismillah Calligraphy -->
-            <div class="bismillah-wrap" aria-label="বিসমিল্লাহির রাহমানির রাহিম">
-              <svg class="bismillah-svg" viewBox="0 0 320 54" fill="currentColor">
-                <path d="M160 8c-6 0-11 3-14 8-3-5-8-8-14-8-11 0-20 9-20 20 0 14 17 26 34 26 17 0 34-12 34-26 0-11-9-20-20-20zm0 40c-12 0-24-9-24-20 0-7 5-12 11-12 5 0 9 3 11 8h4c2-5 6-8 11-8 6 0 11 5 11 12 0 11-12 20-23 20z" opacity="0.15"/>
-                <text x="50%" y="36" text-anchor="middle" font-family="'Amiri', 'Scheherazade New', 'Traditional Arabic', 'Noto Naskh Arabic', serif" font-size="25" font-weight="bold" fill="url(#goldGradReg)" letter-spacing="1">
-                  بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-                </text>
-                <defs>
-                  <linearGradient id="goldGradReg" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stop-color="#e5c158" />
-                    <stop offset="50%" stop-color="#d4af37" />
-                    <stop offset="100%" stop-color="#f5e2a3" />
-                  </linearGradient>
-                </defs>
+          <!-- Brand Crest -->
+          <div class="brand-crest">
+            <div class="emblem-container">
+              <!-- Custom Islamic Mihrab + Rehal (Quran Stand) Emblem -->
+              <svg class="emblem-svg" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- 8-pointed star base (Rub el Hizb) -->
+                <rect x="24" y="24" width="48" height="48" rx="6" transform="rotate(45 48 48)" stroke="url(#goldGradReg)" stroke-width="1.5" stroke-dasharray="2 2" opacity="0.6"/>
+                <rect x="24" y="24" width="48" height="48" rx="8" stroke="url(#goldGradReg)" stroke-width="1.8"/>
+                
+                <!-- Inner Arch (Mihrab) -->
+                <path d="M32 68V44C32 35.1634 39.1634 28 48 28C56.8366 28 64 35.1634 64 44V68" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+                <path d="M48 24V28" stroke="url(#goldGradReg)" stroke-width="2.5" stroke-linecap="round"/>
+                
+                <!-- Rihal (Folding Book Stand) Silhouette -->
+                <path d="M36 65L60 47M60 65L36 47" stroke="url(#goldGradReg)" stroke-width="2.5" stroke-linecap="round"/>
+                
+                <!-- Open Quran Book on Top -->
+                <path d="M48 44C44 41 38 41 34 43V55C38 53 44 53 48 56C52 53 58 53 62 55V43C58 41 52 41 48 44Z" fill="url(#goldGradReg)" fill-opacity="0.9" stroke="#ffffff" stroke-width="1"/>
+                <line x1="48" y1="44" x2="48" y2="56" stroke="#0d3b24" stroke-width="1.2"/>
               </svg>
             </div>
 
-            <!-- Brand Crest -->
-            <div class="brand-crest">
-              <div class="emblem-container">
-                <!-- Custom Islamic Mihrab + Rehal (Quran Stand) Emblem -->
-                <svg class="emblem-svg" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <!-- 8-pointed star base (Rub el Hizb) -->
-                  <rect x="24" y="24" width="48" height="48" rx="6" transform="rotate(45 48 48)" stroke="url(#goldGradReg)" stroke-width="1.5" stroke-dasharray="2 2" opacity="0.6"/>
-                  <rect x="24" y="24" width="48" height="48" rx="8" stroke="url(#goldGradReg)" stroke-width="1.8"/>
-                  
-                  <!-- Inner Arch (Mihrab) -->
-                  <path d="M32 68V44C32 35.1634 39.1634 28 48 28C56.8366 28 64 35.1634 64 44V68" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
-                  <path d="M48 24V28" stroke="url(#goldGradReg)" stroke-width="2.5" stroke-linecap="round"/>
-                  
-                  <!-- Rihal (Folding Book Stand) Silhouette -->
-                  <path d="M36 65L60 47M60 65L36 47" stroke="url(#goldGradReg)" stroke-width="2.5" stroke-linecap="round"/>
-                  
-                  <!-- Open Quran Book on Top -->
-                  <path d="M48 44C44 41 38 41 34 43V55C38 53 44 53 48 56C52 53 58 53 62 55V43C58 41 52 41 48 44Z" fill="url(#goldGradReg)" fill-opacity="0.9" stroke="#ffffff" stroke-width="1"/>
-                  <line x1="48" y1="44" x2="48" y2="56" stroke="#0d3b24" stroke-width="1.2"/>
-                </svg>
+            <div class="brand-titles">
+              <div class="brand-name-wrap">
+                <h1 class="brand-title">রিহাল</h1>
+                <span class="brand-badge">PRO</span>
               </div>
-
-              <div class="brand-titles">
-                <div class="brand-name-wrap">
-                  <h1 class="brand-title">রিহাল</h1>
-                  <span class="brand-badge">PRO</span>
-                </div>
-                <p class="brand-tagline">মাদ্রাসা ও ইসলামিক শিক্ষা ব্যবস্থাপনা প্ল্যাটফর্ম</p>
-              </div>
-            </div>
-
-            <!-- Sacred Hadith Plaque on Seeking Knowledge -->
-            <div class="verse-card">
-              <div class="verse-arch-ornament">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="url(#goldGradReg)" opacity="0.5"/>
-                  <path d="M12 6L13.8 9.6L17.8 10.2L14.9 13L15.6 17L12 15.1L8.4 17L9.1 13L6.2 10.2L10.2 9.6L12 6z" fill="url(#goldGradReg)"/>
-                </svg>
-              </div>
-              <p class="arabic-verse" lang="ar">« مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ طَرِيقًا إِلَى الْجَنَّةِ »</p>
-              <p class="bengali-meaning">"যে ব্যক্তি জ্ঞান অন্বেষণের পথে চলে, আল্লাহ তার জন্য জান্নাতের পথ সুগম করে দেন।"</p>
-              <span class="verse-reference">— সহীহ মুসলিম: ২৬৯৯</span>
-            </div>
-
-            <!-- Madrasa Digitalization Pillars -->
-            <div class="showcase-features">
-              <div class="feature-item">
-                <div class="feature-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                    <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20V6a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 6.5z"/>
-                  </svg>
-                </div>
-                <div class="feature-text">
-                  <strong>সম্পূর্ণ মাদ্রাসা অটোমেশন</strong>
-                  <span>হিফজ, কিতাব, শিক্ষক ও ছাত্র রেকর্ড</span>
-                </div>
-              </div>
-
-              <div class="feature-item">
-                <div class="feature-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="6" width="20" height="12" rx="2"/>
-                    <circle cx="12" cy="12" r="2"/>
-                    <path d="M6 12h.01M18 12h.01"/>
-                  </svg>
-                </div>
-                <div class="feature-text">
-                  <strong>স্বচ্ছ হিসাব ও লিল্লাহ তহবিল</strong>
-                  <span>যাকাত, ডোনেশন ও ডাবল-এন্ট্রি অডিট</span>
-                </div>
-              </div>
-
-              <div class="feature-item">
-                <div class="feature-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-                  </svg>
-                </div>
-                <div class="feature-text">
-                  <strong>দ্রুত সেটআপ ও ক্লাউড অ্যাক্সেস</strong>
-                  <span>মুহূর্তেই আপনার মাদ্রাসার ডিজিটাল কার্যক্রম শুরু</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Security & Privacy Seal -->
-            <div class="security-footer">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <path d="M9 12l2 2 4-4"/>
-              </svg>
-              <span>২৫৬-বিট এনক্রিপশন • শরীয়াহ ও পূর্ণ তথ্য নিরাপত্তা নিশ্চিত</span>
+              <p class="brand-tagline">মাদ্রাসা ও ইসলামিক শিক্ষা ব্যবস্থাপনা প্ল্যাটফর্ম</p>
             </div>
           </div>
-        </div>
 
-        <!-- Right Column: Smart Registration Form -->
-        <div class="form-panel">
-          <!-- Gilded Ornamental Top Ribbon -->
-          <div class="form-ribbon" aria-hidden="true"></div>
+          <!-- Sacred Hadith Plaque on Seeking Knowledge -->
+          <div class="verse-card">
+            <div class="verse-arch-ornament">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" fill="url(#goldGradReg)" opacity="0.5"/>
+                <path d="M12 6L13.8 9.6L17.8 10.2L14.9 13L15.6 17L12 15.1L8.4 17L9.1 13L6.2 10.2L10.2 9.6L12 6z" fill="url(#goldGradReg)"/>
+              </svg>
+            </div>
+            <p class="arabic-verse" lang="ar">« مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ طَرِيقًا إِلَى الْجَنَّةِ »</p>
+            <p class="bengali-meaning">"যে ব্যক্তি জ্ঞান অন্বেষণের পথে চলে, আল্লাহ তার জন্য জান্নাতের পথ সুগম করে দেন।"</p>
+            <span class="verse-reference">— সহীহ মুসলিম: ২৬৯৯</span>
+          </div>
 
-          <div class="form-inner">
-            <!-- Form Header -->
-            <div class="form-header">
-              <div class="greeting-badge">
-                <span class="pulse-dot"></span>
-                <span>নতুন মাদ্রাসার নিবন্ধন</span>
+          <!-- Madrasa Digitalization Pillars -->
+          <div class="showcase-features">
+            <div class="feature-item">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                  <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20V6a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 6.5z"/>
+                </svg>
               </div>
-              <h2 class="form-title">অ্যাকাউন্ট তৈরি করুন</h2>
-              <p class="form-subtitle">আপনার মাদ্রাসার ডিজিটাল ব্যবস্থাপনা শুরু করতে প্রয়োজনীয় তথ্য প্রদান করুন</p>
+              <div class="feature-text">
+                <strong>সম্পূর্ণ মাদ্রাসা অটোমেশন</strong>
+                <span>হিফজ, কিতাব, শিক্ষক ও ছাত্র রেকর্ড</span>
+              </div>
             </div>
 
-            <!-- Notifications -->
-            <transition name="fade">
-              <div v-if="error" class="custom-alert alert-error" role="alert">
-                <div class="alert-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                </div>
-                <div class="alert-body">
-                  <strong>নিবন্ধন অসম্পূর্ণ</strong>
-                  <span>{{ error }}</span>
-                </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="6" width="20" height="12" rx="2"/>
+                  <circle cx="12" cy="12" r="2"/>
+                  <path d="M6 12h.01M18 12h.01"/>
+                </svg>
               </div>
-            </transition>
-
-            <transition name="fade">
-              <div v-if="success" class="custom-alert alert-success" role="status">
-                <div class="alert-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                    <polyline points="22 4 12 14.01 9 11.01"/>
-                  </svg>
-                </div>
-                <div class="alert-body">
-                  <strong>নিবন্ধন সফল হয়েছে!</strong>
-                  <span>{{ success }}</span>
-                </div>
+              <div class="feature-text">
+                <strong>স্বচ্ছ হিসাব ও লিল্লাহ তহবিল</strong>
+                <span>যাকাত, ডোনেশন ও ডাবল-এন্ট্রি অডিট</span>
               </div>
-            </transition>
+            </div>
 
-            <!-- The Registration Form -->
-            <form @submit.prevent="handleRegister" class="register-form" novalidate>
-              
-              <!-- 2-Column Grid: Names -->
-              <div class="form-row-2">
-                <!-- Bengali Name (Required) -->
-                <div class="form-group">
-                  <label for="name_bn" class="input-label">
-                    <span>পূর্ণ নাম (বাংলা)</span>
-                    <span class="required-star">*</span>
-                  </label>
-                  <div class="input-container">
-                    <span class="input-leading-icon" aria-hidden="true">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                      </svg>
-                    </span>
-                    <input
-                      id="name_bn"
-                      v-model="form.name_bn"
-                      type="text"
-                      autocomplete="name"
-                      placeholder="যেমন: মাওলানা আব্দুর রহমান"
-                      :disabled="loading"
-                      required
-                      autofocus
-                      class="custom-input"
-                    />
-                  </div>
-                  <span v-if="form.name_bn && form.name_bn.trim().length < 2" class="input-hint-error">
-                    নাম কমপক্ষে ২ অক্ষর হতে হবে
-                  </span>
-                </div>
-
-                <!-- English Name (Optional) -->
-                <div class="form-group">
-                  <label for="name_en" class="input-label">
-                    <span>নাম (ইংরেজি)</span>
-                    <span class="optional-tag">(ঐচ্ছিক)</span>
-                  </label>
-                  <div class="input-container">
-                    <span class="input-leading-icon" aria-hidden="true">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="2" y1="12" x2="22" y2="12"/>
-                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                      </svg>
-                    </span>
-                    <input
-                      id="name_en"
-                      v-model="form.name_en"
-                      type="text"
-                      autocomplete="name"
-                      placeholder="e.g. Abdur Rahman"
-                      :disabled="loading"
-                      class="custom-input"
-                    />
-                  </div>
-                </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
               </div>
-
-              <!-- 2-Column Grid: Contact (Email & Phone) -->
-              <div class="form-row-2">
-                <!-- Email Address (Required) -->
-                <div class="form-group">
-                  <label for="reg-email" class="input-label">
-                    <span>ইমেইল ঠিকানা</span>
-                    <span class="required-star">*</span>
-                  </label>
-                  <div class="input-container">
-                    <span class="input-leading-icon" aria-hidden="true">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                        <polyline points="22,6 12,13 2,6"/>
-                      </svg>
-                    </span>
-                    <input
-                      id="reg-email"
-                      v-model="form.email"
-                      type="email"
-                      inputmode="email"
-                      autocomplete="email"
-                      placeholder="principal@madrasa.edu.bd"
-                      :disabled="loading"
-                      required
-                      class="custom-input"
-                    />
-                  </div>
-                </div>
-
-                <!-- Phone Number (Optional) -->
-                <div class="form-group">
-                  <label for="reg-phone" class="input-label">
-                    <span>মোবাইল নম্বর</span>
-                    <span class="optional-tag">(ঐচ্ছিক)</span>
-                  </label>
-                  <div class="input-container">
-                    <span class="input-leading-icon" aria-hidden="true">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                      </svg>
-                    </span>
-                    <input
-                      id="reg-phone"
-                      v-model="form.phone"
-                      type="tel"
-                      inputmode="tel"
-                      autocomplete="tel"
-                      placeholder="০১৭১১-XXXXXX"
-                      :disabled="loading"
-                      class="custom-input"
-                    />
-                  </div>
-                </div>
+              <div class="feature-text">
+                <strong>দ্রুত সেটআপ ও ক্লাউড অ্যাক্সেস</strong>
+                <span>মুহূর্তেই আপনার মাদ্রাসার ডিজিটাল কার্যক্রম শুরু</span>
               </div>
+            </div>
+          </div>
 
-              <!-- 2-Column Grid: Passwords -->
-              <div class="form-row-2">
-                <!-- Password (Required) -->
-                <div class="form-group">
-                  <label for="reg-password" class="input-label">
-                    <span>পাসওয়ার্ড</span>
-                    <span class="required-star">*</span>
-                  </label>
-                  <div class="input-container">
-                    <span class="input-leading-icon" aria-hidden="true">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                      </svg>
-                    </span>
-                    <input
-                      id="reg-password"
-                      v-model="form.password"
-                      :type="showPassword ? 'text' : 'password'"
-                      autocomplete="new-password"
-                      placeholder="কমপক্ষে ৮ অক্ষর"
-                      :disabled="loading"
-                      required
-                      class="custom-input with-trailing-icon"
-                    />
-                    <button
-                      type="button"
-                      class="password-toggle-btn"
-                      @click="showPassword = !showPassword"
-                      :title="showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'"
-                      :aria-label="showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'"
-                    >
-                      <svg v-if="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                      <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/>
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="password-validation-indicator" v-if="form.password">
-                    <span :class="form.password.length >= 8 ? 'text-valid' : 'text-invalid'">
-                      {{ form.password.length >= 8 ? '✓ ৮+ অক্ষর হয়েছে' : '✗ কমপক্ষে ৮ অক্ষর প্রয়োজন' }}
-                    </span>
-                  </div>
-                </div>
+          <!-- Security & Privacy Seal -->
+          <div class="security-footer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+            <span>২৫৬-বিট এনক্রিপশন • শরীয়াহ ও পূর্ণ তথ্য নিরাপত্তা নিশ্চিত</span>
+          </div>
+        </div>
+      </div>
 
-                <!-- Confirm Password (Required) -->
-                <div class="form-group">
-                  <label for="reg-password-confirm" class="input-label">
-                    <span>পাসওয়ার্ড নিশ্চিত করুন</span>
-                    <span class="required-star">*</span>
-                  </label>
-                  <div class="input-container">
-                    <span class="input-leading-icon" aria-hidden="true">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                      </svg>
-                    </span>
-                    <input
-                      id="reg-password-confirm"
-                      v-model="form.password_confirmation"
-                      :type="showConfirmPassword ? 'text' : 'password'"
-                      autocomplete="new-password"
-                      placeholder="পাসওয়ার্ড আবার লিখুন"
-                      :disabled="loading"
-                      required
-                      class="custom-input with-trailing-icon"
-                    />
-                    <button
-                      type="button"
-                      class="password-toggle-btn"
-                      @click="showConfirmPassword = !showConfirmPassword"
-                      :title="showConfirmPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'"
-                      :aria-label="showConfirmPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'"
-                    >
-                      <svg v-if="!showConfirmPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                      <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/>
-                      </svg>
-                    </button>
-                  </div>
-                  <div class="password-validation-indicator" v-if="form.password_confirmation">
-                    <span :class="form.password === form.password_confirmation ? 'text-valid' : 'text-invalid'">
-                      {{ form.password === form.password_confirmation ? '✓ পাসওয়ার্ড মিলেছে' : '✗ পাসওয়ার্ড মিলছে না' }}
-                    </span>
-                  </div>
-                </div>
+      <!-- Right Column: Smart Registration Form -->
+      <div class="form-panel">
+        <!-- Gilded Ornamental Top Ribbon -->
+        <div class="form-ribbon" aria-hidden="true"></div>
+
+        <div class="form-inner">
+          <!-- Form Header -->
+          <div class="form-header">
+            <div class="greeting-badge">
+              <span class="pulse-dot"></span>
+              <span>নতুন মাদ্রাসার নিবন্ধন</span>
+            </div>
+            <h2 class="form-title">অ্যাকাউন্ট তৈরি করুন</h2>
+            <p class="form-subtitle">আপনার মাদ্রাসার ডিজিটাল ব্যবস্থাপনা শুরু করতে প্রয়োজনীয় তথ্য প্রদান করুন</p>
+          </div>
+
+          <!-- Notifications -->
+          <transition name="fade">
+            <div v-if="error" class="custom-alert alert-error" role="alert">
+              <div class="alert-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
               </div>
+              <div class="alert-body">
+                <strong>নিবন্ধন অসম্পূর্ণ</strong>
+                <span>{{ error }}</span>
+              </div>
+            </div>
+          </transition>
 
-              <!-- Terms & Agreement Checkbox -->
-              <div class="terms-row">
-                <label class="custom-checkbox">
-                  <input type="checkbox" v-model="agreeTerms" :disabled="loading" required />
-                  <span class="checkmark">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                      <polyline points="20 6 9 17 4 12"/>
+          <transition name="fade">
+            <div v-if="success" class="custom-alert alert-success" role="status">
+              <div class="alert-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <div class="alert-body">
+                <strong>নিবন্ধন সফল হয়েছে!</strong>
+                <span>{{ success }}</span>
+              </div>
+            </div>
+          </transition>
+
+          <!-- The Registration Form -->
+          <form @submit.prevent="handleRegister" class="register-form" novalidate>
+            
+            <!-- 2-Column Grid: Names -->
+            <div class="form-row-2">
+              <!-- Bengali Name (Required) -->
+              <div class="form-group">
+                <label for="name_bn" class="input-label">
+                  <span>পূর্ণ নাম (বাংলা)</span>
+                  <span class="required-star">*</span>
+                </label>
+                <div class="input-container">
+                  <span class="input-leading-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
                     </svg>
                   </span>
-                  <span class="checkbox-text">
-                    আমি রিহাল প্ল্যাটফর্মের <a href="#terms" class="text-link" @click.prevent>ব্যবহারবিধি</a> ও <a href="#privacy" class="text-link" @click.prevent>শরীয়াহ নীতিমালা</a> মেনে নিচ্ছি।
-                  </span>
-                </label>
+                  <input
+                    id="name_bn"
+                    v-model="form.name_bn"
+                    type="text"
+                    autocomplete="name"
+                    placeholder="যেমন: মাওলানা আব্দুর রহমান"
+                    :disabled="loading"
+                    required
+                    autofocus
+                    class="custom-input"
+                  />
+                </div>
+                <span v-if="form.name_bn && form.name_bn.trim().length < 2" class="input-hint-error">
+                  নাম কমপক্ষে ২ অক্ষর হতে হবে
+                </span>
               </div>
 
-              <!-- Submit Button -->
-              <button type="submit" class="submit-btn" :disabled="loading">
-                <span v-if="loading" class="spinner" aria-hidden="true"></span>
-                <span v-else class="btn-text">
-                  <span>অ্যাকাউন্ট তৈরি করুন</span>
-                  <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                    <polyline points="12 5 19 12 12 19"/>
+              <!-- English Name (Optional) -->
+              <div class="form-group">
+                <label for="name_en" class="input-label">
+                  <span>নাম (ইংরেজি)</span>
+                  <span class="optional-tag">(ঐচ্ছিক)</span>
+                </label>
+                <div class="input-container">
+                  <span class="input-leading-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="2" y1="12" x2="22" y2="12"/>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                  </span>
+                  <input
+                    id="name_en"
+                    v-model="form.name_en"
+                    type="text"
+                    autocomplete="name"
+                    placeholder="e.g. Abdur Rahman"
+                    :disabled="loading"
+                    class="custom-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 2-Column Grid: Contact (Email & Phone) -->
+            <div class="form-row-2">
+              <!-- Email Address (Required) -->
+              <div class="form-group">
+                <label for="reg-email" class="input-label">
+                  <span>ইমেইল ঠিকানা</span>
+                  <span class="required-star">*</span>
+                </label>
+                <div class="input-container">
+                  <span class="input-leading-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                      <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                  </span>
+                  <input
+                    id="reg-email"
+                    v-model="form.email"
+                    type="email"
+                    inputmode="email"
+                    autocomplete="email"
+                    placeholder="principal@madrasa.edu.bd"
+                    :disabled="loading"
+                    required
+                    class="custom-input"
+                  />
+                </div>
+              </div>
+
+              <!-- Phone Number (Optional) -->
+              <div class="form-group">
+                <label for="reg-phone" class="input-label">
+                  <span>মোবাইল নম্বর</span>
+                  <span class="optional-tag">(ঐচ্ছিক)</span>
+                </label>
+                <div class="input-container">
+                  <span class="input-leading-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                  </span>
+                  <input
+                    id="reg-phone"
+                    v-model="form.phone"
+                    type="tel"
+                    inputmode="tel"
+                    autocomplete="tel"
+                    placeholder="০১৭১১-XXXXXX"
+                    :disabled="loading"
+                    class="custom-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 2-Column Grid: Passwords -->
+            <div class="form-row-2">
+              <!-- Password (Required) -->
+              <div class="form-group">
+                <label for="reg-password" class="input-label">
+                  <span>পাসওয়ার্ড</span>
+                  <span class="required-star">*</span>
+                </label>
+                <div class="input-container">
+                  <span class="input-leading-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </span>
+                  <input
+                    id="reg-password"
+                    v-model="form.password"
+                    :type="showPassword ? 'text' : 'password'"
+                    autocomplete="new-password"
+                    placeholder="কমপক্ষে ৮ অক্ষর"
+                    :disabled="loading"
+                    required
+                    class="custom-input with-trailing-icon"
+                  />
+                  <button
+                    type="button"
+                    class="password-toggle-btn"
+                    @click="showPassword = !showPassword"
+                    :title="showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'"
+                    :aria-label="showPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'"
+                  >
+                    <svg v-if="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="password-validation-indicator" v-if="form.password">
+                  <span :class="form.password.length >= 8 ? 'text-valid' : 'text-invalid'">
+                    {{ form.password.length >= 8 ? '✓ ৮+ অক্ষর হয়েছে' : '✗ কমপক্ষে ৮ অক্ষর প্রয়োজন' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Confirm Password (Required) -->
+              <div class="form-group">
+                <label for="reg-password-confirm" class="input-label">
+                  <span>পাসওয়ার্ড নিশ্চিত করুন</span>
+                  <span class="required-star">*</span>
+                </label>
+                <div class="input-container">
+                  <span class="input-leading-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </span>
+                  <input
+                    id="reg-password-confirm"
+                    v-model="form.password_confirmation"
+                    :type="showConfirmPassword ? 'text' : 'password'"
+                    autocomplete="new-password"
+                    placeholder="পাসওয়ার্ড আবার লিখুন"
+                    :disabled="loading"
+                    required
+                    class="custom-input with-trailing-icon"
+                  />
+                  <button
+                    type="button"
+                    class="password-toggle-btn"
+                    @click="showConfirmPassword = !showConfirmPassword"
+                    :title="showConfirmPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'"
+                    :aria-label="showConfirmPassword ? 'পাসওয়ার্ড লুকান' : 'পাসওয়ার্ড দেখুন'"
+                  >
+                    <svg v-if="!showConfirmPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="password-validation-indicator" v-if="form.password_confirmation">
+                  <span :class="form.password === form.password_confirmation ? 'text-valid' : 'text-invalid'">
+                    {{ form.password === form.password_confirmation ? '✓ পাসওয়ার্ড মিলেছে' : '✗ পাসওয়ার্ড মিলছে না' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Terms & Agreement Checkbox -->
+            <div class="terms-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" v-model="agreeTerms" :disabled="loading" required />
+                <span class="checkmark">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"/>
                   </svg>
                 </span>
-              </button>
-            </form>
+                <span class="checkbox-text">
+                  আমি রিহাল প্ল্যাটফর্মের <a href="#terms" class="text-link" @click.prevent>ব্যবহারবিধি</a> ও <a href="#privacy" class="text-link" @click.prevent>শরীয়াহ নীতিমালা</a> মেনে নিচ্ছি।
+                </span>
+              </label>
+            </div>
 
-            <!-- Bottom Navigation -->
-            <div class="form-footer">
-              <p class="login-prompt">
-                ইতিমধ্যে মাদ্রাসা অ্যাকাউন্ট রয়েছে?
-                <NuxtLink to="/login" class="login-link">লগইন করুন</NuxtLink>
-              </p>
-              
-              <div class="system-status">
-                <span class="status-indicator"></span>
-                <span>রিহাল ক্লাউড সিস্টেম সক্রিয় • v2.4</span>
-              </div>
+            <!-- Submit Button -->
+            <button type="submit" class="submit-btn" :disabled="loading">
+              <span v-if="loading" class="spinner" aria-hidden="true"></span>
+              <span v-else class="btn-text">
+                <span>অ্যাকাউন্ট তৈরি করুন</span>
+                <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </span>
+            </button>
+          </form>
+
+          <!-- Bottom Navigation -->
+          <div class="form-footer">
+            <p class="login-prompt">
+              ইতিমধ্যে মাদ্রাসা অ্যাকাউন্ট রয়েছে?
+              <NuxtLink to="/login" class="login-link">লগইন করুন</NuxtLink>
+            </p>
+            
+            <div class="system-status">
+              <span class="status-indicator"></span>
+              <span>রিহাল ক্লাউড সিস্টেম সক্রিয় • v2.4</span>
             </div>
           </div>
         </div>
-
       </div>
+
     </div>
   </div>
 </template>
@@ -444,7 +435,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 
 definePageMeta({
-  layout: false, // Dedicated luxury background canvas
+  layout: 'auth', // Uses unified luxury Islamic background from auth.vue
 })
 
 const { register, isAuthenticated } = useAuth()
@@ -540,111 +531,28 @@ const handleRegister = async () => {
 
 <style scoped>
 /* ============================================================
-   Rihal — Premium Islamic Register Page & Background System
+   Rihal — Register Page (Shares Unified Auth Background)
    ============================================================ */
 
-.register-viewport {
-  min-height: 100vh;
+.register-wrapper {
   width: 100%;
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(2rem + env(safe-area-inset-top)) 1.25rem calc(2rem + env(safe-area-inset-bottom));
-  overflow-x: hidden;
-  background-color: #06180f;
-}
-
-/* ------------------------------------------------------------
-   BESPOKE MULTI-LAYERED PREMIUM ISLAMIC BACKGROUND
-   ------------------------------------------------------------ */
-
-/* 1. Base Gradient Layer */
-.bg-gradient-base {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: 
-    radial-gradient(ellipse at 15% 10%, rgba(20, 80, 50, 0.75) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 90%, rgba(9, 38, 23, 0.85) 0%, transparent 60%),
-    radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 65%),
-    linear-gradient(175deg, #06180f 0%, #0a2618 50%, #05140c 100%);
-  z-index: 0;
-}
-
-/* 2. Islamic Arabesque Girih Geometry Watermark */
-.bg-islamic-pattern {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.15;
-  background-image:
-    linear-gradient(30deg, rgba(212, 175, 55, 0.6) 12%, transparent 12.5%, transparent 87%, rgba(212, 175, 55, 0.6) 87.5%, rgba(212, 175, 55, 0.6)),
-    linear-gradient(150deg, rgba(212, 175, 55, 0.6) 12%, transparent 12.5%, transparent 87%, rgba(212, 175, 55, 0.6) 87.5%, rgba(212, 175, 55, 0.6)),
-    linear-gradient(30deg, rgba(212, 175, 55, 0.6) 12%, transparent 12.5%, transparent 87%, rgba(212, 175, 55, 0.6) 87.5%, rgba(212, 175, 55, 0.6)),
-    linear-gradient(150deg, rgba(212, 175, 55, 0.6) 12%, transparent 12.5%, transparent 87%, rgba(212, 175, 55, 0.6) 87.5%, rgba(212, 175, 55, 0.6)),
-    linear-gradient(60deg, rgba(212, 175, 55, 0.6) 25%, transparent 25.5%, transparent 75%, rgba(212, 175, 55, 0.6) 75%, rgba(212, 175, 55, 0.6)),
-    linear-gradient(60deg, rgba(212, 175, 55, 0.6) 25%, transparent 25.5%, transparent 75%, rgba(212, 175, 55, 0.6) 75%, rgba(212, 175, 55, 0.6));
-  background-size: 80px 140px;
-  background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
-  z-index: 0;
-}
-
-/* 3. Luminous Golden Nebula Orbs */
-.bg-ambient-orb {
-  position: fixed;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(70px);
-  z-index: 0;
-}
-
-.orb-1 {
-  width: 480px;
-  height: 480px;
-  top: -100px;
-  left: -80px;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.16) 0%, rgba(20, 80, 50, 0.05) 60%, transparent 80%);
-}
-
-.orb-2 {
-  width: 540px;
-  height: 540px;
-  bottom: -120px;
-  right: -100px;
-  background: radial-gradient(circle, rgba(24, 102, 64, 0.35) 0%, rgba(9, 38, 23, 0.1) 60%, transparent 80%);
-}
-
-/* 4. Arched Silhouette Background Vignette */
-.bg-arch-silhouette {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(circle at center, transparent 40%, rgba(5, 20, 12, 0.65) 90%);
-  z-index: 0;
-}
-
-/* ------------------------------------------------------------
-   MAIN REGISTRATION CARD & PANORAMIC GRID
-   ------------------------------------------------------------ */
-.register-card-container {
-  width: 100%;
-  max-width: 1100px;
-  position: relative;
-  z-index: 1;
-  margin: 0 auto;
+  padding: 1rem 0;
 }
 
 .register-card {
   width: 100%;
+  max-width: 1100px;
   background: var(--color-bg-card, #ffffff);
   border-radius: 24px;
   box-shadow: 
-    0 26px 70px -12px rgba(9, 38, 23, 0.55),
-    0 0 0 1px rgba(212, 175, 55, 0.28),
-    0 8px 30px -4px rgba(0, 0, 0, 0.3);
+    0 24px 60px -12px rgba(9, 38, 23, 0.45),
+    0 0 0 1px rgba(212, 175, 55, 0.25),
+    0 8px 24px -4px rgba(0, 0, 0, 0.2);
   display: grid;
-  grid-template-columns: 1fr 1.18fr;
+  grid-template-columns: 1fr 1.15fr;
   overflow: hidden;
   position: relative;
   transition: all 0.3s ease;
@@ -778,7 +686,7 @@ const handleRegister = async () => {
   line-height: 1.4;
 }
 
-/* Quran/Hadith Plaque */
+/* Hadith Plaque */
 .verse-card {
   background: rgba(8, 29, 18, 0.65);
   backdrop-filter: blur(8px);

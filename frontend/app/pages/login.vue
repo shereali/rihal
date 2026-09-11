@@ -151,17 +151,17 @@
               <button 
                 type="button" 
                 class="demo-chip" 
-                :class="{ active: form.email === 'admin@rihal.test' }"
-                @click="fillDemo('admin@rihal.test', 'password')"
-                title="মুহতামিম / কেন্দ্রীয় অ্যাডমিন"
+                :class="{ active: form.email === 'admin@demo.bd' }"
+                @click="fillDemo('admin@demo.bd', 'admin123')"
+                title="মুহতামিম / মাদ্রাসা অ্যাডমিন"
               >
                 👑 মুহতামিম
               </button>
               <button 
                 type="button" 
                 class="demo-chip" 
-                :class="{ active: form.email === 'teacher@rihal.test' }"
-                @click="fillDemo('teacher@rihal.test', 'password')"
+                :class="{ active: form.email === 'ali.ahmed@demo.bd' }"
+                @click="fillDemo('ali.ahmed@demo.bd', 'teacher123')"
                 title="প্রধান শিক্ষক / উস্তাদ"
               >
                 📚 প্রধান শিক্ষক
@@ -169,11 +169,11 @@
               <button 
                 type="button" 
                 class="demo-chip" 
-                :class="{ active: form.email === 'accountant@rihal.test' }"
-                @click="fillDemo('accountant@rihal.test', 'password')"
-                title="হিসাবরক্ষক"
+                :class="{ active: form.email === 'admin@rihal.app' }"
+                @click="fillDemo('admin@rihal.app', 'admin123')"
+                title="প্ল্যাটফর্ম অ্যাডমিন"
               >
-                💼 হিসাবরক্ষক
+                🛡️ প্ল্যাটফর্ম অ্যাডমিন
               </button>
             </div>
           </div>
