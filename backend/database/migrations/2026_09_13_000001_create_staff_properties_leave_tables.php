@@ -12,9 +12,8 @@ return new class extends Migration
         if (!Schema::hasTable('staff')) {
             Schema::create('staff', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
-                $table->unsignedBigInteger('user_id')->nullable();
-                $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
+                $table->unsignedBigInteger('tenant_id')->nullable()->index();
+                $table->unsignedBigInteger('user_id')->nullable()->index();
                 $table->string('name_bn');
                 $table->string('name_en')->nullable();
                 $table->string('email')->nullable();
@@ -31,7 +30,6 @@ return new class extends Migration
                 $table->softDeletes();
 
                 $table->index(['tenant_id', 'is_active']);
-                $table->index('user_id');
             });
         }
 
@@ -39,7 +37,7 @@ return new class extends Migration
         if (!Schema::hasTable('properties')) {
             Schema::create('properties', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
+                $table->unsignedBigInteger('tenant_id')->nullable()->index();
                 $table->string('property_name_bn');
                 $table->string('property_name_en')->nullable();
                 $table->string('property_type')->nullable();
@@ -74,7 +72,7 @@ return new class extends Migration
         if (!Schema::hasTable('property_documents')) {
             Schema::create('property_documents', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('property_id')->constrained('properties')->cascadeOnDelete();
+                $table->unsignedBigInteger('property_id')->index();
                 $table->string('title_bn')->nullable();
                 $table->string('document_type')->nullable();
                 $table->string('file_path')->nullable();
@@ -82,11 +80,8 @@ return new class extends Migration
                 $table->unsignedBigInteger('file_size')->nullable();
                 $table->boolean('is_verified')->default(false);
                 $table->timestamp('verified_at')->nullable();
-                $table->unsignedBigInteger('verified_by')->nullable();
-                $table->foreign('verified_by')->references('id')->on('users')->nullOnDelete();
+                $table->unsignedBigInteger('verified_by')->nullable()->index();
                 $table->timestamps();
-
-                $table->index('property_id');
             });
         }
 
@@ -94,7 +89,7 @@ return new class extends Migration
         if (!Schema::hasTable('property_maintenances')) {
             Schema::create('property_maintenances', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('property_id')->constrained('properties')->cascadeOnDelete();
+                $table->unsignedBigInteger('property_id')->index();
                 $table->string('title_bn')->nullable();
                 $table->string('maintenance_type')->nullable();
                 $table->text('description')->nullable();
@@ -104,13 +99,9 @@ return new class extends Migration
                 $table->boolean('is_active')->default(true);
                 $table->date('maintenance_date')->nullable();
                 $table->date('completion_date')->nullable();
-                $table->unsignedBigInteger('assigned_by_user_id')->nullable();
-                $table->foreign('assigned_by_user_id')->references('id')->on('users')->nullOnDelete();
-                $table->unsignedBigInteger('completed_by_user_id')->nullable();
-                $table->foreign('completed_by_user_id')->references('id')->on('users')->nullOnDelete();
+                $table->unsignedBigInteger('assigned_by_user_id')->nullable()->index();
+                $table->unsignedBigInteger('completed_by_user_id')->nullable()->index();
                 $table->timestamps();
-
-                $table->index('property_id');
             });
         }
 
@@ -118,7 +109,7 @@ return new class extends Migration
         if (!Schema::hasTable('property_visitors')) {
             Schema::create('property_visitors', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('property_id')->constrained('properties')->cascadeOnDelete();
+                $table->unsignedBigInteger('property_id')->index();
                 $table->string('visitor_name');
                 $table->string('visitor_phone')->nullable();
                 $table->string('purpose')->nullable();
@@ -127,8 +118,6 @@ return new class extends Migration
                 $table->timestamp('departure_time')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
-
-                $table->index('property_id');
             });
         }
 
@@ -136,18 +125,21 @@ return new class extends Migration
         if (!Schema::hasTable('leave_applications')) {
             Schema::create('leave_applications', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
-                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->unsignedBigInteger('tenant_id')->nullable()->index();
+                $table->unsignedBigInteger('user_id')->index();
                 $table->string('leave_type');
                 $table->string('title_bn');
                 $table->string('title')->nullable();
-                $table->text('description_bn');
+                $table->text('description_bn')->nullable();
                 $table->date('start_date');
                 $table->date('end_date');
                 $table->integer('days_count')->default(1);
                 $table->string('status')->default('pending');
                 $table->text('notes')->nullable();
                 $table->boolean('is_urgent')->default(false);
+                $table->unsignedBigInteger('approved_by_user_id')->nullable()->index();
+                $table->timestamp('approved_at')->nullable();
+                $table->text('rejection_reason')->nullable();
                 $table->timestamps();
                 $table->softDeletes();
 

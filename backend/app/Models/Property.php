@@ -29,10 +29,7 @@ class Property extends Model
         'location_details' => 'array',
     ];
 
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
+
 
     public function documents(): HasMany
     {

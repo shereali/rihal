@@ -13,12 +13,27 @@ use Illuminate\Support\Facades\Validator;
 
 class PropertyController extends ApiController
 {
+    public function summary(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $tenantId = $user?->tenant_id ?? $request->get('tenant')?->id;
+        $base = Property::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId));
+
+        return $this->successResponse([
+            'total_properties' => (clone $base)->count(),
+            'active_properties' => (clone $base)->where('status', 'active')->count(),
+            'total_market_value' => (clone $base)->sum('current_market_value') ?: 0,
+            'total_land_area' => (clone $base)->sum('land_area_sqft') ?: 0,
+        ]);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $tenantId = $user?->tenant_id ?? $request->get('tenant')?->id;
         $perPage = min((int) $request->input('per_page', 15), 100);
 
-        $query = Property::where('tenant_id', $user->tenant_id)
+        $query = Property::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
             ->when($request->has('search'), fn($q) => $q->where('property_name_bn', 'like', "%{$request->input('search')}%"))
             ->when($request->has('property_type'), fn($q) => $q->where('property_type', $request->input('property_type')))
             ->when($request->has('status'), fn($q) => $q->where('status', $request->input('status')))
@@ -33,11 +48,11 @@ class PropertyController extends ApiController
     public function show(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
+        $tenantId = $user?->tenant_id ?? $request->get('tenant')?->id;
 
-        $property = Property::where('tenant_id', $user->tenant_id)
+        $property = Property::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
             ->where('id', $id)
-            ->with('documents')
-            ->with('maintenanceRecords')
+            ->with(['documents', 'maintenanceRecords'])
             ->first();
 
         if (!$property) {
