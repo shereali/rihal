@@ -589,7 +589,9 @@
     </div>
 
     <!-- Luxury Student ID Card Modal (Centered Viewport) -->
-    <div v-if="showIdCardModal" class="id-card-modal-overlay" @click.self="showIdCardModal = false">
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showIdCardModal" class="id-card-modal-overlay" @click.self="showIdCardModal = false">
       <div class="id-card-modal-container">
         <!-- Modal Header -->
         <div class="id-modal-header">
@@ -903,9 +905,13 @@
         </div>
       </div>
     </div>
+  </Teleport>
+</ClientOnly>
 
     <!-- Dedicated Print Sheet for PVC / Paper Card Printing (Shown ONLY during window.print) -->
-    <div id="dedicated-print-sheet" class="print-only-sheet id-card-cr80-print-sheet">
+    <ClientOnly>
+      <Teleport to="body">
+        <div id="dedicated-print-sheet" class="print-only-sheet id-card-cr80-print-sheet">
       <div class="print-meta-header">
         <div class="print-inst-name">দারুল ক্বিরাত মজিদিয়া ফুলতলী ট্রাস্ট</div>
         <div class="print-doc-sub">অফিসিয়াল শিক্ষার্থী ডিজিটাল পরিচয়পত্র (CR-80 PVC Badge Print Layout)</div>
@@ -1117,30 +1123,36 @@
         <p>• কার্ড সাইজ: ISO/IEC 7810 ID-1 (CR-80: 85.60 × 53.98 মিমি) • সফটওয়্যার: রিহাল মাদরাসা ম্যানেজমেন্ট সিস্টেম (rihal.app)</p>
       </div>
     </div>
+  </Teleport>
+</ClientOnly>
 
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="modal-card delete-modal-box">
-        <div class="modal-header">
-          <h3>আপনি কি নিশ্চিত?</h3>
-          <button class="action-btn" @click="showDeleteModal = false">
-            <Icon name="close" />
-          </button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+          <div class="modal-card delete-modal-box">
+            <div class="modal-header">
+              <h3>আপনি কি নিশ্চিত?</h3>
+              <button class="action-btn" @click="showDeleteModal = false">
+                <Icon name="close" />
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>
+                আপনি "<strong>{{ student?.name_bn }}</strong>" ছাত্রটির সমস্ত রেকর্ড মুছে ফেলতে চাচ্ছেন। এই কাজটি নিশ্চিত করতে চান?
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline" @click="showDeleteModal = false">বাতিল</button>
+              <button class="btn btn-danger" @click="confirmDeleteStudent" :disabled="deleting">
+                <Icon name="loader" v-if="deleting" />
+                মুছে ফেলুন
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <p>
-            আপনি "<strong>{{ student?.name_bn }}</strong>" ছাত্রটির সমস্ত রেকর্ড মুছে ফেলতে চাচ্ছেন। এই কাজটি নিশ্চিত করতে চান?
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-outline" @click="showDeleteModal = false">বাতিল</button>
-          <button class="btn btn-danger" @click="confirmDeleteStudent" :disabled="deleting">
-            <Icon name="loader" v-if="deleting" />
-            মুছে ফেলুন
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
@@ -2101,21 +2113,21 @@ onMounted(() => {
 .id-card-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 99999;
   background: rgba(15, 23, 42, 0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.25rem;
+  padding: 1rem;
   overflow-y: auto;
 }
 
 .id-card-modal-container {
   width: 100%;
   max-width: 820px;
-  max-height: calc(100vh - 2.5rem);
+  max-height: 94vh;
   margin: auto;
   display: flex;
   flex-direction: column;
@@ -2249,13 +2261,13 @@ onMounted(() => {
 
 /* Modal Viewport */
 .id-card-modal-viewport {
-  padding: 1.75rem 1.5rem;
+  padding: 1.5rem 1.25rem;
   background: radial-gradient(circle at center, #f8fafc 0%, #e2e8f0 100%);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 540px;
-  max-height: calc(100vh - 200px);
+  min-height: 480px;
+  max-height: calc(94vh - 150px);
   overflow-y: auto;
   overflow-x: auto;
   flex: 1;
@@ -2889,14 +2901,19 @@ onMounted(() => {
     visibility: hidden !important;
   }
 
-  .id-card-modal-overlay,
+  /* Hide all screen elements and the entire Nuxt application */
+  #__nuxt,
   .default-layout,
   .sidebar,
   .topbar,
   .layout-main,
+  .layout-content,
+  .page-wrapper,
+  .id-card-modal-overlay,
   .modal-overlay,
   .no-print {
     display: none !important;
+    visibility: hidden !important;
   }
 
   /* Show only the dedicated print sheet */
@@ -2907,11 +2924,11 @@ onMounted(() => {
 
   #dedicated-print-sheet {
     display: block !important;
-    position: absolute !important;
+    position: relative !important;
     top: 0 !important;
     left: 0 !important;
-    right: 0 !important;
     width: 100% !important;
+    max-width: 190mm !important;
     margin: 0 auto !important;
     padding: 0 !important;
     background: #ffffff !important;
