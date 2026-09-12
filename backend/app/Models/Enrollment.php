@@ -21,8 +21,12 @@ class Enrollment extends Model
         'enrollment_date' => 'date',
         'expected_graduation_date' => 'date',
         'status' => 'string',
-        'is_active' => 'boolean',
     ];
+
+    public function getIsActiveAttribute(): bool
+    {
+        return in_array($this->status, ['active', 'enrolled', 'approved']);
+    }
 
     public function student(): HasOne
     {

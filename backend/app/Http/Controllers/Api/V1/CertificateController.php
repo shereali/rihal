@@ -205,10 +205,15 @@ class CertificateController extends Controller
             ]);
 
             $tenantSlug = $user?->tenant?->slug ?? 'RIHAL';
-            $nextId = (IssuedCertificate::max('id') ?? 0) + 1;
+            $seq = (IssuedCertificate::withTrashed()->max('id') ?? 0) + 1;
+            do {
+                $certNumber = 'CERT-' . strtoupper($tenantSlug) . '-' . date('Y') . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+                $seq++;
+            } while (IssuedCertificate::withTrashed()->where('certificate_number', $certNumber)->exists());
+
             $cert = IssuedCertificate::create(array_merge($validated, [
                 'tenant_id' => $tenantId,
-                'certificate_number' => 'CERT-' . strtoupper($tenantSlug) . '-' . date('Y') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT),
+                'certificate_number' => $certNumber,
             ]));
 
             return response()->json([
