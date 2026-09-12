@@ -11,6 +11,7 @@ class AcademicTimetable extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'academic_timetable';
     protected $guarded = [];
     protected $casts = [
         'start_time' => 'datetime',
@@ -20,12 +21,17 @@ class AcademicTimetable extends Model
 
     public function class(): BelongsTo
     {
-        return $this->belongsTo(AcademicClass::class);
+        return $this->belongsTo(AcademicClass::class, 'class_id');
+    }
+
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(AcademicSection::class, 'section_id');
     }
 
     public function subject(): BelongsTo
     {
-        return $this->belongsTo(AcademicSubject::class);
+        return $this->belongsTo(AcademicSubject::class, 'subject_id');
     }
 
     public function teacher(): BelongsTo
