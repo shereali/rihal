@@ -2586,6 +2586,32 @@ onMounted(() => {
   }
 }
 
+.card-tech-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+
+  .emv-chip-svg {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+  }
+
+  .nfc-waves-svg {
+    opacity: 0.85;
+  }
+
+  .card-status-badge {
+    font-size: 8px;
+    font-weight: 700;
+    color: #065f46;
+    background: #d1fae5;
+    border: 1px solid #a7f3d0;
+    border-radius: 99px;
+    padding: 1px 7px;
+    font-family: var(--font-bn);
+  }
+}
+
 /* 2-Column Attributes Table */
 .card-details-grid {
   margin: 0.2rem 0.85rem 0.5rem;
@@ -2954,43 +2980,45 @@ onMounted(() => {
 .delete-modal-box {
   max-width: 420px;
 }
+</style>
 
-/* =========================================================
-   PRINT SHEET: Hidden on screen
-   ========================================================= */
-.print-only-sheet,
-#dedicated-print-sheet {
-  display: none !important;
+<!-- Dedicated unscoped print stylesheet so global tags like #__nuxt and body are properly manipulated in print -->
+<style lang="scss">
+/* Hidden on screen across the entire application */
+@media screen {
+  .print-only-sheet,
+  #dedicated-print-sheet {
+    display: none !important;
+  }
 }
 
-/* =========================================================
-   PRINT STYLES FOR DEDICATED ID CARD PRINT SHEET (A4 / CR-80)
-   ========================================================= */
+/* Print styles for A4 sheet with 2 CR-80 badges */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm 15mm;
+    margin: 8mm 10mm;
   }
 
-  /* Reset body and html */
+  /* Reset root body and html */
   html, body {
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
     width: 100% !important;
     height: auto !important;
+    min-height: 0 !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
 
-  /* Hide screen elements */
-  body * {
-    visibility: hidden !important;
-  }
-
-  /* Hide profile page content and chrome */
+  /* Completely collapse and remove the entire Nuxt application from the print tree */
+  #__nuxt,
+  #app,
+  .default-layout,
+  .layout-main,
+  .layout-content,
   .page-wrapper,
   .sidebar,
   .topbar,
@@ -3002,35 +3030,33 @@ onMounted(() => {
   .no-print {
     display: none !important;
     visibility: hidden !important;
-  }
-
-  .default-layout,
-  .layout-main,
-  .layout-content {
+    height: 0 !important;
+    max-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-    width: 100% !important;
-    background: transparent !important;
-    border: none !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
   }
 
-  /* Show only the dedicated print sheet */
-  #dedicated-print-sheet,
-  #dedicated-print-sheet * {
-    visibility: visible !important;
-  }
-
+  /* Dedicated print sheet takes top of Page 1 */
   #dedicated-print-sheet {
     display: block !important;
-    position: relative !important;
+    visibility: visible !important;
+    position: static !important;
     top: 0 !important;
     left: 0 !important;
     width: 100% !important;
-    max-width: 210mm !important;
+    max-width: 195mm !important;
     margin: 0 auto !important;
-    padding: 6mm 10mm !important;
+    padding: 3mm 0 !important;
     background: #ffffff !important;
-    z-index: 9999999 !important;
+    opacity: 1 !important;
+    box-sizing: border-box !important;
+  }
+
+  #dedicated-print-sheet,
+  #dedicated-print-sheet * {
+    visibility: visible !important;
   }
 
   .print-meta-header {
@@ -3208,6 +3234,27 @@ onMounted(() => {
       height: 21mm !important;
       border-radius: 1.5mm !important;
       border-width: 1px !important;
+    }
+
+    .card-tech-strip {
+      display: flex !important;
+      align-items: center !important;
+      gap: 1.2mm !important;
+      margin-bottom: 0.6mm !important;
+
+      .emv-chip-svg {
+        width: 6.5mm !important;
+        height: 4.8mm !important;
+      }
+
+      .nfc-waves-svg {
+        display: none !important;
+      }
+
+      .card-status-badge {
+        font-size: 3.8pt !important;
+        padding: 0.2mm 1mm !important;
+      }
     }
 
     .card-student-name-bn {
