@@ -26,6 +26,29 @@ class AcademicSession extends Model
         'terms' => 'array',
     ];
 
+    public function getSessionNameAttribute(): ?string
+    {
+        return $this->name_en ?: $this->name_bn;
+    }
+
+    public function getSessionBnAttribute(): ?string
+    {
+        return $this->name_bn;
+    }
+
+    public function setSessionNameAttribute($value): void
+    {
+        $this->attributes['name_en'] = $value;
+        if (empty($this->attributes['name_bn'])) {
+            $this->attributes['name_bn'] = $value;
+        }
+    }
+
+    public function setSessionBnAttribute($value): void
+    {
+        $this->attributes['name_bn'] = $value;
+    }
+
     public function classes(): HasMany
     {
         return $this->hasMany(AcademicClass::class, 'session_id');

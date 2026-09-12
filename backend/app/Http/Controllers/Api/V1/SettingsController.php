@@ -171,8 +171,8 @@ class SettingsController extends Controller
 
     public function sessions(Request $request)
     {
-        $tenant = $request->get('tenant');
-        $query = AcademicSession::where('tenant_id', $tenant?->id)
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $query = AcademicSession::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
             ->orderByDesc('id');
 
         $perPage = min((int) $request->query('per_page', 15), 100);
@@ -181,8 +181,10 @@ class SettingsController extends Controller
         return ApiResource::collection($items, function ($s) {
             return [
                 'id' => $s->id,
-                'session_name' => $s->session_name,
-                'session_bn' => $s->session_bn,
+                'session_name' => $s->name_en ?? $s->name_bn,
+                'session_bn' => $s->name_bn,
+                'name_bn' => $s->name_bn,
+                'name_en' => $s->name_en,
                 'start_date' => $s->start_date?->format('d M, Y'),
                 'end_date' => $s->end_date?->format('d M, Y'),
                 'status' => $s->status,
@@ -202,10 +204,15 @@ class SettingsController extends Controller
             'status' => 'nullable|string|in:active,inactive,upcoming,completed',
         ]);
 
-        $validated['tenant_id'] = $request->get('tenant')?->id;
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $validated['tenant_id'] = $tenantId;
+        $validated['name_bn'] = $validated['session_bn'] ?? $validated['session_name'];
+        $validated['name_en'] = $validated['session_name'];
         $validated['start_date'] = \Carbon\Carbon::parse($validated['start_date']);
         $validated['end_date'] = \Carbon\Carbon::parse($validated['end_date']);
         $validated['status'] = $request->status ?? 'active';
+        unset($validated['session_name']);
+        unset($validated['session_bn']);
 
         $session = AcademicSession::create($validated);
 
@@ -213,8 +220,8 @@ class SettingsController extends Controller
             'message' => 'সেশন তৈরি হয়েছে।',
             'data' => [
                 'id' => $session->id,
-                'session_name' => $session->session_name,
-                'session_bn' => $session->session_bn,
+                'session_name' => $session->name_en ?? $session->name_bn,
+                'session_bn' => $session->name_bn,
                 'start_date' => $session->start_date?->format('d M, Y'),
                 'end_date' => $session->end_date?->format('d M, Y'),
                 'status' => $session->status,
@@ -226,13 +233,13 @@ class SettingsController extends Controller
 
     public function showSession(Request $request, $id)
     {
-        $tenant = $request->get('tenant');
-        $session = AcademicSession::where('tenant_id', $tenant?->id)->findOrFail($id);
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $session = AcademicSession::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))->findOrFail($id);
 
         return ApiResource::success([
             'id' => $session->id,
-            'session_name' => $session->session_name,
-            'session_bn' => $session->session_bn,
+            'session_name' => $session->name_en ?? $session->name_bn,
+            'session_bn' => $session->name_bn,
             'start_date' => $session->start_date?->format('d M, Y'),
             'end_date' => $session->end_date?->format('d M, Y'),
             'status' => $session->status,
@@ -244,8 +251,8 @@ class SettingsController extends Controller
 
     public function updateSession(Request $request, $id)
     {
-        $tenant = $request->get('tenant');
-        $session = AcademicSession::where('tenant_id', $tenant?->id)->findOrFail($id);
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $session = AcademicSession::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))->findOrFail($id);
 
         $validated = $request->validate([
             'session_name' => 'sometimes|string|max:50',
@@ -262,6 +269,17 @@ class SettingsController extends Controller
         if (isset($validated['end_date'])) {
             $validated['end_date'] = \Carbon\Carbon::parse($validated['end_date']);
         }
+        if (isset($validated['session_name'])) {
+            $validated['name_en'] = $validated['session_name'];
+            if (!isset($validated['session_bn']) && empty($session->name_bn)) {
+                $validated['name_bn'] = $validated['session_name'];
+            }
+            unset($validated['session_name']);
+        }
+        if (isset($validated['session_bn'])) {
+            $validated['name_bn'] = $validated['session_bn'];
+            unset($validated['session_bn']);
+        }
 
         $session->update($validated);
 
@@ -269,8 +287,8 @@ class SettingsController extends Controller
             'message' => 'সেশন আপডেট হয়েছে।',
             'data' => [
                 'id' => $session->id,
-                'session_name' => $session->session_name,
-                'session_bn' => $session->session_bn,
+                'session_name' => $session->name_en ?? $session->name_bn,
+                'session_bn' => $session->name_bn,
                 'start_date' => $session->start_date?->format('d M, Y'),
                 'end_date' => $session->end_date?->format('d M, Y'),
                 'status' => $session->status,
