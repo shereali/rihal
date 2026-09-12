@@ -4,9 +4,35 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Database\Eloquent\Model;
+
+class ResourceProxy extends JsonResource
+{
+    public function whenLoaded($relationship, $value = null, $default = null)
+    {
+        if ($this->resource instanceof Model && $this->resource->relationLoaded($relationship)) {
+            return is_callable($value) ? $value() : ($value ?? $this->resource->getRelation($relationship));
+        }
+        return is_callable($default) ? $default() : $default;
+    }
+}
 
 class ApiResource
 {
+    /**
+     * Transform a single item, wrapping objects in ResourceProxy to support whenLoaded().
+     */
+    protected static function transformItem(mixed $item, ?callable $transformer = null): mixed
+    {
+        if (!$transformer) {
+            return $item;
+        }
+
+        $wrapped = is_object($item) ? new ResourceProxy($item) : $item;
+        return $transformer($wrapped);
+    }
+
     /**
      * Return a standardized success response.
      */
@@ -31,7 +57,7 @@ class ApiResource
      */
     public static function item(mixed $resource, ?callable $transformer = null): JsonResponse
     {
-        $data = $transformer ? $transformer($resource) : $resource;
+        $data = static::transformItem($resource, $transformer);
 
         return response()->json([
             'success' => true,
@@ -47,7 +73,7 @@ class ApiResource
     {
         if ($resource instanceof AbstractPaginator) {
             $items = $resource->getCollection();
-            $transformedItems = $transformer ? $items->map($transformer)->values() : $items->values();
+            $transformedItems = $items->map(fn($item) => static::transformItem($item, $transformer))->values();
 
             return response()->json([
                 'success' => true,
@@ -71,7 +97,7 @@ class ApiResource
         }
 
         $collection = collect($resource);
-        $transformed = $transformer ? $collection->map($transformer)->values() : $collection->values();
+        $transformed = $collection->map(fn($item) => static::transformItem($item, $transformer))->values();
 
         return response()->json([
             'success' => true,

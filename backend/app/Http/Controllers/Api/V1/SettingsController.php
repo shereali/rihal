@@ -52,25 +52,25 @@ class SettingsController extends Controller
         $query = User::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
             ->with('roles')
             ->when($request->filled('role'), fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', $request->role)))
-            ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
             ->orderByDesc('id');
 
         $perPage = min((int) $request->query('per_page', 15), 100);
         $items = $query->paginate($perPage);
 
         return ApiResource::collection($items, function ($user) {
+            $lastLogin = $user->last_login_at ?? $user->last_login;
             return [
                 'id'         => $user->id,
                 'name_bn'    => $user->name_bn,
                 'name'       => $user->name,
                 'email'      => $user->email,
                 'phone'      => $user->phone,
-                'role'       => $user->role ?? ($user->roles->first()?->name ?? 'অ্যাডমিন'),
+                'role'       => $user->role ?? ($user->roles?->first()?->name ?? 'অ্যাডমিন'),
                 'roles'      => $user->whenLoaded('roles', fn() => $user->roles->pluck('name')->toArray()),
                 'avatar_url' => $user->avatar_url,
-                'status'     => $user->status,
-                'last_login' => $user->last_login?->format('d M, Y h:i A'),
-                'created_at' => $user->created_at?->format('d M, Y'),
+                'status'     => $user->status ?? ($user->is_active ? 'active' : 'inactive'),
+                'last_login' => $lastLogin ? (is_string($lastLogin) ? $lastLogin : $lastLogin->format('d M, Y h:i A')) : null,
+                'created_at' => $user->created_at ? (is_string($user->created_at) ? $user->created_at : $user->created_at->format('d M, Y')) : null,
             ];
         });
     }
