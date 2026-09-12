@@ -18,13 +18,23 @@ class Student extends Model
     use HasFactory, SoftDeletes;
 
     protected $guarded = [];
+    protected $appends = ['is_active'];
     protected $casts = [
         'date_of_birth' => 'date',
         'admission_date' => 'date',
         'graduation_date' => 'date',
-        'is_active' => 'boolean',
         'id_card_url' => 'string',
     ];
+
+    public function getIsActiveAttribute(): bool
+    {
+        return ($this->attributes['status'] ?? 'active') === 'active';
+    }
+
+    public function setIsActiveAttribute($value): void
+    {
+        $this->attributes['status'] = $value ? 'active' : 'inactive';
+    }
 
     public function user(): BelongsTo
     {

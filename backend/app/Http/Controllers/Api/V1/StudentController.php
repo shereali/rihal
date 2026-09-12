@@ -55,7 +55,7 @@ class StudentController extends ApiController
 
         $student = Student::where('tenant_id', $user->tenant_id)
             ->where('id', $id)
-            ->with(['user', 'guardian', 'enrollments.class', 'enrollments.section'])
+            ->with(['user', 'guardian', 'enrollments.class', 'enrollments.section', 'enrollments.session'])
             ->first();
 
         if (!$student) {
