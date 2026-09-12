@@ -53,7 +53,8 @@ class StudentController extends ApiController
     {
         $user = $request->user();
 
-        $student = Student::where('tenant_id', $user->tenant_id)
+        $student = Student::withTrashed()
+            ->where('tenant_id', $user->tenant_id)
             ->where('id', $id)
             ->with(['user', 'guardian', 'enrollments.class', 'enrollments.section', 'enrollments.session'])
             ->first();
@@ -250,5 +251,26 @@ class StudentController extends ApiController
         $student->delete();
 
         return $this->successResponse(null, 'ছাত্র মুছে ফেলা সফল');
+    }
+
+    public function restore(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+
+        $student = Student::withTrashed()
+            ->where('tenant_id', $user->tenant_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$student) {
+            return $this->errorResponse('ছাত্র পাওয়া যায়নি', 404);
+        }
+
+        $student->restore();
+        if ($student->user_id) {
+            User::withTrashed()->where('id', $student->user_id)->restore();
+        }
+
+        return $this->successResponse($student->fresh()->load(['user', 'guardian', 'enrollments.class', 'enrollments.section', 'enrollments.session']), 'ছাত্র সফলভাবে পুনরুদ্ধার করা হয়েছে');
     }
 }

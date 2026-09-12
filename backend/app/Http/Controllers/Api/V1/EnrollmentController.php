@@ -40,7 +40,7 @@ class EnrollmentController extends ApiController
             })
             ->when($request->filled('student_id'), function ($q) use ($request) {
                 $studentId = $request->input('student_id');
-                $student = Student::find($studentId);
+                $student = Student::withTrashed()->find($studentId);
                 $userId = $student?->user_id;
                 $q->where(function ($sq) use ($studentId, $userId) {
                     $sq->where('student_id', $studentId);

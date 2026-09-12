@@ -42,6 +42,18 @@
 
     <!-- Profile Content -->
     <div v-else class="profile-container">
+      <!-- Soft-deleted notice if applicable -->
+      <div v-if="student.deleted_at" class="alert-deleted-banner">
+        <div class="alert-deleted-text">
+          <Icon name="alertCircle" size="20" />
+          <span><strong>সতর্কতা:</strong> এই ছাত্রের রেকর্ডটি সফট-ডিলিট (মুছে ফেলা) অবস্থায় রয়েছে।</span>
+        </div>
+        <button class="btn btn-outline-success btn-sm" @click="restoreStudent" :disabled="restoring">
+          <Icon name="refresh" />
+          {{ restoring ? 'পুনরুদ্ধার হচ্ছে...' : 'পুনরুদ্ধার করুন (Restore)' }}
+        </button>
+      </div>
+
       <!-- Hero Banner Card -->
       <div class="hero-card">
         <div class="hero-content">
@@ -653,6 +665,25 @@ async function confirmDeleteStudent() {
   }
 }
 
+const restoring = ref(false)
+async function restoreStudent() {
+  if (!student.value) return
+  restoring.value = true
+  try {
+    const res = await api.post(`/students/${student.value.id}/restore`)
+    if (res?.data?.data) {
+      student.value = res.data.data
+    }
+    await loadStudent()
+    alert('ছাত্রের রেকর্ড সফলভাবে পুনরুদ্ধার করা হয়েছে!')
+  } catch (err) {
+    console.error('Restore failed:', err)
+    alert('পুনরুদ্ধার ব্যর্থ হয়েছে')
+  } finally {
+    restoring.value = false
+  }
+}
+
 function printIdCard() {
   window.print()
 }
@@ -762,6 +793,47 @@ onMounted(() => {
   &:hover {
     background: #fef2f2;
     border-color: #ef4444;
+  }
+}
+
+.alert-deleted-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  background: #fef2f2;
+  border: 1px solid #f87171;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  font-family: var(--font-bn);
+  font-size: var(--text-sm);
+  color: #991b1b;
+}
+
+.alert-deleted-text {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.btn-outline-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  border: 1px solid #16a34a;
+  color: #16a34a;
+  font-family: var(--font-bn);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: #f0fdf4;
   }
 }
 

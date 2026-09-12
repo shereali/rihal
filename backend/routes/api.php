@@ -136,6 +136,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/students/{id}', [StudentController::class, 'show']);
         Route::put('/students/{id}', [StudentController::class, 'update']);
         Route::delete('/students/{id}', [StudentController::class, 'destroy']);
+        Route::post('/students/{id}/restore', [StudentController::class, 'restore']);
 
         // ─── Teachers ─────────────────────────────────────────────────────────
         Route::get('/teachers', [TeacherController::class, 'index']);
