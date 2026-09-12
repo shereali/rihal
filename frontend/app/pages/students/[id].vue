@@ -587,6 +587,7 @@
         </div>
       </main>
     </div>
+  </div>
 
     <!-- Luxury Student ID Card Modal (Centered Viewport) -->
     <ClientOnly>
@@ -1149,7 +1150,6 @@
         </div>
       </Teleport>
     </ClientOnly>
-  </div>
 </template>
 
 <script setup lang="ts">
