@@ -41,8 +41,13 @@ return new class extends Migration
             ]);
 
             // Ensure an active enrollment exists for student 4
-            $class = DB::table('classes')->where('tenant_id', $student->tenant_id)->first();
-            $session = DB::table('academic_sessions')->where('tenant_id', $student->tenant_id)->first();
+            $class = \Illuminate\Support\Facades\Schema::hasTable('academic_classes')
+                ? DB::table('academic_classes')->where('tenant_id', $student->tenant_id)->first()
+                : (\Illuminate\Support\Facades\Schema::hasTable('classes') ? DB::table('classes')->where('tenant_id', $student->tenant_id)->first() : null);
+
+            $session = \Illuminate\Support\Facades\Schema::hasTable('academic_sessions')
+                ? DB::table('academic_sessions')->where('tenant_id', $student->tenant_id)->first()
+                : null;
 
             $existingEnrollment = DB::table('enrollments')->where('student_id', $student->user_id)->first();
             if (!$existingEnrollment && $class) {
