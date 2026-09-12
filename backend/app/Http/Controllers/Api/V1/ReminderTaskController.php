@@ -11,8 +11,8 @@ class ReminderTaskController extends Controller
 {
     public function index(Request $request)
     {
-        $tenant = $request->get('tenant');
-        $query = ReminderTask::where('tenant_id', $tenant?->id)
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $query = ReminderTask::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
             ->with('user')
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
             ->when($request->filled('type'), fn($q) => $q->where('type', $request->type))
@@ -168,13 +168,13 @@ class ReminderTaskController extends Controller
 
     public function stats(Request $request)
     {
-        $tenant = $request->get('tenant');
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
 
-        $pending = ReminderTask::where('tenant_id', $tenant?->id)->where('status', 'pending')->count();
-        $sent = ReminderTask::where('tenant_id', $tenant?->id)->where('status', 'sent')->count();
-        $acknowledged = ReminderTask::where('tenant_id', $tenant?->id)->where('status', 'acknowledged')->count();
-        $failed = ReminderTask::where('tenant_id', $tenant?->id)->where('status', 'failed')->count();
-        $today = ReminderTask::where('tenant_id', $tenant?->id)
+        $pending = ReminderTask::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))->where('status', 'pending')->count();
+        $sent = ReminderTask::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))->where('status', 'sent')->count();
+        $acknowledged = ReminderTask::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))->where('status', 'acknowledged')->count();
+        $failed = ReminderTask::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))->where('status', 'failed')->count();
+        $today = ReminderTask::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
             ->whereDate('scheduled_for', now()->toDateString())
             ->count();
 
@@ -184,7 +184,7 @@ class ReminderTaskController extends Controller
             'acknowledged' => $acknowledged,
             'failed' => $failed,
             'today' => $today,
-            'total' => ReminderTask::where('tenant_id', $tenant?->id)->count(),
+            'total' => ReminderTask::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))->count(),
         ]);
     }
 }

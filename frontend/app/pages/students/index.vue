@@ -1,9 +1,9 @@
 <template>
-  <div class="students-page">
+  <div class="students-page slide-up-fade">
     <div class="page-header">
       <div class="header-left">
         <h1>ছাত্র তালিকা</h1>
-        <p class="text-muted">{{ totalStudents }} জন ছাত্র</p>
+        <p class="text-muted">{{ totalStudents }} জন ছাত্রের তথ্য</p>
       </div>
       <div class="header-actions">
         <NuxtLink to="/enrollments/create" class="btn btn-outline">নতুন ভর্তি</NuxtLink>
@@ -21,12 +21,15 @@
         </div>
 
         <div v-else-if="loadError" class="empty-state" role="alert">
+          <Icon name="mdi:alert-circle-outline" size="48" class="text-error mb-2" />
           <p>{{ loadError }}</p>
-          <button type="button" class="btn btn-primary" @click="loadStudents(currentPage)">আবার চেষ্টা করুন</button>
+          <button type="button" class="btn btn-primary mt-3" @click="loadStudents(currentPage)">আবার চেষ্টা করুন</button>
         </div>
 
         <div v-else-if="(students?.data?.data || []).length === 0" class="empty-state">
-          <p>কোনো ছাত্র নেই</p>
+          <Icon name="mdi:account-school-outline" size="48" style="color: var(--color-border);" />
+          <p class="mt-2 font-semibold">কোনো ছাত্রের রেকর্ড পাওয়া যায়নি</p>
+          <p class="text-muted text-sm mb-3">নতুন ছাত্র ভর্তি করাতে নিচের বাটনে ক্লিক করুন</p>
           <NuxtLink to="/students/create" class="btn btn-primary">প্রথম ছাত্র যোগ করুন</NuxtLink>
         </div>
 
@@ -78,7 +81,7 @@
                     {{ student.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}
                   </span>
                 </td>
-                <td>
+                <td @click.stop>
                   <div class="btn-group btn-group-sm">
                     <NuxtLink :to="`/students/${student.id}`" class="btn btn-outline" title="দেখুন">
                       <icon name="eye" :size="16" />
@@ -95,8 +98,21 @@
 
         <div v-if="totalPages > 1" class="pagination-wrapper">
           <div class="pagination">
-            <button v-for="page in totalPages" :key="page" :class="['page-btn', { active: page === currentPage }]" @click="goToPage(page)">
-              {{ page }}
+            <button class="page-btn nav-btn" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+              <Icon name="mdi:chevron-left" /> পূর্ববর্তী
+            </button>
+            <template v-for="(p, idx) in visiblePages" :key="idx">
+              <span v-if="p === '...'" class="pagination-ellipsis">...</span>
+              <button 
+                v-else 
+                :class="['page-btn', { active: p === currentPage }]" 
+                @click="goToPage(Number(p))"
+              >
+                {{ p }}
+              </button>
+            </template>
+            <button class="page-btn nav-btn" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">
+              পরবর্তী <Icon name="mdi:chevron-right" />
             </button>
           </div>
         </div>
@@ -118,6 +134,21 @@ const currentPage = ref(1)
 
 const totalStudents = computed(() => {
   return students.value?.data?.total ?? students.value?.data?.meta?.total ?? students.value?.total ?? 0
+})
+
+const visiblePages = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages: (number | string)[] = []
+  if (current <= 4) {
+    pages.push(1, 2, 3, 4, 5, '...', total)
+  } else if (current >= total - 3) {
+    pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total)
+  } else {
+    pages.push(1, '...', current - 1, current, current + 1, '...', total)
+  }
+  return pages
 })
 
 async function loadStudents(page = 1) {
@@ -158,15 +189,18 @@ loadStudents()
 
 <style scoped>
 .students-page { padding: 1.5rem; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
 .header-actions { display: flex; gap: 0.75rem; align-items: center; }
 .header-left h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-.table-responsive { overflow-x: auto; }
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .student-avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 2px solid var(--color-border); }
 .student-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .student-avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 600; }
-.pagination { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
-.page-btn { padding: 0.5rem 0.75rem; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); border-radius: var(--radius-sm); font-size: 1rem; font-family: var(--font-bn); cursor: pointer; transition: all 0.2s; }
-.page-btn:hover:not(.active) { background: var(--color-bg-muted); border-color: var(--color-border); }
+.pagination { display: flex; gap: 0.35rem; justify-content: center; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; }
+.page-btn { padding: 0.45rem 0.75rem; border: 1px solid var(--color-border); background: var(--color-bg); color: var(--color-text); border-radius: var(--radius-sm); font-size: 0.9rem; font-family: var(--font-bn); cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.25rem; }
+.page-btn:hover:not(.active):not(:disabled) { background: var(--color-bg-muted); border-color: var(--color-primary); color: var(--color-primary); }
 .page-btn.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.pagination-ellipsis { padding: 0 0.3rem; color: var(--color-text-muted); }
+.empty-state { text-align: center; padding: 3rem 1rem; color: var(--color-text-muted); }
 </style>

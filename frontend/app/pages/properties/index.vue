@@ -143,6 +143,29 @@
       </div>
     </div>
 
+    <!-- In-App Delete Confirmation Modal -->
+    <div v-if="showDeleteModal && deleteTarget" class="modal-overlay" @click.self="showDeleteModal = false">
+      <div class="modal-card" style="max-width: 440px;">
+        <div class="modal-header">
+          <h3>সম্পত্তি মুছে ফেলা নিশ্চিতকরণ</h3>
+          <button class="close-btn" @click="showDeleteModal = false">×</button>
+        </div>
+        <div class="modal-body" style="padding: 1.25rem;">
+          <p>
+            আপনি কি নিশ্চিত যে <strong>"{{ deleteTarget.property_name_bn || deleteTarget.property_name_en }}"</strong> সম্পত্তিটি মুছে ফেলতে চান?
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">বাতিল</button>
+          <button type="button" class="btn btn-danger" @click="executeDelete" :disabled="deleting">
+            <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
+            <span v-else>মুছে ফেলুন</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
     <div v-if="loading" class="loading-state card">
       <div class="spinner" />
       <p>সম্পত্তি তালিকা লোড হচ্ছে...</p>
@@ -195,7 +218,7 @@
             <button class="action-btn" @click="openEdit(prop)" title="সম্পাদনা">
               <icon name="pencil" />
             </button>
-            <button class="action-btn text-danger" @click="deleteProperty(prop.id)" title="মুছুন">
+            <button class="action-btn text-danger" @click="confirmDelete(prop)" title="মুছুন">
               <icon name="delete" />
             </button>
           </div>
@@ -216,6 +239,11 @@ const saving = ref(false)
 const showForm = ref(false)
 const editingId = ref<number | null>(null)
 const error = ref('')
+
+// In-app delete modal
+const showDeleteModal = ref(false)
+const deleteTarget = ref<any>(null)
+const deleting = ref(false)
 
 const search = ref('')
 const typeFilter = ref('')
@@ -302,13 +330,23 @@ async function saveProperty() {
   }
 }
 
-async function deleteProperty(id: number) {
-  if (!confirm('আপনি কি এই সম্পত্তি মুছে ফেলতে চান?')) return
+function confirmDelete(prop: any) {
+  deleteTarget.value = prop
+  showDeleteModal.value = true
+}
+
+async function executeDelete() {
+  if (!deleteTarget.value) return
+  deleting.value = true
   try {
-    await api.delete(`/properties/${id}`)
+    await api.delete(`/properties/${deleteTarget.value.id}`)
+    showDeleteModal.value = false
+    deleteTarget.value = null
     await loadProperties()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleting.value = false
   }
 }
 

@@ -17,13 +17,40 @@ use Illuminate\Support\Facades\DB;
 
 class SettingsController extends Controller
 {
+    // ─── General Settings ───────────────────────────────────────────────────
+
+    public function general(Request $request)
+    {
+        $tenant = $request->user()?->tenant;
+
+        return ApiResource::success([
+            'tenant' => [
+                'id'         => $tenant?->id,
+                'name_bn'    => $tenant?->name_bn ?? 'রিহাল মাদ্রাসা',
+                'name_en'    => $tenant?->name_en ?? 'Rihal Madrasa',
+                'slug'       => $tenant?->slug ?? 'rihal',
+                'domain'     => $tenant?->domain,
+                'phone'      => $tenant?->phone ?? '০১৭০০০০০০০০',
+                'email'      => $tenant?->email ?? 'admin@rihal.app',
+                'address'    => $tenant?->address ?? 'ঢাকা, বাংলাদেশ',
+                'logo_url'   => $tenant?->logo_url,
+                'currency'   => 'BDT',
+                'timezone'   => 'Asia/Dhaka',
+                'locale'     => 'bn',
+                'created_at' => $tenant?->created_at?->format('d M, Y'),
+            ],
+            'version' => '2.5.0',
+            'system_status' => 'operational'
+        ]);
+    }
+
     // ─── Admin Users & Roles ──────────────────────────────────────────────────
 
     public function adminUsers(Request $request)
     {
-        $tenant = $request->get('tenant');
-        $query = User::where('tenant_id', $tenant?->id)
-            ->with('roles', 'role')
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $query = User::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+            ->with('roles')
             ->when($request->filled('role'), fn($q) => $q->whereHas('roles', fn($q2) => $q2->where('name', $request->role)))
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
             ->orderByDesc('id');
@@ -33,15 +60,15 @@ class SettingsController extends Controller
 
         return ApiResource::collection($items, function ($user) {
             return [
-                'id' => $user->id,
-                'name_bn' => $user->name_bn,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $user->role?->name ?? 'রিধি নেই',
-                'roles' => $user->whenLoaded('roles', fn() => $user->roles->pluck('name')->toArray()),
+                'id'         => $user->id,
+                'name_bn'    => $user->name_bn,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'phone'      => $user->phone,
+                'role'       => $user->role ?? ($user->roles->first()?->name ?? 'অ্যাডমিন'),
+                'roles'      => $user->whenLoaded('roles', fn() => $user->roles->pluck('name')->toArray()),
                 'avatar_url' => $user->avatar_url,
-                'status' => $user->status,
+                'status'     => $user->status,
                 'last_login' => $user->last_login?->format('d M, Y h:i A'),
                 'created_at' => $user->created_at?->format('d M, Y'),
             ];
@@ -51,18 +78,18 @@ class SettingsController extends Controller
     public function storeAdminUser(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100',
-            'name_bn' => 'nullable|string|max:100',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'role' => 'required|string|in:admin,manager,accountant,teacher,guardian,student,superadmin',
-            'password' => 'required|string|min:6',
-            'status' => 'nullable|string|in:active,inactive,invited',
+            'name'       => 'required|string|max:100',
+            'name_bn'    => 'nullable|string|max:100',
+            'email'      => 'required|email|unique:users,email',
+            'phone'      => 'nullable|string|max:20',
+            'role'       => 'required|string|in:admin,manager,accountant,teacher,guardian,student,superadmin',
+            'password'   => 'required|string|min:6',
+            'status'     => 'nullable|string|in:active,inactive,invited',
             'avatar_url' => 'nullable|string|max:500',
-            'nid' => 'nullable|string|max:50',
+            'nid'        => 'nullable|string|max:50',
         ]);
 
-        $validated['tenant_id'] = $request->get('tenant')?->id;
+        $validated['tenant_id'] = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
         $validated['password'] = Hash::make($validated['password']);
         $validated['status'] = $request->status ?? 'active';
 
@@ -73,38 +100,36 @@ class SettingsController extends Controller
         $user->roles()->attach($role->id);
 
         return ApiResource::success([
-            'message' => 'ব্যবহারকারী তৈরি হয়েছে।',
+            'message' => 'ব্যবহারকারী সফলভাবে তৈরি হয়েছে।',
             'data' => [
-                'id' => $user->id,
+                'id'      => $user->id,
                 'name_bn' => $user->name_bn,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $role->name,
-                'status' => $user->status,
-                'created_at' => $user->created_at?->format('d M, Y'),
-            ],
+                'name'    => $user->name,
+                'email'   => $user->email,
+                'role'    => $user->role ?? $role->name,
+                'status'  => $user->status,
+            ]
         ], 201);
     }
 
     public function showAdminUser(Request $request, $id)
     {
-        $tenant = $request->get('tenant');
-        $user = User::where('tenant_id', $tenant?->id)
-            ->with('roles', 'role')
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $user = User::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+            ->with('roles')
             ->findOrFail($id);
 
         return ApiResource::success([
-            'id' => $user->id,
-            'name_bn' => $user->name_bn,
-            'name' => $user->name,
-            'email' => $user->email,
-            'phone' => $user->phone,
-            'role' => $user->role?->name ?? 'রিধি নেই',
-            'roles' => $user->roles->pluck('name')->toArray(),
+            'id'         => $user->id,
+            'name_bn'    => $user->name_bn,
+            'name'       => $user->name,
+            'email'      => $user->email,
+            'phone'      => $user->phone,
+            'role'       => $user->role ?? ($user->roles->first()?->name ?? 'অ্যাডমিন'),
+            'roles'      => $user->roles->pluck('name')->toArray(),
             'avatar_url' => $user->avatar_url,
-            'status' => $user->status,
-            'nid' => $user->nid,
+            'status'     => $user->status,
+            'nid'        => $user->nid,
             'last_login' => $user->last_login?->format('d M, Y h:i A'),
             'created_at' => $user->created_at?->format('d M, Y'),
             'updated_at' => $user->updated_at?->format('d M, Y'),
@@ -113,19 +138,19 @@ class SettingsController extends Controller
 
     public function updateAdminUser(Request $request, $id)
     {
-        $tenant = $request->get('tenant');
-        $user = User::where('tenant_id', $tenant?->id)->findOrFail($id);
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $user = User::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))->findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:100',
-            'name_bn' => 'nullable|string|max:100',
-            'email' => 'sometimes|email|unique:users,email,' . $id,
-            'phone' => 'nullable|string|max:20',
-            'role' => 'sometimes|string|in:admin,manager,accountant,teacher,guardian,student,superadmin',
-            'password' => 'nullable|string|min:6',
-            'status' => 'nullable|string|in:active,inactive,invited',
+            'name'       => 'sometimes|string|max:100',
+            'name_bn'    => 'nullable|string|max:100',
+            'email'      => 'sometimes|email|unique:users,email,' . $id,
+            'phone'      => 'nullable|string|max:20',
+            'role'       => 'sometimes|string|in:admin,manager,accountant,teacher,guardian,student,superadmin',
+            'password'   => 'nullable|string|min:6',
+            'status'     => 'nullable|string|in:active,inactive,invited',
             'avatar_url' => 'nullable|string|max:500',
-            'nid' => 'nullable|string|max:50',
+            'nid'        => 'nullable|string|max:50',
         ]);
 
         if (isset($validated['password'])) {
@@ -140,19 +165,17 @@ class SettingsController extends Controller
             $user->roles()->sync([$role->id]);
         }
 
-        $user->load('roles', 'role');
-
         return ApiResource::success([
             'message' => 'ব্যবহারকারী আপডেট হয়েছে।',
             'data' => [
-                'id' => $user->id,
-                'name_bn' => $user->name_bn,
-                'name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
-                'role' => $user->role?->name ?? 'রিধি নেই',
-                'roles' => $user->roles->pluck('name')->toArray(),
-                'status' => $user->status,
+                'id'         => $user->id,
+                'name_bn'    => $user->name_bn,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'phone'      => $user->phone,
+                'role'       => $user->role ?? ($user->roles->first()?->name ?? 'অ্যাডমিন'),
+                'roles'      => $user->roles->pluck('name')->toArray(),
+                'status'     => $user->status,
                 'updated_at' => $user->updated_at?->format('d M, Y'),
             ],
         ]);
@@ -160,8 +183,8 @@ class SettingsController extends Controller
 
     public function destroyAdminUser(Request $request, $id)
     {
-        $tenant = $request->get('tenant');
-        $user = User::where('tenant_id', $tenant?->id)->findOrFail($id);
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $user = User::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))->findOrFail($id);
         $user->delete();
 
         return ApiResource::success(['message' => 'ব্যবহারকারী ডিলিট হয়েছে।']);

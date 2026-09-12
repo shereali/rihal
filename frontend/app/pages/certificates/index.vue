@@ -392,6 +392,33 @@
         </div>
       </div>
     </div>
+
+    <!-- In-App Delete Confirmation Modal -->
+    <div v-if="showDeleteConfirm && deleteConfirmItem" class="modal-overlay" @click.self="showDeleteConfirm = false">
+      <div class="modal-card" style="max-width: 440px;">
+        <div class="modal-header">
+          <h3>{{ deleteConfirmType === 'template' ? 'টেমপলেট মুছে ফেলা' : 'সার্টিফিকেট মুছে ফেলা' }}</h3>
+          <button class="action-btn" @click="showDeleteConfirm = false">
+            <Icon name="close" />
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 1.25rem;">
+          <p v-if="deleteConfirmType === 'template'">
+            আপনি কি নিশ্চিত যে <strong>"{{ deleteConfirmItem.title }}"</strong> টেমপলেটটি মুছে ফেলতে চান?
+          </p>
+          <p v-else>
+            আপনি কি নিশ্চিত যে <strong>{{ deleteConfirmItem.certificate_number }}</strong> সনদটি মুছে ফেলতে চান?
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" @click="showDeleteConfirm = false" :disabled="deleteConfirming">বাতিল</button>
+          <button class="btn btn-danger" @click="executeConfirmedDelete" :disabled="deleteConfirming">
+            <Icon name="loader" v-if="deleteConfirming" />
+            মুছে ফেলুন
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -423,6 +450,11 @@ const subjects = ref<any[]>([])
 const showCreate = ref(false)
 const editingTemplate = ref<any>(null)
 const templateForm = reactive({ title: '', template_type: 'annual', class_id: '', subject_id: '', template_data_json: '{}', is_active: true })
+
+const showDeleteConfirm = ref(false)
+const deleteConfirmItem = ref<any>(null)
+const deleteConfirmType = ref<'template' | 'issue'>('template')
+const deleteConfirming = ref(false)
 const templateSaving = ref(false)
 
 const issueLoading = ref(true)
@@ -549,12 +581,10 @@ async function saveTemplate() {
   finally { templateSaving.value = false }
 }
 
-async function deleteTemplate(t: any) {
-  if (!confirm(`"${t.title}" টেমপলেটটি মুছে ফেলতে চান?`)) return
-  try {
-    await api.delete(`/certificate-templates/${t.id}`).catch(() => null)
-    fetchTemplates(templates.value.current_page)
-  } catch (err) { console.error('Delete failed:', err) }
+function deleteTemplate(t: any) {
+  deleteConfirmItem.value = t
+  deleteConfirmType.value = 'template'
+  showDeleteConfirm.value = true
 }
 
 function viewIssue(c: any) {
@@ -562,12 +592,32 @@ function viewIssue(c: any) {
   showViewIssue.value = true
 }
 
-async function deleteIssue(c: any) {
-  if (!confirm(`${c.certificate_number} সার্টিফিকেটটি মুছে ফেলতে চান?`)) return
+function deleteIssue(c: any) {
+  deleteConfirmItem.value = c
+  deleteConfirmType.value = 'issue'
+  showDeleteConfirm.value = true
+}
+
+async function executeConfirmedDelete() {
+  if (!deleteConfirmItem.value) return
+  deleteConfirming.value = true
   try {
-    await api.delete(`/certificates/${c.id}`).catch(() => null)
-    fetchIssueCerts(issuedCerts.value.current_page)
-  } catch (err) { console.error('Delete failed:', err) }
+    if (deleteConfirmType.value === 'template') {
+      await api.delete(`/certificate-templates/${deleteConfirmItem.value.id}`).catch(() => null)
+      showDeleteConfirm.value = false
+      deleteConfirmItem.value = null
+      fetchTemplates(templates.value.current_page)
+    } else {
+      await api.delete(`/certificates/${deleteConfirmItem.value.id}`).catch(() => null)
+      showDeleteConfirm.value = false
+      deleteConfirmItem.value = null
+      fetchIssueCerts(issuedCerts.value.current_page)
+    }
+  } catch (err) {
+    console.error('Delete failed:', err)
+  } finally {
+    deleteConfirming.value = false
+  }
 }
 
 async function issueCertificate() {

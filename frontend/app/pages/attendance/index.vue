@@ -99,6 +99,29 @@
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>হাজিরা রেকর্ড মুছে ফেলা</h3>
+          <button class="action-btn" @click="showDeleteModal = false"><icon name="close" /></button>
+        </div>
+        <div class="modal-body">
+          <p>আপনি কি নিশ্চিতভাবে এই শিক্ষার্থীর হাজিরা রেকর্ড মুছে ফেলতে চান?</p>
+          <p v-if="deleteTarget" class="text-muted text-sm mt-1">
+            শিক্ষার্থী: <strong>{{ deleteTarget.student?.name_bn || deleteTarget.student?.name_en }}</strong> (তারিখ: {{ formatDate(deleteTarget.date) }})
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" @click="showDeleteModal = false">বাতিল</button>
+          <button class="btn btn-danger" @click="executeDelete" :disabled="deleting">
+            <span v-if="deleting" class="spinner-sm"></span>
+            {{ deleting ? 'মুছে ফেলা হচ্ছে...' : 'মুছে ফেলুন' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -115,6 +138,10 @@ const filter = ref({ dateFilter: 'today', classId: '' })
 const classOptions = ref<any[]>([])
 const todayDate = new Date().toISOString().split('T')[0]
 
+const showDeleteModal = ref(false)
+const deleteTarget = ref<any>(null)
+const deleting = ref(false)
+
 const totalRecords = computed(() => attendanceData.value?.data?.meta?.total ?? attendanceData.value?.data?.total ?? 0)
 const paginatedRecords = computed(() => attendanceData.value?.data?.data || [])
 
@@ -123,7 +150,7 @@ async function loadAttendance() {
   try {
     const params = new URLSearchParams()
     params.set('per_page', '20'); params.set('page', '1')
-    if (filter.value.dateFilter !== 'all') params.set('date_filter', filter.value.dateFilter)
+    if (filter.value.dateFilter === 'today') params.set('date', todayDate)
     if (filter.value.classId) params.set('class_id', filter.value.classId)
     const res = await api.get(`/attendance?${params.toString()}`)
     attendanceData.value = res.data
@@ -141,15 +168,19 @@ async function loadSummary() {
 
 async function loadClassOptions() {
   try {
-    const res = await api.get('/students?per_page=1000')
-    const classes = new Map();
-    (res.data.data || []).forEach((s: any) => {
-      const key = s.class?.id || s.class_id
-      const name = s.class?.name_bn || s.class_name || 'Unknown'
-      if (key && !classes.has(key)) classes.set(key, { id: key, name_bn: name })
-    })
-    classOptions.value = Array.from(classes.values())
-  } catch (error) { console.error('Failed to load class options:', error) }
+    const res = await api.get('/academic/classes').catch(() => null)
+    if (res?.data?.data && Array.isArray(res.data.data)) {
+      classOptions.value = res.data.data.map((c: any) => ({
+        id: c.id,
+        name_bn: c.name_bn || c.name_en || `শ্রেণি #${c.id}`
+      }))
+    } else {
+      classOptions.value = []
+    }
+  } catch (error) {
+    console.error('Failed to load class options:', error)
+    classOptions.value = []
+  }
 }
 
 const goToPage = (page: number) => loadAttendance()
@@ -159,9 +190,24 @@ const formatTime = (t: string | null | undefined) => t ? new Date(t).toLocaleTim
 const formatMethod = (m: string) => ({ fingerprint:'ফিঙ্গারপ্রিন্ট', manual:'ম্যানুয়াল', biometric:'বায়োমেট্রিক', qr:'QR কোড', online:'অনলাইন' }[m] || m)
 const getMethodBadge = (m: string) => ({ fingerprint:'badge-primary', manual:'badge-secondary', biometric:'badge-success', qr:'badge-info', online:'badge-warning' }[m] || 'badge-outline')
 const editRecord = (record: any) => navigateTo(`/attendance/${record.id}/edit`)
-const confirmDelete = (record: any) => {
-  if (confirm('এই হাজিরা রেকর্ড মুছে ফেলতে চান?')) {
-    api.delete(`/attendance/${record.id}`).then(() => { loadAttendance(); loadSummary() })
+
+function confirmDelete(record: any) {
+  deleteTarget.value = record
+  showDeleteModal.value = true
+}
+
+async function executeDelete() {
+  if (!deleteTarget.value) return
+  deleting.value = true
+  try {
+    await api.delete(`/attendance/${deleteTarget.value.id}`)
+    showDeleteModal.value = false
+    deleteTarget.value = null
+    await Promise.all([loadAttendance(), loadSummary()])
+  } catch (e) {
+    console.error('Failed to delete attendance record:', e)
+  } finally {
+    deleting.value = false
   }
 }
 
@@ -195,4 +241,16 @@ onMounted(async () => { await Promise.all([loadAttendance(), loadSummary(), load
 .status-present { background: rgba(40,167,69,0.12); color: var(--color-success); }
 .status-absent { background: rgba(220,53,69,0.12); color: var(--color-error); }
 .status-late { background: rgba(255,193,7,0.12); color: var(--color-warning); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); display: grid; place-items: center; z-index: 999; padding: 1rem; }
+.modal-card { background: var(--color-bg-card, #fff); border-radius: var(--radius-md, 12px); border: 1px solid var(--color-border); width: 100%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; animation: modalPop 0.2s ease-out; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--color-border-light); }
+.modal-header h3 { font-size: 1.15rem; font-weight: 700; margin: 0; }
+.modal-body { padding: 1.5rem; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.5rem; background: var(--color-bg-subtle, #f8fafc); border-top: 1px solid var(--color-border-light); }
+.action-btn { background: transparent; border: none; cursor: pointer; color: var(--color-text-muted); font-size: 1.1rem; }
+.action-btn:hover { color: var(--color-text); }
+.btn-danger { background: var(--color-error, #dc2626); color: white; border: none; }
+.btn-danger:hover { background: #b91c1c; }
+@keyframes modalPop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 </style>

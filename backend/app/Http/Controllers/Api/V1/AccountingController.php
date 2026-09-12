@@ -15,83 +15,151 @@ class AccountingController extends Controller
     public function chart(Request $request): JsonResponse
     {
         $accounts = ChartOfAccount::when($request->type, fn($q, $t) => $q->where('account_type', $t))
-            ->orderBy('code')
-            ->get();
+            ->orderBy('account_code')
+            ->get()
+            ->map(function ($acc) {
+                return [
+                    'id'                => $acc->id,
+                    'code'              => $acc->account_code,
+                    'account_code'      => $acc->account_code,
+                    'name'              => $acc->account_name_bn,
+                    'account_name_bn'   => $acc->account_name_bn,
+                    'account_name_en'   => $acc->account_name_en,
+                    'account_type'      => $acc->account_type,
+                    'parent_id'         => $acc->parent_account_id,
+                    'parent_account_id' => $acc->parent_account_id,
+                    'is_active'         => (bool) $acc->is_active,
+                    'created_at'        => $acc->created_at?->toIso8601String(),
+                ];
+            });
 
         return response()->json([
             'status' => 200,
-            'data' => $accounts,
+            'data'   => $accounts,
         ]);
     }
 
     public function storeChartAccount(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'code'         => 'required|string|max:20',
-            'name'         => 'required|string|max:100',
-            'account_type' => 'required|in:asset,liability,equity,revenue,expense',
-            'parent_id'    => 'nullable|integer',
+            'code'              => 'nullable|string|max:20',
+            'account_code'      => 'nullable|string|max:20',
+            'name'              => 'nullable|string|max:100',
+            'account_name_bn'   => 'nullable|string|max:100',
+            'account_name_en'   => 'nullable|string|max:100',
+            'account_type'      => 'required|in:asset,liability,equity,revenue,expense',
+            'parent_id'         => 'nullable|integer',
+            'parent_account_id' => 'nullable|integer',
         ]);
 
-        $account = ChartOfAccount::create(array_merge($validated, [
-            'tenant_id' => $request->user()?->tenant_id,
-            'status'    => 'active',
-        ]));
+        $code = $validated['account_code'] ?? $validated['code'] ?? ('ACC-' . rand(100, 999));
+        $nameBn = $validated['account_name_bn'] ?? $validated['name'] ?? 'হিসাব খাত';
+        $parentId = $validated['parent_account_id'] ?? $validated['parent_id'] ?? null;
+
+        $account = ChartOfAccount::create([
+            'tenant_id'         => $request->user()?->tenant_id,
+            'account_code'      => $code,
+            'account_name_bn'   => $nameBn,
+            'account_name_en'   => $validated['account_name_en'] ?? null,
+            'account_type'      => $validated['account_type'],
+            'parent_account_id' => $parentId,
+            'is_active'         => true,
+        ]);
 
         return response()->json([
             'status' => 201,
-            'data' => $account,
+            'data'   => $account,
         ], 201);
     }
 
     public function vouchers(Request $request): JsonResponse
     {
         $vouchers = JournalEntry::with('lines.chartOfAccount')
-            ->when($request->type, fn($q, $t) => $q->where('entry_type', $t))
-            ->latest('date')
+            ->when($request->type, fn($q, $t) => $q->where('status', $t))
+            ->latest('id')
             ->paginate($request->query('per_page', 25));
 
         return response()->json([
             'status' => 200,
-            'data' => $vouchers,
+            'data'   => $vouchers,
         ]);
     }
 
     public function storeVoucher(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'entry_type'  => 'required|in:journal,payment,receipt,contra,PV,RV,JV,CV',
-            'date'        => 'required|date',
-            'description' => 'required|string',
-            'amount'      => 'required|numeric|min:0.01',
+            'entry_type'        => 'required|in:journal,payment,receipt,contra,PV,RV,JV,CV',
+            'date'              => 'required|date',
+            'description'       => 'required|string',
+            'amount'            => 'required|numeric|min:0.01',
             'debit_account_id'  => 'nullable|integer',
             'credit_account_id' => 'nullable|integer',
         ]);
 
+        $date = $validated['date'];
+        $desc = $validated['description'];
+        $amount = (float) $validated['amount'];
+
         $entry = JournalEntry::create([
-            'tenant_id'    => $request->user()?->tenant_id,
-            'entry_number' => strtoupper(substr($validated['entry_type'], 0, 2)) . '-' . date('Y') . '-' . rand(100, 999),
-            'entry_type'   => $validated['entry_type'],
-            'date'         => $validated['date'],
-            'description'  => $validated['description'],
-            'status'       => 'approved',
-            'total_debit'  => $validated['amount'],
-            'total_credit' => $validated['amount'],
-            'created_by'   => $request->user()?->id,
+            'tenant_id'          => $request->user()?->tenant_id,
+            'reference_no'       => strtoupper(substr($validated['entry_type'], 0, 2)) . '-' . date('Y') . '-' . rand(100, 999),
+            'transaction_date'   => $date,
+            'description_bn'     => $desc,
+            'description_en'     => $desc,
+            'status'             => 'approved',
+            'created_by_user_id' => $request->user()?->id,
         ]);
+
+        if (!empty($validated['debit_account_id'])) {
+            JournalEntryLine::create([
+                'tenant_id'        => $request->user()?->tenant_id,
+                'journal_entry_id' => $entry->id,
+                'debit_account_id' => $validated['debit_account_id'],
+                'type'             => 'debit',
+                'amount'           => $amount,
+                'description'      => $desc,
+            ]);
+        }
+
+        if (!empty($validated['credit_account_id'])) {
+            JournalEntryLine::create([
+                'tenant_id'         => $request->user()?->tenant_id,
+                'journal_entry_id'  => $entry->id,
+                'credit_account_id' => $validated['credit_account_id'],
+                'type'              => 'credit',
+                'amount'            => $amount,
+                'description'       => $desc,
+            ]);
+        }
 
         return response()->json([
             'status' => 201,
-            'data' => $entry,
+            'data'   => $entry,
         ], 201);
     }
 
     public function trialBalance(Request $request): JsonResponse
     {
-        $accounts = ChartOfAccount::orderBy('code')->get();
+        $accounts = ChartOfAccount::orderBy('account_code')->get()->map(function ($acc) {
+            $debit = (float) ($acc->debitEntries()->sum('amount') ?? 0);
+            $credit = (float) ($acc->creditEntries()->sum('amount') ?? 0);
+
+            return [
+                'id'              => $acc->id,
+                'code'            => $acc->account_code,
+                'account_code'    => $acc->account_code,
+                'name'            => $acc->account_name_bn,
+                'account_name_bn' => $acc->account_name_bn,
+                'account_type'    => $acc->account_type,
+                'debit'           => $debit,
+                'credit'          => $credit,
+                'balance'         => abs($debit - $credit),
+            ];
+        });
+
         return response()->json([
             'status' => 200,
-            'data' => $accounts,
+            'data'   => $accounts,
         ]);
     }
 
@@ -100,7 +168,7 @@ class AccountingController extends Controller
         $assets = FixedAsset::latest('purchase_date')->get();
         return response()->json([
             'status' => 200,
-            'data' => $assets,
+            'data'   => $assets,
         ]);
     }
 
@@ -127,7 +195,7 @@ class AccountingController extends Controller
 
         return response()->json([
             'status' => 201,
-            'data' => $asset,
+            'data'   => $asset,
         ], 201);
     }
 
@@ -135,7 +203,7 @@ class AccountingController extends Controller
     {
         FixedAsset::findOrFail($id)->delete();
         return response()->json([
-            'status' => 200,
+            'status'  => 200,
             'message' => 'স্থায়ী সম্পদ মুছে ফেলা হয়েছে',
         ]);
     }

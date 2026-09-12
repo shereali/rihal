@@ -9,10 +9,24 @@ use App\Http\Resources\ApiResource;
 
 class LeaveManagementController extends Controller
 {
+    public function stats(Request $request)
+    {
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $base = LeaveApplication::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId));
+
+        return ApiResource::success([
+            'total'     => (clone $base)->count(),
+            'pending'   => (clone $base)->where('status', 'pending')->count(),
+            'approved'  => (clone $base)->where('status', 'approved')->count(),
+            'rejected'  => (clone $base)->where('status', 'rejected')->count(),
+            'urgent'    => (clone $base)->where('is_urgent', true)->count(),
+        ]);
+    }
+
     public function index(Request $request)
     {
-        $tenant = $request->get('tenant');
-        $query = LeaveApplication::where('tenant_id', $tenant?->id)
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
+        $query = LeaveApplication::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
             ->with('user')
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->status))
             ->when($request->filled('leave_type'), fn($q) => $q->where('leave_type', $request->leave_type))
@@ -24,15 +38,15 @@ class LeaveManagementController extends Controller
         return ApiResource::collection($items, fn($leave) => [
             'id' => $leave->id,
             'user_id' => $leave->user_id,
-            'user_name_bn' => $leave->user->name_bn ?? '',
-            'user_name' => $leave->user->name ?? '',
-            'user_email' => $leave->user->email ?? '',
+            'user_name_bn' => $leave->user?->name_bn ?? '',
+            'user_name' => $leave->user?->name ?? '',
+            'user_email' => $leave->user?->email ?? '',
             'leave_type' => $leave->leave_type,
             'title_bn' => $leave->title_bn,
             'title' => $leave->title,
             'description_bn' => $leave->description_bn,
-            'start_date' => $leave->start_date->format('d M, Y'),
-            'end_date' => $leave->end_date->format('d M, Y'),
+            'start_date' => $leave->start_date?->format('d M, Y'),
+            'end_date' => $leave->end_date?->format('d M, Y'),
             'days_count' => $leave->days_count,
             'status' => $leave->status,
             'notes' => $leave->notes,

@@ -234,6 +234,12 @@ Route::prefix('v1')->group(function () {
         Route::put('/hostel-rooms/{id}', [HostelController::class, 'update']);
         Route::delete('/hostel-rooms/{id}', [HostelController::class, 'destroy']);
 
+        Route::get('/hostel/rooms', [HostelController::class, 'index']);
+        Route::post('/hostel/rooms', [HostelController::class, 'store']);
+        Route::get('/hostel/rooms/{id}', [HostelController::class, 'show']);
+        Route::put('/hostel/rooms/{id}', [HostelController::class, 'update']);
+        Route::delete('/hostel/rooms/{id}', [HostelController::class, 'destroy']);
+
         // ─── Transport ────────────────────────────────────────────────────────
         Route::get('/transport/routes', [TransportController::class, 'routes']);
         Route::post('/transport/routes', [TransportController::class, 'storeRoute']);
@@ -308,6 +314,8 @@ Route::prefix('v1')->group(function () {
         Route::delete('/properties/{propertyId}/visitors/{id}', [PropertyVisitorController::class, 'destroy']);
 
         // ─── Settings ──────────────────────────────────────────────────────────
+        Route::get('/settings/general', [SettingsController::class, 'general']);
+
         // Admin Users & Roles
         Route::get('/settings/admin-users', [SettingsController::class, 'adminUsers']);
         Route::post('/settings/admin-users', [SettingsController::class, 'storeAdminUser']);
@@ -385,11 +393,12 @@ Route::prefix('v1')->group(function () {
 
         // ─── Leave Management ──────────────────────────────────────────────
         Route::get('/leave-applications', [LeaveManagementController::class, 'index']);
-        Route::post('/leave-applications', [LeaveManagementController::class, 'store']);
-        Route::get('/leave-applications/{id}', [LeaveManagementController::class, 'show']);
-        Route::put('/leave-applications/{id}', [LeaveManagementController::class, 'update']);
-        Route::delete('/leave-applications/{id}', [LeaveManagementController::class, 'destroy']);
+        Route::get('/leave-applications/stats', [LeaveManagementController::class, 'stats']);
         Route::get('/leave-applications/my', [LeaveManagementController::class, 'myLeave']);
+        Route::post('/leave-applications', [LeaveManagementController::class, 'store']);
+        Route::get('/leave-applications/{id}', [LeaveManagementController::class, 'show'])->whereNumber('id');
+        Route::put('/leave-applications/{id}', [LeaveManagementController::class, 'update'])->whereNumber('id');
+        Route::delete('/leave-applications/{id}', [LeaveManagementController::class, 'destroy'])->whereNumber('id');
 
         // ─── Digital Attendance ──────────────────────────────────────────────
         Route::get('/digital-attendance/devices', [DigitalAttendanceController::class, 'devices']);
@@ -426,10 +435,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/certificates/{id}', [CertificateController::class, 'issueDetails'])->whereNumber('id');
         Route::delete('/certificates/{id}', [CertificateController::class, 'destroyIssue'])->whereNumber('id');
         Route::get('/reminder-tasks', [ReminderTaskController::class, 'index']);
+        Route::get('/reminder-tasks/stats', [ReminderTaskController::class, 'stats']);
         Route::post('/reminder-tasks', [ReminderTaskController::class, 'store']);
-        Route::get('/reminder-tasks/{id}', [ReminderTaskController::class, 'show']);
-        Route::put('/reminder-tasks/{id}', [ReminderTaskController::class, 'update']);
-        Route::delete('/reminder-tasks/{id}', [ReminderTaskController::class, 'destroy']);
+        Route::get('/reminder-tasks/{id}', [ReminderTaskController::class, 'show'])->whereNumber('id');
+        Route::put('/reminder-tasks/{id}', [ReminderTaskController::class, 'update'])->whereNumber('id');
+        Route::delete('/reminder-tasks/{id}', [ReminderTaskController::class, 'destroy'])->whereNumber('id');
 
         Route::middleware(['tenant.context', 'role:admin,tenant_admin,super_admin'])->group(function () {
         // ─── Uploads & financial reports ──────────────────────────────────────
@@ -440,6 +450,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/financial-audit', [FinancialAuditController::class, 'index'])->middleware('role:admin,tenant_admin,super_admin');
 
         // ─── Loans & Dues ──────────────────────────────────────────────────────
+        Route::get('/loans/summary', [LoanController::class, 'summary']);
         Route::get('/loans-summary', [LoanController::class, 'summary']);
         Route::get('/loans', [LoanController::class, 'index']);
         Route::post('/loans', [LoanController::class, 'store'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
@@ -447,11 +458,12 @@ Route::prefix('v1')->group(function () {
         Route::put('/loans/{id}/amortization', [LoanAmortizationController::class, 'regenerate'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
         Route::post('/loans/{id}/payments', [LoanController::class, 'recordPayment'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
         Route::get('/loans/{id}/payments', [LoanController::class, 'payments']);
-        Route::get('/loans/{id}', [LoanController::class, 'show']);
-        Route::put('/loans/{id}', [LoanController::class, 'update'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
-        Route::delete('/loans/{id}', [LoanController::class, 'destroy'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::get('/loans/{id}', [LoanController::class, 'show'])->whereNumber('id');
+        Route::put('/loans/{id}', [LoanController::class, 'update'])->whereNumber('id')->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::delete('/loans/{id}', [LoanController::class, 'destroy'])->whereNumber('id')->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
 
         // ─── Orphan Sponsorship ────────────────────────────────────────────────
+        Route::get('/orphans/summary', [OrphanController::class, 'summary']);
         Route::get('/orphans-summary', [OrphanController::class, 'summary']);
         Route::get('/orphans/sponsors', [OrphanController::class, 'donors']);
         Route::get('/orphans', [OrphanController::class, 'index']);
@@ -462,9 +474,9 @@ Route::prefix('v1')->group(function () {
         Route::delete('/orphans/{id}/sponsors/{sponsorshipId}', [OrphanSponsorshipController::class, 'destroy'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
         Route::post('/orphans/{id}/payments', [OrphanController::class, 'recordPayment'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
         Route::get('/orphans/{id}/payments', [OrphanController::class, 'payments']);
-        Route::get('/orphans/{id}', [OrphanController::class, 'show']);
-        Route::put('/orphans/{id}', [OrphanController::class, 'update'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
-        Route::delete('/orphans/{id}', [OrphanController::class, 'destroy'])->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::get('/orphans/{id}', [OrphanController::class, 'show'])->whereNumber('id');
+        Route::put('/orphans/{id}', [OrphanController::class, 'update'])->whereNumber('id')->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
+        Route::delete('/orphans/{id}', [OrphanController::class, 'destroy'])->whereNumber('id')->middleware(['role:admin,tenant_admin,super_admin', 'throttle:financial']);
 
         // ─── Lesson Evaluations (সবক ও পাঠ মূল্যায়ন) ──────────────────────
         Route::get('/lesson-evaluations/grid', [LessonEvaluationController::class, 'grid']);
