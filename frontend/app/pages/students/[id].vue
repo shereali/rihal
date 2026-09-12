@@ -691,14 +691,40 @@
                     </div>
                   </div>
 
-                  <!-- Gold Foil Accent Ribbon -->
-                  <div class="card-type-ribbon">
-                    <span>★ শিক্ষার্থী ডিজিটাল স্মার্ট কার্ড • STUDENT SMART ID ★</span>
+                  <!-- Top Smart Tech Row: EMV Chip + NFC Waves + Regular Status -->
+                  <div class="card-smart-bar">
+                    <div class="chip-and-nfc">
+                      <svg class="emv-chip-svg" viewBox="0 0 46 34" width="34" height="25">
+                        <defs>
+                          <linearGradient id="chipGoldGradM" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#fef08a" />
+                            <stop offset="25%" stop-color="#eab308" />
+                            <stop offset="50%" stop-color="#fef9c3" />
+                            <stop offset="80%" stop-color="#ca8a04" />
+                            <stop offset="100%" stop-color="#854d0e" />
+                          </linearGradient>
+                        </defs>
+                        <rect x="1" y="1" width="44" height="32" rx="4" fill="url(#chipGoldGradM)" stroke="#78350f" stroke-width="0.9"/>
+                        <path d="M1,17 L15,17 M31,17 L45,17 M15,1 L15,33 M31,1 L31,33 M15,11 L31,11 M15,23 L31,23" stroke="#713f12" stroke-width="0.75" fill="none"/>
+                        <rect x="20" y="13.5" width="6" height="7" rx="1.5" fill="#fef08a" stroke="#854d0e" stroke-width="0.6"/>
+                      </svg>
+
+                      <svg class="nfc-waves-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#047857" stroke-width="2.2" stroke-linecap="round">
+                        <path d="M5 8c3.5-3.5 10.5-3.5 14 0" />
+                        <path d="M8 11c2-2 6-2 8 0" />
+                        <path d="M11 14c.5-.5 1.5-.5 2 0" />
+                      </svg>
+                    </div>
+
+                    <span class="card-status-badge">
+                      <span class="status-dot"></span>
+                      <span>নিয়মিত শিক্ষার্থী</span>
+                    </span>
                   </div>
 
-                  <!-- Student Photo & Smart Identity Block -->
-                  <div class="card-identity-center">
-                    <div class="card-photo-wrapper">
+                  <!-- Hero Centered Student Photo -->
+                  <div class="card-hero-photo-wrap">
+                    <div class="card-photo-wrapper hero-center">
                       <img
                         v-if="student?.user?.profile_image || student?.photo_url || student?.user?.avatar_url"
                         :src="student?.user?.profile_image || student?.photo_url || student?.user?.avatar_url"
@@ -716,85 +742,37 @@
                         <span class="monogram-name">{{ student?.name_bn ? student.name_bn.split(' ')[0] : 'শিক্ষার্থী' }}</span>
                       </div>
                       <div class="photo-session-pill">
-                        {{ currentEnrollment?.session?.name_bn || '২০২৫-২০২৬' }}
-                      </div>
-                    </div>
-
-                    <div class="card-names-box">
-                      <!-- Tech Row: EMV Chip + Contactless waves + Status -->
-                      <div class="card-tech-strip">
-                        <div class="chip-and-nfc">
-                          <svg class="emv-chip-svg" viewBox="0 0 46 34" width="36" height="26">
-                            <defs>
-                              <linearGradient id="chipGoldGradM" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#fef08a" />
-                                <stop offset="25%" stop-color="#eab308" />
-                                <stop offset="50%" stop-color="#fef9c3" />
-                                <stop offset="80%" stop-color="#ca8a04" />
-                                <stop offset="100%" stop-color="#854d0e" />
-                              </linearGradient>
-                            </defs>
-                            <rect x="1" y="1" width="44" height="32" rx="4" fill="url(#chipGoldGradM)" stroke="#78350f" stroke-width="0.9"/>
-                            <path d="M1,17 L15,17 M31,17 L45,17 M15,1 L15,33 M31,1 L31,33 M15,11 L31,11 M15,23 L31,23" stroke="#713f12" stroke-width="0.75" fill="none"/>
-                            <rect x="20" y="13.5" width="6" height="7" rx="1.5" fill="#fef08a" stroke="#854d0e" stroke-width="0.6"/>
-                          </svg>
-
-                          <svg class="nfc-waves-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#047857" stroke-width="2.2" stroke-linecap="round">
-                            <path d="M5 8c3.5-3.5 10.5-3.5 14 0" />
-                            <path d="M8 11c2-2 6-2 8 0" />
-                            <path d="M11 14c.5-.5 1.5-.5 2 0" />
-                          </svg>
-                        </div>
-
-                        <span class="card-status-badge">
-                          <span class="status-dot"></span>
-                          <span>নিয়মিত</span>
-                        </span>
-                      </div>
-
-                      <h3 class="card-student-name-bn">{{ student?.name_bn }}</h3>
-                      <div class="card-student-name-en">{{ student?.name_en || 'MUHAMMAD TANVIR AHMED' }}</div>
-
-                      <div class="card-adm-pill">
-                        <span class="adm-k">আইডি নং:</span>
-                        <strong class="adm-v">{{ student?.admission_number || 'ADM-2026-9353' }}</strong>
+                        শিক্ষাবর্ষ: {{ currentEnrollment?.session?.name_bn || '২০২৫-২০২৬' }}
                       </div>
                     </div>
                   </div>
 
-                  <!-- Rich Architectural Details Grid -->
-                  <div class="card-details-grid">
-                    <div class="grid-detail-item">
-                      <span class="item-k">শ্রেণি:</span>
+                  <!-- Student Names & Official Role Pill -->
+                  <div class="card-hero-names-wrap">
+                    <h3 class="card-student-name-bn">{{ student?.name_bn }}</h3>
+                    <div class="card-student-name-en">{{ student?.name_en || 'MUHAMMAD TANVIR AHMED' }}</div>
+                    <div class="student-role-pill">
+                      <span>শিক্ষার্থী • STUDENT</span>
+                    </div>
+                  </div>
+
+                  <!-- 4-Cell Standard Academic Credentials Matrix -->
+                  <div class="card-cred-matrix">
+                    <div class="cred-cell">
+                      <span class="cred-k">আইডি নং:</span>
+                      <strong class="cred-v font-mono">{{ student?.admission_number || 'ADM-2026-9353' }}</strong>
+                    </div>
+                    <div class="cred-cell">
+                      <span class="cred-k">শ্রেণি:</span>
                       <span class="class-pill-badge">{{ currentEnrollment?.class?.name_bn || student?.class?.name_bn || 'নূরানী প্রথম শ্রেণি' }}</span>
                     </div>
-                    <div class="grid-detail-item">
-                      <span class="item-k">রোল নং:</span>
+                    <div class="cred-cell">
+                      <span class="cred-k">রোল নং:</span>
                       <span class="roll-pill-badge">{{ student?.roll_number || currentEnrollment?.roll_number || '০১' }}</span>
                     </div>
-                    <div class="grid-detail-item">
-                      <span class="item-k">শাখা:</span>
-                      <strong class="item-v">{{ currentEnrollment?.section?.name_bn || 'সাধারণ / ক-শাখা' }}</strong>
-                    </div>
-                    <div class="grid-detail-item">
-                      <span class="item-k">রক্তের গ্রুপ:</span>
-                      <span class="blood-pill-badge">🩸 {{ student?.blood_group || 'B+' }}</span>
-                    </div>
-                    <div class="grid-detail-item">
-                      <span class="item-k">জন্ম তারিখ:</span>
-                      <strong class="item-v">{{ student?.date_of_birth ? formatDate(student.date_of_birth) : '১৫ মার্চ, ২০১৬' }}</strong>
-                    </div>
-                    <div class="grid-detail-item">
-                      <span class="item-k">শিক্ষাবর্ষ:</span>
-                      <strong class="item-v">{{ currentEnrollment?.session?.name_bn || '২০২৫-২০২৬' }}</strong>
-                    </div>
-                    <div class="grid-detail-item full">
-                      <span class="item-k">অভিভাবক:</span>
-                      <strong class="item-v text-truncate">{{ student?.guardian_name || student?.father_name || 'মাওলানা শফিকুল ইসলাম' }}</strong>
-                    </div>
-                    <div class="grid-detail-item full hotline-item">
-                      <span class="item-k">জরুরি যোগাযোগ:</span>
-                      <strong class="item-v font-mono hotline-val">{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
+                    <div class="cred-cell">
+                      <span class="cred-k">শাখা:</span>
+                      <strong class="cred-v">{{ currentEnrollment?.section?.name_bn || 'সাধারণ / ক-শাখা' }}</strong>
                     </div>
                   </div>
 
@@ -871,18 +849,27 @@
 
                   <!-- Emergency & Medical Section -->
                   <div class="back-emergency-card">
-                    <div class="emergency-header-row">
+                    <div class="em-top-row">
                       <span class="blood-emergency-badge">
                         <span>🩸 রক্তের গ্রুপ: <strong>{{ student?.blood_group || 'B+' }} (পজিটিভ)</strong></span>
                       </span>
-                      <span class="emergency-phone-tag">
-                        <span>জরুরি: </span>
-                        <strong>{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
+                      <span class="dob-badge">
+                        <span>জন্ম: <strong>{{ student?.date_of_birth ? formatDate(student.date_of_birth) : '১৫ মার্চ, ২০১৬' }}</strong></span>
                       </span>
                     </div>
-                    <div class="emergency-addr-row">
-                      <span class="addr-label">স্থায়ী ঠিকানা:</span>
-                      <span class="addr-val">{{ student?.address_bn || 'গ্রাম: ফুলতলী, ডাকঘর: ফুলতলী বাজার, উপজেলা: জকিগঞ্জ, জেলা: সিলেট' }}</span>
+                    <div class="em-guardian-row">
+                      <div class="em-field">
+                        <span class="em-k">অভিভাবক:</span>
+                        <strong class="em-v text-truncate">{{ student?.guardian_name || student?.father_name || 'মাওলানা শফিকুল ইসলাম' }}</strong>
+                      </div>
+                      <div class="em-field hotline-highlight">
+                        <span class="em-k">জরুরি:</span>
+                        <strong class="em-v font-mono">{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
+                      </div>
+                    </div>
+                    <div class="em-address-row">
+                      <span class="em-k">স্থায়ী ঠিকানা:</span>
+                      <span class="em-v">{{ student?.address_bn || 'গ্রাম: ফুলতলী, ডাকঘর: ফুলতলী বাজার, উপজেলা: জকিগঞ্জ, জেলা: সিলেট' }}</span>
                     </div>
                   </div>
 
@@ -1015,14 +1002,34 @@
                   </div>
                 </div>
 
-                <!-- Gold Foil Accent Ribbon -->
-                <div class="card-type-ribbon">
-                  <span>★ শিক্ষার্থী ডিজিটাল স্মার্ট কার্ড • STUDENT SMART ID ★</span>
+                <!-- Top Smart Tech Row: EMV Chip + Status -->
+                <div class="card-smart-bar">
+                  <div class="chip-and-nfc">
+                    <svg class="emv-chip-svg" viewBox="0 0 46 34" width="36" height="26">
+                      <defs>
+                        <linearGradient id="chipGoldGradP" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#fef08a" />
+                          <stop offset="25%" stop-color="#eab308" />
+                          <stop offset="50%" stop-color="#fef9c3" />
+                          <stop offset="80%" stop-color="#ca8a04" />
+                          <stop offset="100%" stop-color="#854d0e" />
+                        </linearGradient>
+                      </defs>
+                      <rect x="1" y="1" width="44" height="32" rx="4" fill="url(#chipGoldGradP)" stroke="#78350f" stroke-width="0.9"/>
+                      <path d="M1,17 L15,17 M31,17 L45,17 M15,1 L15,33 M31,1 L31,33 M15,11 L31,11 M15,23 L31,23" stroke="#713f12" stroke-width="0.75" fill="none"/>
+                      <rect x="20" y="13.5" width="6" height="7" rx="1.5" fill="#fef08a" stroke="#854d0e" stroke-width="0.6"/>
+                    </svg>
+                  </div>
+
+                  <span class="card-status-badge">
+                    <span class="status-dot"></span>
+                    <span>নিয়মিত শিক্ষার্থী</span>
+                  </span>
                 </div>
 
-                <!-- Student Photo & Smart Identity Block -->
-                <div class="card-identity-center">
-                  <div class="card-photo-wrapper">
+                <!-- Hero Centered Student Photo -->
+                <div class="card-hero-photo-wrap">
+                  <div class="card-photo-wrapper hero-center">
                     <img
                       v-if="student?.user?.profile_image || student?.photo_url || student?.user?.avatar_url"
                       :src="student?.user?.profile_image || student?.photo_url || student?.user?.avatar_url"
@@ -1040,79 +1047,37 @@
                       <span class="monogram-name">{{ student?.name_bn ? student.name_bn.split(' ')[0] : 'শিক্ষার্থী' }}</span>
                     </div>
                     <div class="photo-session-pill">
-                      {{ currentEnrollment?.session?.name_bn || '২০২৫-২০২৬' }}
-                    </div>
-                  </div>
-
-                  <div class="card-names-box">
-                    <!-- Tech Row: EMV Chip + Status -->
-                    <div class="card-tech-strip">
-                      <div class="chip-and-nfc">
-                        <svg class="emv-chip-svg" viewBox="0 0 46 34" width="36" height="26">
-                          <defs>
-                            <linearGradient id="chipGoldGradP" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stop-color="#fef08a" />
-                              <stop offset="25%" stop-color="#eab308" />
-                              <stop offset="50%" stop-color="#fef9c3" />
-                              <stop offset="80%" stop-color="#ca8a04" />
-                              <stop offset="100%" stop-color="#854d0e" />
-                            </linearGradient>
-                          </defs>
-                          <rect x="1" y="1" width="44" height="32" rx="4" fill="url(#chipGoldGradP)" stroke="#78350f" stroke-width="0.9"/>
-                          <path d="M1,17 L15,17 M31,17 L45,17 M15,1 L15,33 M31,1 L31,33 M15,11 L31,11 M15,23 L31,23" stroke="#713f12" stroke-width="0.75" fill="none"/>
-                          <rect x="20" y="13.5" width="6" height="7" rx="1.5" fill="#fef08a" stroke="#854d0e" stroke-width="0.6"/>
-                        </svg>
-                      </div>
-
-                      <span class="card-status-badge">
-                        <span class="status-dot"></span>
-                        <span>নিয়মিত</span>
-                      </span>
-                    </div>
-
-                    <h3 class="card-student-name-bn">{{ student?.name_bn }}</h3>
-                    <div class="card-student-name-en">{{ student?.name_en || 'MUHAMMAD TANVIR AHMED' }}</div>
-
-                    <div class="card-adm-pill">
-                      <span class="adm-k">আইডি নং:</span>
-                      <strong class="adm-v">{{ student?.admission_number || 'ADM-2026-9353' }}</strong>
+                      শিক্ষাবর্ষ: {{ currentEnrollment?.session?.name_bn || '২০২৫-২০২৬' }}
                     </div>
                   </div>
                 </div>
 
-                <!-- Rich Architectural Details Grid -->
-                <div class="card-details-grid">
-                  <div class="grid-detail-item">
-                    <span class="item-k">শ্রেণি:</span>
+                <!-- Student Names & Official Role Pill -->
+                <div class="card-hero-names-wrap">
+                  <h3 class="card-student-name-bn">{{ student?.name_bn }}</h3>
+                  <div class="card-student-name-en">{{ student?.name_en || 'MUHAMMAD TANVIR AHMED' }}</div>
+                  <div class="student-role-pill">
+                    <span>শিক্ষার্থী • STUDENT</span>
+                  </div>
+                </div>
+
+                <!-- 4-Cell Standard Academic Credentials Matrix -->
+                <div class="card-cred-matrix">
+                  <div class="cred-cell">
+                    <span class="cred-k">আইডি নং:</span>
+                    <strong class="cred-v font-mono">{{ student?.admission_number || 'ADM-2026-9353' }}</strong>
+                  </div>
+                  <div class="cred-cell">
+                    <span class="cred-k">শ্রেণি:</span>
                     <span class="class-pill-badge">{{ currentEnrollment?.class?.name_bn || student?.class?.name_bn || 'নূরানী প্রথম শ্রেণি' }}</span>
                   </div>
-                  <div class="grid-detail-item">
-                    <span class="item-k">রোল নং:</span>
+                  <div class="cred-cell">
+                    <span class="cred-k">রোল নং:</span>
                     <span class="roll-pill-badge">{{ student?.roll_number || currentEnrollment?.roll_number || '০১' }}</span>
                   </div>
-                  <div class="grid-detail-item">
-                    <span class="item-k">শাখা:</span>
-                    <strong class="item-v">{{ currentEnrollment?.section?.name_bn || 'সাধারণ / ক-শাখা' }}</strong>
-                  </div>
-                  <div class="grid-detail-item">
-                    <span class="item-k">রক্তের গ্রুপ:</span>
-                    <span class="blood-pill-badge">🩸 {{ student?.blood_group || 'B+' }}</span>
-                  </div>
-                  <div class="grid-detail-item">
-                    <span class="item-k">জন্ম তারিখ:</span>
-                    <strong class="item-v">{{ student?.date_of_birth ? formatDate(student.date_of_birth) : '১৫ মার্চ, ২০১৬' }}</strong>
-                  </div>
-                  <div class="grid-detail-item">
-                    <span class="item-k">শিক্ষাবর্ষ:</span>
-                    <strong class="item-v">{{ currentEnrollment?.session?.name_bn || '২০২৫-২০২৬' }}</strong>
-                  </div>
-                  <div class="grid-detail-item full">
-                    <span class="item-k">অভিভাবক:</span>
-                    <strong class="item-v text-truncate">{{ student?.guardian_name || student?.father_name || 'মাওলানা শফিকুল ইসলাম' }}</strong>
-                  </div>
-                  <div class="grid-detail-item full hotline-item">
-                    <span class="item-k">জরুরি যোগাযোগ:</span>
-                    <strong class="item-v font-mono hotline-val">{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
+                  <div class="cred-cell">
+                    <span class="cred-k">শাখা:</span>
+                    <strong class="cred-v">{{ currentEnrollment?.section?.name_bn || 'সাধারণ / ক-শাখা' }}</strong>
                   </div>
                 </div>
 
@@ -1191,18 +1156,27 @@
 
                 <!-- Emergency & Medical Section -->
                 <div class="back-emergency-card">
-                  <div class="emergency-header-row">
+                  <div class="em-top-row">
                     <span class="blood-emergency-badge">
                       <span>🩸 রক্তের গ্রুপ: <strong>{{ student?.blood_group || 'B+' }} (পজিটিভ)</strong></span>
                     </span>
-                    <span class="emergency-phone-tag">
-                      <span>জরুরি: </span>
-                      <strong>{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
+                    <span class="dob-badge">
+                      <span>জন্ম: <strong>{{ student?.date_of_birth ? formatDate(student.date_of_birth) : '১৫ মার্চ, ২০১৬' }}</strong></span>
                     </span>
                   </div>
-                  <div class="emergency-addr-row">
-                    <span class="addr-label">স্থায়ী ঠিকানা:</span>
-                    <span class="addr-val">{{ student?.address_bn || 'গ্রাম: ফুলতলী, ডাকঘর: ফুলতলী বাজার, উপজেলা: জকিগঞ্জ, জেলা: সিলেট' }}</span>
+                  <div class="em-guardian-row">
+                    <div class="em-field">
+                      <span class="em-k">অভিভাবক:</span>
+                      <strong class="em-v text-truncate">{{ student?.guardian_name || student?.father_name || 'মাওলানা শফিকুল ইসলাম' }}</strong>
+                    </div>
+                    <div class="em-field hotline-highlight">
+                      <span class="em-k">জরুরি:</span>
+                      <strong class="em-v font-mono">{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
+                    </div>
+                  </div>
+                  <div class="em-address-row">
+                    <span class="em-k">স্থায়ী ঠিকানা:</span>
+                    <span class="em-v">{{ student?.address_bn || 'গ্রাম: ফুলতলী, ডাকঘর: ফুলতলী বাজার, উপজেলা: জকিগঞ্জ, জেলা: সিলেট' }}</span>
                   </div>
                 </div>
 
@@ -2538,44 +2512,74 @@ onMounted(() => {
   margin-top: 1px;
 }
 
-.card-type-ribbon {
-  background: linear-gradient(90deg, #92400e 0%, #d4af37 25%, #fef08a 50%, #d4af37 75%, #92400e 100%);
-  color: #451a03;
-  text-align: center;
-  font-size: 8.5px;
-  font-weight: 900;
-  letter-spacing: 0.8px;
-  padding: 3px 0;
-  font-family: var(--font-bn);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  position: relative;
-  z-index: 2;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
-  border-top: 1px solid rgba(255, 255, 255, 0.4);
-  border-bottom: 1px solid rgba(146, 64, 14, 0.4);
-}
-
-/* Center Identity & Photo */
-.card-identity-center {
+/* Top Smart Tech Row */
+.card-smart-bar {
   display: flex;
-  padding: 0.75rem 0.85rem 0.4rem;
-  gap: 0.85rem;
   align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.85rem 0.25rem;
+  background: linear-gradient(90deg, #f8fafc 0%, #ffffff 50%, #f8fafc 100%);
+  border-bottom: 1px solid #e2e8f0;
+  position: relative;
+  z-index: 2;
+
+  .chip-and-nfc {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .emv-chip-svg {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+  }
+
+  .nfc-waves-svg {
+    opacity: 0.85;
+  }
+
+  .card-status-badge {
+    font-size: 8px;
+    font-weight: 700;
+    color: #065f46;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 99px;
+    padding: 1.5px 7px;
+    font-family: var(--font-bn);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    .status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 2px #d1fae5;
+    }
+  }
+}
+
+/* Hero Centered Student Photo */
+.card-hero-photo-wrap {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.45rem;
   position: relative;
   z-index: 2;
 }
 
-.card-photo-wrapper {
+.card-photo-wrapper.hero-center {
   position: relative;
-  width: 90px;
-  height: 108px;
-  border-radius: 8px;
+  width: 104px;
+  height: 122px;
+  border-radius: 9px;
   border: 2px solid #d4af37;
   outline: 2px solid #ffffff;
-  box-shadow: 0 6px 14px -3px rgba(1, 34, 21, 0.35);
-  flex-shrink: 0;
+  box-shadow: 0 6px 14px -3px rgba(1, 34, 21, 0.3);
   background: #f8fafc;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .card-photo-img {
@@ -2595,8 +2599,8 @@ onMounted(() => {
   padding-bottom: 12px;
 
   .student-avatar-svg {
-    width: 52px;
-    height: 52px;
+    width: 54px;
+    height: 54px;
     filter: drop-shadow(0 2px 4px rgba(6, 78, 59, 0.2));
   }
 
@@ -2629,149 +2633,84 @@ onMounted(() => {
   border-top: 1px solid #d4af37;
 }
 
-.card-names-box {
-  flex: 1;
-  text-align: left;
-}
+/* Hero Names & Official Role Pill */
+.card-hero-names-wrap {
+  text-align: center;
+  padding: 0.4rem 0.85rem 0.2rem;
+  position: relative;
+  z-index: 2;
 
-.card-tech-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 5px;
-
-  .chip-and-nfc {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+  .card-student-name-bn {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #012215;
+    font-family: var(--font-bn);
+    line-height: 1.2;
   }
 
-  .emv-chip-svg {
-    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
-  }
-
-  .nfc-waves-svg {
-    opacity: 0.85;
-  }
-
-  .card-status-badge {
+  .card-student-name-en {
     font-size: 8.5px;
     font-weight: 700;
-    color: #065f46;
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    border-radius: 99px;
-    padding: 1.5px 8px;
-    font-family: var(--font-bn);
+    color: #64748b;
+    letter-spacing: 0.8px;
+    margin: 1.5px 0 3.5px;
+    text-transform: uppercase;
+  }
+
+  .student-role-pill {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 0 2px #d1fae5;
-    }
-  }
-}
-
-.card-student-name-bn {
-  margin: 0;
-  font-size: 15.5px;
-  font-weight: 800;
-  color: #012215;
-  font-family: var(--font-bn);
-  line-height: 1.25;
-}
-
-.card-student-name-en {
-  font-size: 8.5px;
-  font-weight: 700;
-  color: #64748b;
-  letter-spacing: 0.8px;
-  margin: 2px 0 6px;
-  text-transform: uppercase;
-}
-
-.card-adm-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 2.5px 8px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  font-size: 9px;
-
-  .adm-k {
-    color: #64748b;
-    font-size: 8.5px;
-    font-family: var(--font-bn);
-  }
-
-  .adm-v {
-    color: #043823;
+    background: linear-gradient(90deg, #012215 0%, #064e3b 100%);
+    color: #fef08a;
+    font-size: 8px;
     font-weight: 800;
-    font-family: monospace;
+    padding: 2px 10px;
+    border-radius: 99px;
+    letter-spacing: 0.6px;
+    font-family: var(--font-bn);
+    border: 1px solid #d4af37;
+    box-shadow: 0 2px 5px rgba(1, 34, 21, 0.2);
   }
 }
 
-/* 2-Column Architectural Attributes Grid */
-.card-details-grid {
-  margin: 0.2rem 0.85rem 0.45rem;
+/* 4-Cell Standard Academic Credentials Matrix */
+.card-cred-matrix {
+  margin: 0.35rem 0.85rem 0.3rem;
   background: #fbfdfc;
   border: 1px solid #e2e8f0;
   border-top: 2px solid #d4af37;
-  border-radius: 8px;
-  padding: 0.45rem 0.65rem;
+  border-radius: 7px;
+  padding: 0.4rem 0.6rem;
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 0.32rem 0.5rem;
-  font-size: 9.5px;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 0.5rem;
   font-family: var(--font-bn);
   position: relative;
   z-index: 2;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 
-.grid-detail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-
-  &.full {
-    grid-column: span 2;
+  .cred-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem;
+    font-size: 9px;
   }
 
-  &.hotline-item {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 4px;
-    padding: 2px 6px;
-    margin-top: 1px;
-
-    .hotline-val {
-      color: #166534;
-      font-weight: 800;
-      letter-spacing: 0.3px;
-    }
+  .cred-k {
+    color: #64748b;
+    font-size: 8.5px;
+    white-space: nowrap;
   }
-}
 
-.item-k {
-  color: #64748b;
-  font-size: 9px;
-  flex-shrink: 0;
-}
-
-.item-v {
-  color: #0f172a;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  .cred-v {
+    color: #0f172a;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .class-pill-badge {
@@ -2781,7 +2720,7 @@ onMounted(() => {
   padding: 1px 6px;
   border-radius: 3px;
   font-weight: 700;
-  font-size: 9px;
+  font-size: 8.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2795,16 +2734,6 @@ onMounted(() => {
   border-radius: 3px;
   font-weight: 800;
   font-family: monospace;
-  font-size: 9.5px;
-}
-
-.blood-pill-badge {
-  background: #fef2f2;
-  color: #dc2626;
-  padding: 1px 6px;
-  border-radius: 3px;
-  border: 1px solid #fecaca;
-  font-weight: 800;
   font-size: 9px;
 }
 
@@ -2994,42 +2923,81 @@ onMounted(() => {
   padding: 0.4rem 0.65rem;
   position: relative;
   z-index: 2;
-}
 
-.emergency-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 3px;
-}
-
-.blood-emergency-badge {
-  font-size: 9px;
-  font-weight: 800;
-  color: #b91c1c;
-  font-family: var(--font-bn);
-}
-
-.emergency-phone-tag {
-  font-size: 8px;
-  font-family: var(--font-bn);
-  color: #475569;
-
-  strong {
-    color: #dc2626;
-    font-family: monospace;
+  .em-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
   }
-}
 
-.emergency-addr-row {
-  font-size: 7.5px;
-  color: #334155;
-  font-family: var(--font-bn);
-  line-height: 1.3;
+  .blood-emergency-badge {
+    font-size: 8.5px;
+    font-weight: 800;
+    color: #b91c1c;
+    font-family: var(--font-bn);
+  }
 
-  .addr-label {
+  .dob-badge {
+    font-size: 7.8px;
+    color: #475569;
+    font-family: var(--font-bn);
+
+    strong {
+      color: #0f172a;
+    }
+  }
+
+  .em-guardian-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 2px;
+    font-size: 8px;
+    font-family: var(--font-bn);
+  }
+
+  .em-field {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.hotline-highlight {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 3px;
+      padding: 1px 5px;
+
+      .em-v {
+        color: #166534;
+        font-weight: 800;
+      }
+    }
+  }
+
+  .em-k {
     color: #64748b;
-    margin-right: 4px;
+  }
+
+  .em-v {
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .em-address-row {
+    font-size: 7.2px;
+    color: #334155;
+    font-family: var(--font-bn);
+    line-height: 1.25;
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 2px;
+    border-top: 1px dashed #fecaca;
+    padding-top: 2px;
   }
 }
 
@@ -3518,43 +3486,18 @@ onMounted(() => {
       font-size: 3.4pt !important;
     }
 
-    .card-type-ribbon {
-      font-size: 4.4pt !important;
-      padding: 0.6mm 0 !important;
-    }
-
-    .card-identity-center {
-      padding: 1.5mm 2mm 0.8mm !important;
-      gap: 1.6mm !important;
-    }
-
-    .card-photo-wrapper {
-      width: 16mm !important;
-      height: 20mm !important;
-      border-radius: 1.5mm !important;
-      border-width: 1px !important;
-    }
-
-    .photo-session-pill {
-      font-size: 3.8pt !important;
-      padding: 0.3mm 0 !important;
-    }
-
-    .card-photo-monogram {
-      .student-avatar-svg {
-        width: 9mm !important;
-        height: 9mm !important;
-      }
-      .monogram-name {
-        font-size: 3.8pt !important;
-      }
-    }
-
-    .card-tech-strip {
+    .card-smart-bar {
       display: flex !important;
       align-items: center !important;
-      gap: 1mm !important;
-      margin-bottom: 0.5mm !important;
+      justify-content: space-between !important;
+      padding: 0.8mm 2mm 0.5mm !important;
+      border-bottom: 0.5px solid #cbd5e1 !important;
+
+      .chip-and-nfc {
+        display: flex !important;
+        align-items: center !important;
+        gap: 1mm !important;
+      }
 
       .emv-chip-svg {
         width: 6mm !important;
@@ -3575,47 +3518,77 @@ onMounted(() => {
       }
     }
 
-    .card-student-name-bn {
-      font-size: 7.2pt !important;
-      line-height: 1.15 !important;
+    .card-hero-photo-wrap {
+      display: flex !important;
+      justify-content: center !important;
+      padding-top: 0.8mm !important;
     }
 
-    .card-student-name-en {
-      font-size: 4.2pt !important;
-      margin: 0.3mm 0 0.6mm !important;
+    .card-photo-wrapper.hero-center {
+      width: 17mm !important;
+      height: 21mm !important;
+      border-radius: 1.5mm !important;
+      border-width: 1px !important;
     }
 
-    .card-adm-pill {
-      font-size: 4.4pt !important;
-      padding: 0.3mm 1mm !important;
-      .adm-k {
-        font-size: 4pt !important;
+    .photo-session-pill {
+      font-size: 3.6pt !important;
+      padding: 0.3mm 0 !important;
+    }
+
+    .card-photo-monogram {
+      .student-avatar-svg {
+        width: 9mm !important;
+        height: 9mm !important;
+      }
+      .monogram-name {
+        font-size: 3.8pt !important;
       }
     }
 
-    .card-details-grid {
-      margin: 0.8mm 1.8mm !important;
-      padding: 0.8mm 1mm !important;
-      gap: 0.6mm 1mm !important;
-      font-size: 4.8pt !important;
+    .card-hero-names-wrap {
+      text-align: center !important;
+      padding: 0.6mm 1mm 0.3mm !important;
+
+      .card-student-name-bn {
+        font-size: 7.2pt !important;
+        line-height: 1.15 !important;
+      }
+
+      .card-student-name-en {
+        font-size: 4pt !important;
+        margin: 0.2mm 0 0.5mm !important;
+      }
+
+      .student-role-pill {
+        font-size: 3.8pt !important;
+        padding: 0.2mm 1.5mm !important;
+      }
+    }
+
+    .card-cred-matrix {
+      margin: 0.6mm 1.8mm 0.5mm !important;
+      padding: 0.6mm 1mm !important;
+      gap: 0.5mm 1mm !important;
+      font-size: 4.5pt !important;
       border-radius: 1.5mm !important;
-    }
 
-    .item-k {
-      font-size: 4.5pt !important;
-    }
+      .cred-cell {
+        font-size: 4.5pt !important;
+      }
 
-    .class-pill-badge,
-    .roll-pill-badge,
-    .blood-pill-badge {
-      font-size: 4.5pt !important;
-      padding: 0.2mm 0.8mm !important;
-    }
+      .cred-k {
+        font-size: 4.2pt !important;
+      }
 
-    .hotline-item {
-      padding: 0.2mm 0.8mm !important;
-      .hotline-val {
-        font-size: 4.8pt !important;
+      .cred-v {
+        font-size: 4.5pt !important;
+      }
+
+      .class-pill-badge,
+      .roll-pill-badge {
+        font-size: 4.2pt !important;
+        padding: 0.2mm 0.8mm !important;
       }
     }
 
@@ -3678,18 +3651,57 @@ onMounted(() => {
     }
 
     .back-emergency-card {
-      margin: 0.8mm 1.8mm 0.5mm !important;
-      padding: 0.8mm 1mm !important;
+      margin: 0.6mm 1.8mm 0.4mm !important;
+      padding: 0.6mm 1mm !important;
       border-radius: 1.5mm !important;
+
+      .em-top-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 0.3mm !important;
+      }
+
       .blood-emergency-badge {
         font-size: 4.5pt !important;
       }
-      .emergency-phone-tag {
-        font-size: 4.2pt !important;
-      }
-      .emergency-addr-row {
+
+      .dob-badge {
         font-size: 4pt !important;
+      }
+
+      .em-guardian-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 1mm !important;
+        margin-bottom: 0.3mm !important;
+        font-size: 4pt !important;
+      }
+
+      .em-field {
+        font-size: 4pt !important;
+        &.hotline-highlight {
+          padding: 0.2mm 0.8mm !important;
+          .em-v {
+            font-size: 4.2pt !important;
+          }
+        }
+      }
+
+      .em-k {
+        font-size: 3.8pt !important;
+      }
+
+      .em-v {
+        font-size: 4pt !important;
+      }
+
+      .em-address-row {
+        font-size: 3.8pt !important;
         line-height: 1.2 !important;
+        margin-top: 0.3mm !important;
+        padding-top: 0.3mm !important;
       }
     }
 
