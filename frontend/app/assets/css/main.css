@@ -822,6 +822,8 @@ select.form-control, .form-select {
   .header-actions,
   .quick-actions,
   .sidebar-close,
+  .modal-overlay,
+  .id-card-modal-overlay,
   .no-print {
     display: none !important;
   }
@@ -842,8 +844,8 @@ select.form-control, .form-select {
     background: transparent !important;
   }
 
-  /* Remove backgrounds, shadows, and borders from containers */
-  .card,
+  /* Remove backgrounds, shadows, and borders from standard report containers (preserving ID cards and badges) */
+  .card:not(.id-card-cr80):not(.print-preserve),
   .table-card,
   .table-wrap,
   .panel,
@@ -853,10 +855,7 @@ select.form-control, .form-select {
     border: none !important;
   }
 
-  /* Force text colors to black for contrast */
-  body,
-  h1, h2, h3, h4, h5, h6,
-  p, span, div,
+  /* Force report table and text colors to black for contrast while preserving badges/cards */
   .premium-table td,
   .premium-table th,
   .table td,
