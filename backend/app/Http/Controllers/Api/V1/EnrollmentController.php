@@ -145,10 +145,12 @@ class EnrollmentController extends ApiController
             // Auto-generate enrollment number if not provided
             if (empty($data['enrollment_number'])) {
                 $year = date('Y');
-                $count = Enrollment::where('tenant_id', $data['tenant_id'])
-                    ->whereYear('enrollment_date', $year)
-                    ->count() + 1;
-                $data['enrollment_number'] = "EN-$year-" . str_pad($count, 4, '0', STR_PAD_LEFT);
+                $seq = (Enrollment::withTrashed()->where('tenant_id', $data['tenant_id'])->whereYear('enrollment_date', $year)->count()) + 1;
+                do {
+                    $enrNumber = "EN-$year-" . str_pad($seq, 4, '0', STR_PAD_LEFT);
+                    $seq++;
+                } while (Enrollment::withTrashed()->where('tenant_id', $data['tenant_id'])->where('enrollment_number', $enrNumber)->exists());
+                $data['enrollment_number'] = $enrNumber;
             }
 
             // Filter data to only existing columns on enrollments table
