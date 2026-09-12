@@ -18,7 +18,8 @@ git fetch origin master >> "$LOG_FILE" 2>&1 || true
 git reset --hard origin/master >> "$LOG_FILE" 2>&1 || true
 
 if docker compose -f docker-compose.prod.yml up -d --build >> "$LOG_FILE" 2>&1; then
-    # Run migrations
+    # Clear cached optimization and run migrations
+    docker compose -f docker-compose.prod.yml exec -T backend php artisan optimize:clear >> "$LOG_FILE" 2>&1 || true
     docker compose -f docker-compose.prod.yml exec -T backend php artisan migrate --force >> "$LOG_FILE" 2>&1 || true
     STATUS=$(docker compose -f docker-compose.prod.yml ps --format '{{.Service}}={{.Status}}' | tr '\n' ' ')
     echo "deploy finished — $STATUS" >> "$LOG_FILE"

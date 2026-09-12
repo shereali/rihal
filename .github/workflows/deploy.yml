@@ -211,4 +211,4 @@ jobs:
               -p "$PORT" \
               -o StrictHostKeyChecking=accept-new \
               "$USER@$HOST" \
-              "cat /var/log/attashil/deploy.status"
+              "cat /var/log/attashil/deploy.status && echo '=== DEPLOY LOG TAIL ===' && tail -n 80 /var/log/attashil/deploy.log"
