@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Model
@@ -24,6 +25,11 @@ class User extends Model
         'is_platform_admin' => 'boolean',
         'is_active' => 'boolean',
     ];
+
+    public function student(): HasOne
+    {
+        return $this->hasOne(Student::class, 'user_id');
+    }
 
     public function tenant(): BelongsTo
     {

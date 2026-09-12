@@ -7,6 +7,7 @@ use App\Models\Enrollment;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -52,7 +53,7 @@ class EnrollmentController extends ApiController
             ->when($request->filled('session_id'), fn($q) => $q->where('session_id', $request->input('session_id')))
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->input('status')))
             ->when($request->filled('is_active'), fn($q) => $q->where('is_active', filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN)))
-            ->with(['student' => fn($q) => $q->with('user:id,phone'), 'class:id,name_bn,name_en', 'section:id,name_bn,name_en', 'session:id,name_bn,name_en'])
+            ->with(['student.user', 'class', 'section', 'session'])
             ->orderBy('enrollment_date', 'desc');
 
             $enrollments = $query->paginate($perPage);
@@ -70,10 +71,7 @@ class EnrollmentController extends ApiController
 
         $enrollment = Enrollment::where('tenant_id', $user->tenant_id)
             ->where('id', $id)
-            ->with('student:id,name_bn,name_en')
-            ->with('class:id,name_bn,name_en')
-            ->with('section:id,name_bn,name_en')
-            ->with('session:id,name_bn,name_en')
+            ->with(['student.user', 'class', 'section', 'session'])
             ->first();
 
         if (!$enrollment) {
@@ -86,9 +84,9 @@ class EnrollmentController extends ApiController
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'student_id' => 'required|integer|exists:students,id',
+            'student_id' => 'required|integer',
             'class_id' => 'required|integer',
-            'session_id' => 'required|integer',
+            'session_id' => 'nullable|integer',
             'section_id' => 'nullable|integer',
             'enrollment_date' => 'nullable|date',
             'enrollment_number' => 'nullable|string|max:50',
@@ -108,10 +106,41 @@ class EnrollmentController extends ApiController
         }
 
         $data = $validator->validated();
-        $data['tenant_id'] = $request->user()->tenant_id;
+        $tenantId = $request->user()->tenant_id;
+        $data['tenant_id'] = $tenantId;
         $data['enrollment_date'] = $data['enrollment_date'] ?? today();
         $data['status'] = $data['status'] ?? 'active';
         $data['is_active'] = $data['is_active'] ?? true;
+
+        // If a Student model ID was passed, map it to student's user_id for the enrollments foreign key
+        $student = Student::find($data['student_id']);
+        if ($student) {
+            $data['student_id'] = $student->user_id;
+        }
+
+        // Validate foreign keys or fallback safely
+        if (!empty($data['session_id'])) {
+            $sessionExists = DB::table('academic_sessions')->where('id', $data['session_id'])->exists();
+            if (!$sessionExists) {
+                $data['session_id'] = DB::table('academic_sessions')->where('tenant_id', $tenantId)->value('id');
+            }
+        } else {
+            $data['session_id'] = DB::table('academic_sessions')->where('tenant_id', $tenantId)->value('id');
+        }
+
+        if (!empty($data['class_id'])) {
+            $classExists = DB::table('academic_classes')->where('id', $data['class_id'])->exists();
+            if (!$classExists) {
+                $data['class_id'] = DB::table('academic_classes')->where('tenant_id', $tenantId)->value('id');
+            }
+        }
+
+        if (!empty($data['section_id'])) {
+            $sectionExists = DB::table('academic_sections')->where('id', $data['section_id'])->exists();
+            if (!$sectionExists) {
+                $data['section_id'] = null;
+            }
+        }
 
         // Auto-generate enrollment number if not provided
         if (empty($data['enrollment_number'])) {
@@ -124,9 +153,7 @@ class EnrollmentController extends ApiController
 
         $enrollment = Enrollment::create($data);
 
-        $enrollment->load('student:id,name_bn,name_en');
-        $enrollment->load('class:id,name_bn,name_en');
-        $enrollment->load('session:id,name_bn,name_en');
+        $enrollment->load(['student.user', 'class', 'section', 'session']);
 
         return $this->successResponse($enrollment, 'নাম নিবন্ধন সফল', 201);
     }
@@ -165,10 +192,9 @@ class EnrollmentController extends ApiController
 
         $enrollment->update($validator->validated());
 
-        $enrollment->load('student:id,name_bn,name_en');
-        $enrollment->load('class:id,name_bn,name_en');
+        $enrollment->load(['student.user', 'class', 'section', 'session']);
 
-        return $this->successResponse($enrollment->fresh(), 'নাম নিবন্ধন আপডেট সফল');
+        return $this->successResponse($enrollment->fresh(['student.user', 'class', 'section', 'session']), 'নাম নিবন্ধন আপডেট সফল');
     }
 
     public function destroy(Request $request, int $id): JsonResponse

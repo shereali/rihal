@@ -139,7 +139,6 @@ class StudentController extends ApiController
                 'mother_name' => $data['mother_name'] ?? null,
                 'guardian_name' => $data['guardian_name'] ?? null,
                 'address_bn' => $data['address_bn'] ?? null,
-                'guardian_id' => $data['guardian_id'] ?? null,
                 'status' => isset($data['is_active']) ? ($data['is_active'] ? 'active' : 'inactive') : 'active',
                 'admission_date' => now(),
             ];
@@ -154,7 +153,7 @@ class StudentController extends ApiController
                     'student_id' => $userId,
                     'class_id' => $data['class_id'],
                     'section_id' => $data['section_id'] ?? null,
-                    'session_id' => $session?->id ?? 1,
+                    'session_id' => $session?->id,
                     'enrollment_number' => 'ENR-' . date('Y') . '-' . $student->id,
                     'enrollment_date' => now(),
                     'status' => 'enrolled',
@@ -215,6 +214,7 @@ class StudentController extends ApiController
         unset($studentPayload['phone']);
         unset($studentPayload['class_id']);
         unset($studentPayload['section_id']);
+        unset($studentPayload['guardian_id']);
 
         $student->update($studentPayload);
 

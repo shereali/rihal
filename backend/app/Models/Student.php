@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Student extends Model
 {
@@ -35,9 +36,14 @@ class Student extends Model
         return $this->belongsTo(Tenant::class);
     }
 
-    public function guardian(): BelongsTo
+    public function guardian(): HasOne
     {
-        return $this->belongsTo(StudentGuardian::class, 'guardian_id');
+        return $this->hasOne(StudentGuardian::class, 'student_id');
+    }
+
+    public function guardians(): HasMany
+    {
+        return $this->hasMany(StudentGuardian::class, 'student_id');
     }
 
     public function documents(): HasMany
@@ -57,12 +63,12 @@ class Student extends Model
 
     public function enrollments(): HasMany
     {
-        return $this->hasMany(Enrollment::class);
+        return $this->hasMany(Enrollment::class, 'student_id', 'user_id');
     }
 
     public function attendanceRecords(): HasMany
     {
-        return $this->hasMany(AttendanceRecord::class);
+        return $this->hasMany(AttendanceRecord::class, 'student_id', 'user_id');
     }
 
     public function markEntries(): HasMany
