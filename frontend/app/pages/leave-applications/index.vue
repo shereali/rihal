@@ -193,7 +193,7 @@
                   <button
                     v-if="leave.status === 'pending'"
                     class="action-btn approve-btn"
-                    @click="quickApprove(leave)"
+                    @click="promptApprove(leave)"
                     title="অনুমোদন করুন"
                   >
                     <icon name="check" />
@@ -201,7 +201,7 @@
                   <button
                     v-if="leave.status === 'pending'"
                     class="action-btn reject-btn"
-                    @click="quickReject(leave)"
+                    @click="promptReject(leave)"
                     title="প্রত্যাখ্যান করুন"
                   >
                     <icon name="close" />
@@ -247,6 +247,9 @@
         </div>
 
         <form @submit.prevent="saveLeave" class="modal-form">
+          <div v-if="formError" class="alert alert-error" style="margin-bottom: 1rem; padding: 0.75rem 1rem; background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; border-radius: 0.5rem; font-size: 0.9rem;">
+            {{ formError }}
+          </div>
           <div class="form-grid">
             <div class="form-group wide">
               <label class="form-label">কর্মকর্তা / কর্মী নির্বাচন *</label>
@@ -338,6 +341,65 @@
         </form>
       </div>
     </div>
+
+    <!-- Approve Confirmation Modal -->
+    <div v-if="showApproveModal" class="modal-overlay" @click.self="showApproveModal = false">
+      <div class="modal-card modal-sm animate-fade-in">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3>ছুটির আবেদন অনুমোদন</h3>
+          </div>
+          <button class="modal-close-btn" @click="showApproveModal = false">×</button>
+        </div>
+        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+          <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
+            আপনি কি নিশ্চিত যে <strong>"{{ actionTarget?.user_name_bn || 'কর্মকর্তার' }}"</strong> ছুটির আবেদনটি অনুমোদন করতে চান?
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" @click="showApproveModal = false" :disabled="actionLoading">
+            বাতিল
+          </button>
+          <button type="button" class="btn btn-primary" @click="executeApprove" :disabled="actionLoading">
+            <span v-if="actionLoading">অনুমোদন হচ্ছে...</span>
+            <span v-else>অনুমোদন নিশ্চিত করুন</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reject Confirmation Modal -->
+    <div v-if="showRejectModal" class="modal-overlay" @click.self="showRejectModal = false">
+      <div class="modal-card modal-sm animate-fade-in">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3>ছুটির আবেদন প্রত্যাখ্যান</h3>
+          </div>
+          <button class="modal-close-btn" @click="showRejectModal = false">×</button>
+        </div>
+        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+          <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">
+            আপনি কি <strong>"{{ actionTarget?.user_name_bn || 'কর্মকর্তার' }}"</strong> ছুটির আবেদন প্রত্যাখ্যান করতে চান?
+          </p>
+          <label class="form-label" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; display: block;">প্রত্যাখ্যানের কারণ (ঐচ্ছিক):</label>
+          <input v-model="rejectionReason" class="form-input" placeholder="যেমন: পর্যাপ্ত বিকল্প শিক্ষক না থাকা..." style="width: 100%;" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" @click="showRejectModal = false" :disabled="actionLoading">
+            বাতিল
+          </button>
+          <button type="button" class="btn btn-danger" @click="executeReject" :disabled="actionLoading" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
+            <span v-if="actionLoading">প্রত্যাখ্যান হচ্ছে...</span>
+            <span v-else>প্রত্যাখ্যান নিশ্চিত করুন</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div v-if="toastMessage" class="toast-notification animate-fade-in" style="position: fixed; bottom: 1.5rem; right: 1.5rem; background: #10b981; color: white; padding: 0.75rem 1.25rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 9999; font-weight: 500;">
+      {{ toastMessage }}
+    </div>
   </div>
 </template>
 
@@ -359,6 +421,19 @@ const users = ref<any[]>([])
 const showCreate = ref(false)
 const editingLeave = ref<any>(null)
 const saving = ref(false)
+const formError = ref('')
+
+const showApproveModal = ref(false)
+const showRejectModal = ref(false)
+const actionTarget = ref<any>(null)
+const actionLoading = ref(false)
+const rejectionReason = ref('')
+const toastMessage = ref('')
+
+function showToast(msg: string) {
+  toastMessage.value = msg
+  setTimeout(() => { toastMessage.value = '' }, 3500)
+}
 
 const filters = reactive({
   search: '',
@@ -428,46 +503,78 @@ function openCreate() {
 function closeCreate() {
   showCreate.value = false
   editingLeave.value = null
+  formError.value = ''
 }
 
 async function saveLeave() {
   if (!form.user_id) {
-    alert('অনুগ্রহ করে কর্মকর্তা নির্বাচন করুন')
+    formError.value = 'অনুগ্রহ করে কর্মকর্তা নির্বাচন করুন'
     return
   }
   saving.value = true
+  formError.value = ''
   try {
     if (editingLeave.value) {
       await api.put('/leave-applications/' + editingLeave.value.id, form)
+      showToast('ছুটির আবেদন সফলভাবে আপডেট করা হয়েছে')
     } else {
       await api.post('/leave-applications', form)
+      showToast('নতুন ছুটির আবেদন সফলভাবে দাখিল করা হয়েছে')
     }
     closeCreate()
     await load()
   } catch (e: any) {
-    alert('সংরক্ষণে ত্রুটি: ' + (e.response?.data?.message || 'অজানা ত্রুটি'))
+    formError.value = e.response?.data?.message || 'ছুটির আবেদন সংরক্ষণে ত্রুটি দেখা দিয়েছে'
   } finally {
     saving.value = false
   }
 }
 
-async function quickApprove(leave: any) {
-  if (!confirm((leave.user_name_bn || 'কর্মকর্তার') + ' ছুটির আবেদন অনুমোদন করবেন?')) return
+function promptApprove(leave: any) {
+  actionTarget.value = leave
+  showApproveModal.value = true
+}
+
+async function executeApprove() {
+  if (!actionTarget.value) return
+  actionLoading.value = true
   try {
-    await api.put('/leave-applications/' + leave.id, { ...leave, status: 'approved' })
+    await api.put('/leave-applications/' + actionTarget.value.id, { ...actionTarget.value, status: 'approved' })
+    showApproveModal.value = false
+    actionTarget.value = null
+    showToast('ছুটির আবেদন সফলভাবে অনুমোদন করা হয়েছে')
     await load()
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
+  } finally {
+    actionLoading.value = false
   }
 }
 
-async function quickReject(leave: any) {
-  if (!confirm((leave.user_name_bn || 'কর্মকর্তার') + ' ছুটির আবেদন প্রত্যাখ্যান করবেন?')) return
+function promptReject(leave: any) {
+  actionTarget.value = leave
+  rejectionReason.value = ''
+  showRejectModal.value = true
+}
+
+async function executeReject() {
+  if (!actionTarget.value) return
+  actionLoading.value = true
   try {
-    await api.put('/leave-applications/' + leave.id, { ...leave, status: 'rejected' })
+    await api.put('/leave-applications/' + actionTarget.value.id, {
+      ...actionTarget.value,
+      status: 'rejected',
+      rejection_reason: rejectionReason.value || undefined
+    })
+    showRejectModal.value = false
+    actionTarget.value = null
+    rejectionReason.value = ''
+    showToast('ছুটির আবেদন প্রত্যাখ্যান করা হয়েছে')
     await load()
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
+  } finally {
+    actionLoading.value = false
   }
 }
 

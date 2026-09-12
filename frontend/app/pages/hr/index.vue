@@ -206,10 +206,36 @@
             <button class="action-btn" @click="openEdit(s)" title="সম্পাদনা">
               <icon name="pencil" />
             </button>
-            <button class="action-btn text-danger" @click="deleteStaff(s.id)" title="মুছুন">
+            <button class="action-btn text-danger" @click="confirmDelete(s)" title="মুছুন">
               <icon name="delete" />
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- In-App Delete Confirmation Modal -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+      <div class="modal-card modal-sm animate-fade-in">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3>কর্মী মুছে ফেলার নিশ্চিতকরণ</h3>
+          </div>
+          <button class="modal-close-btn" @click="showDeleteModal = false">×</button>
+        </div>
+        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+          <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
+            আপনি কি নিশ্চিত যে <strong>"{{ deleteTarget?.name_bn || deleteTarget?.name_en }}"</strong> কর্মীর রেকর্ড মুছে ফেলতে চান?
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">
+            বাতিল
+          </button>
+          <button type="button" class="btn btn-danger" @click="executeDelete" :disabled="deleting" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
+            <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
+            <span v-else>নিশ্চিত মুছুন</span>
+          </button>
         </div>
       </div>
     </div>
@@ -228,6 +254,10 @@ const saving = ref(false)
 const showForm = ref(false)
 const editingId = ref<number | null>(null)
 const error = ref('')
+
+const showDeleteModal = ref(false)
+const deleteTarget = ref<any>(null)
+const deleting = ref(false)
 
 const search = ref('')
 const departmentFilter = ref('')
@@ -346,13 +376,23 @@ async function saveStaff() {
   }
 }
 
-async function deleteStaff(id: number) {
-  if (!confirm('আপনি কি নিশ্চিত যে এই কর্মী মুছে ফেলতে চান?')) return
+function confirmDelete(person: any) {
+  deleteTarget.value = person
+  showDeleteModal.value = true
+}
+
+async function executeDelete() {
+  if (!deleteTarget.value) return
+  deleting.value = true
   try {
-    await api.delete(`/hr/staff/${id}`)
+    await api.delete(`/hr/staff/${deleteTarget.value.id}`)
+    showDeleteModal.value = false
+    deleteTarget.value = null
     await loadStaff()
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
+  } finally {
+    deleting.value = false
   }
 }
 

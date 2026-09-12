@@ -64,64 +64,6 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
-    Route::get('/debug-db-status', function () {
-        $hasProperties = \Illuminate\Support\Facades\Schema::hasTable('properties');
-        $hasLeave = \Illuminate\Support\Facades\Schema::hasTable('leave_applications');
-        $hasStaff = \Illuminate\Support\Facades\Schema::hasTable('staff');
-
-        $artisanOutput = null;
-        $artisanError = null;
-        if (!$hasProperties || !$hasLeave || !$hasStaff) {
-            try {
-                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-                $artisanOutput = \Illuminate\Support\Facades\Artisan::output();
-            } catch (\Throwable $migEx) {
-                $artisanError = $migEx->getMessage();
-            }
-        }
-
-        $propError = null;
-        try {
-            \App\Models\Property::count();
-        } catch (\Throwable $e) {
-            $propError = $e->getMessage();
-        }
-
-        $leaveError = null;
-        try {
-            \App\Models\LeaveApplication::count();
-        } catch (\Throwable $e) {
-            $leaveError = $e->getMessage();
-        }
-
-        $staffError = null;
-        try {
-            \App\Models\Staff::count();
-        } catch (\Throwable $e) {
-            $staffError = $e->getMessage();
-        }
-
-        return response()->json([
-            'schema_before' => [
-                'properties' => $hasProperties,
-                'leave_applications' => $hasLeave,
-                'staff' => $hasStaff,
-            ],
-            'schema_now' => [
-                'properties' => \Illuminate\Support\Facades\Schema::hasTable('properties'),
-                'leave_applications' => \Illuminate\Support\Facades\Schema::hasTable('leave_applications'),
-                'staff' => \Illuminate\Support\Facades\Schema::hasTable('staff'),
-            ],
-            'artisan_output' => $artisanOutput,
-            'artisan_error' => $artisanError,
-            'errors' => [
-                'property' => $propError,
-                'leave' => $leaveError,
-                'staff' => $staffError,
-            ],
-        ]);
-    });
-
     // Protected routes (require Bearer token)
     Route::middleware(['auth.token', 'throttle:api'])->group(function () {
         // Auth

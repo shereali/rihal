@@ -191,10 +191,36 @@
             <button class="action-btn" @click="openEdit(room)" title="সম্পাদনা">
               <icon name="pencil" />
             </button>
-            <button class="action-btn text-danger" @click="deleteRoom(room.id)" title="মুছুন">
+            <button class="action-btn text-danger" @click="confirmDeleteRoom(room)" title="মুছুন">
               <icon name="delete" />
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- In-App Delete Room Modal -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+      <div class="modal-card modal-sm animate-fade-in">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3>কক্ষ মুছে ফেলার নিশ্চিতকরণ</h3>
+          </div>
+          <button class="modal-close-btn" @click="showDeleteModal = false">×</button>
+        </div>
+        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+          <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
+            আপনি কি নিশ্চিত যে <strong>"কক্ষ {{ deleteTarget?.room_number }}"</strong> মুছে ফেলতে চান?
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">
+            বাতিল
+          </button>
+          <button type="button" class="btn btn-danger" @click="executeDeleteRoom" :disabled="deleting" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
+            <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
+            <span v-else>নিশ্চিত মুছুন</span>
+          </button>
         </div>
       </div>
     </div>
@@ -213,6 +239,10 @@ const saving = ref(false)
 const showForm = ref(false)
 const editingId = ref<number | null>(null)
 const error = ref('')
+
+const showDeleteModal = ref(false)
+const deleteTarget = ref<any>(null)
+const deleting = ref(false)
 
 const search = ref('')
 const statusFilter = ref('')
@@ -295,13 +325,23 @@ async function saveRoom() {
   }
 }
 
-async function deleteRoom(id: number) {
-  if (!confirm('আপনি কি এই কক্ষ মুছে ফেলতে চান?')) return
+function confirmDeleteRoom(room: any) {
+  deleteTarget.value = room
+  showDeleteModal.value = true
+}
+
+async function executeDeleteRoom() {
+  if (!deleteTarget.value) return
+  deleting.value = true
   try {
-    await api.delete(`/hostel/rooms/${id}`)
+    await api.delete(`/hostel/rooms/${deleteTarget.value.id}`)
+    showDeleteModal.value = false
+    deleteTarget.value = null
     await loadRooms()
   } catch (e) {
     console.error(e)
+  } finally {
+    deleting.value = false
   }
 }
 
