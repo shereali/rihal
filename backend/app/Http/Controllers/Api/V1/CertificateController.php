@@ -10,12 +10,28 @@ use App\Models\AcademicClass;
 use App\Models\AcademicSubject;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Schema;
 
 class CertificateController extends Controller
 {
     public function templates(Request $request)
     {
         try {
+            if (!Schema::hasTable('certificate_templates')) {
+                return response()->json([
+                    'status'  => 200,
+                    'message' => 'সার্টিফিকেট টেমপলেট তালিকা পাওয়া গেছে',
+                    'data'    => [
+                        'current_page' => 1,
+                        'data' => [],
+                        'from' => 0,
+                        'last_page' => 1,
+                        'per_page' => (int) ($request->per_page ?? 15),
+                        'to' => 0,
+                        'total' => 0,
+                    ],
+                ]);
+            }
             $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $query = CertificateTemplate::with(['classRelation', 'subjectRelation'])
                 ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
@@ -31,7 +47,22 @@ class CertificateController extends Controller
                 'message' => 'সার্টিফিকেট টেমপলেট তালিকা পাওয়া গেছে',
                 'data'    => $query,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), "doesn't exist") || str_contains($e->getMessage(), '1146')) {
+                return response()->json([
+                    'status'  => 200,
+                    'message' => 'সার্টিফিকেট টেমপলেট তালিকা পাওয়া গেছে',
+                    'data'    => [
+                        'current_page' => 1,
+                        'data' => [],
+                        'from' => 0,
+                        'last_page' => 1,
+                        'per_page' => (int) ($request->per_page ?? 15),
+                        'to' => 0,
+                        'total' => 0,
+                    ],
+                ]);
+            }
             return response()->json(['status' => 500, 'message' => 'টেমপলেট লোড করতে সমস্যা: ' . $e->getMessage(), 'error' => config('app.debug') ? $e->getMessage() : null], 500);
         }
     }
@@ -109,6 +140,21 @@ class CertificateController extends Controller
     public function issueList(Request $request)
     {
         try {
+            if (!Schema::hasTable('issued_certificates')) {
+                return response()->json([
+                    'status'  => 200,
+                    'message' => 'সার্টিফিকেট প্রকাশনা তালিকা পাওয়া গেছে',
+                    'data'    => [
+                        'current_page' => 1,
+                        'data' => [],
+                        'from' => 0,
+                        'last_page' => 1,
+                        'per_page' => (int) ($request->per_page ?? 15),
+                        'to' => 0,
+                        'total' => 0,
+                    ],
+                ]);
+            }
             $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $query = IssuedCertificate::with(['templateRelation', 'studentRelation', 'classRelation', 'subjectRelation'])
                 ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
@@ -123,7 +169,22 @@ class CertificateController extends Controller
                 'message' => 'সার্টিফিকেট প্রকাশনা তালিকা পাওয়া গেছে',
                 'data'    => $query,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), "doesn't exist") || str_contains($e->getMessage(), '1146')) {
+                return response()->json([
+                    'status'  => 200,
+                    'message' => 'সার্টিফিকেট প্রকাশনা তালিকা পাওয়া গেছে',
+                    'data'    => [
+                        'current_page' => 1,
+                        'data' => [],
+                        'from' => 0,
+                        'last_page' => 1,
+                        'per_page' => (int) ($request->per_page ?? 15),
+                        'to' => 0,
+                        'total' => 0,
+                    ],
+                ]);
+            }
             return response()->json(['status' => 500, 'message' => 'প্রকাশনা লোড করতে সমস্যা: ' . $e->getMessage(), 'error' => config('app.debug') ? $e->getMessage() : null], 500);
         }
     }
@@ -185,6 +246,21 @@ class CertificateController extends Controller
     public function markList(Request $request)
     {
         try {
+            if (!Schema::hasTable('certificate_marks')) {
+                return response()->json([
+                    'status'  => 200,
+                    'message' => 'মার্ক তালিকা পাওয়া গেছে',
+                    'data'    => [
+                        'current_page' => 1,
+                        'data' => [],
+                        'from' => 0,
+                        'last_page' => 1,
+                        'per_page' => (int) ($request->per_page ?? 15),
+                        'to' => 0,
+                        'total' => 0,
+                    ],
+                ]);
+            }
             $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $query = CertificateMark::with(['templateRelation', 'studentRelation', 'classRelation', 'subjectRelation'])
                 ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
@@ -195,7 +271,22 @@ class CertificateController extends Controller
                 ->paginate($request->per_page ?? 15);
 
             return response()->json(['status' => 200, 'message' => 'মার্ক তালিকা পাওয়া গেছে', 'data' => $query], 200);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), "doesn't exist") || str_contains($e->getMessage(), '1146')) {
+                return response()->json([
+                    'status'  => 200,
+                    'message' => 'মার্ক তালিকা পাওয়া গেছে',
+                    'data'    => [
+                        'current_page' => 1,
+                        'data' => [],
+                        'from' => 0,
+                        'last_page' => 1,
+                        'per_page' => (int) ($request->per_page ?? 15),
+                        'to' => 0,
+                        'total' => 0,
+                    ],
+                ]);
+            }
             return response()->json(['status' => 500, 'message' => 'মার্ক লোড করতে সমস্যা: ' . $e->getMessage(), 'error' => config('app.debug') ? $e->getMessage() : null], 500);
         }
     }
