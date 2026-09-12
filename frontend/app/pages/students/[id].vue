@@ -666,25 +666,32 @@
                   <!-- Institutional Header -->
                   <div class="card-front-header">
                     <div class="header-seal-wrap">
-                      <svg viewBox="0 0 44 44" class="madrasa-seal-svg">
-                        <circle cx="22" cy="22" r="21" fill="#012215" stroke="#d4af37" stroke-width="1.6"/>
-                        <circle cx="22" cy="22" r="18.5" fill="none" stroke="#fef08a" stroke-width="0.8" stroke-dasharray="2,2"/>
-                        <path d="M22 8 A12 12 0 0 0 28 29 A14 14 0 1 1 22 8 Z" fill="#d4af37"/>
-                        <polygon points="26,15 27.5,18 30.5,18.5 28.2,20.5 29,23.5 26,22 23,23.5 23.8,20.5 21.5,18.5 24.5,18" fill="#fef08a"/>
-                        <path d="M16 32 L28 32 L26 27 L22 23 L18 27 Z" fill="#d4af37"/>
+                      <svg viewBox="0 0 50 50" class="madrasa-seal-svg">
+                        <defs>
+                          <radialGradient id="sealGoldGradM" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#fef08a" />
+                            <stop offset="60%" stop-color="#d4af37" />
+                            <stop offset="100%" stop-color="#92400e" />
+                          </radialGradient>
+                        </defs>
+                        <circle cx="25" cy="25" r="23.5" fill="#012215" stroke="url(#sealGoldGradM)" stroke-width="1.8"/>
+                        <circle cx="25" cy="25" r="21" fill="none" stroke="#fef08a" stroke-width="0.7" stroke-dasharray="1.5,1.5"/>
+                        <path d="M25,7 L28,14 L35,11 L32,18 L39,21 L33,25 L39,29 L32,32 L35,39 L28,36 L25,43 L22,36 L15,39 L18,32 L11,29 L17,25 L11,21 L18,18 L15,11 L22,14 Z" fill="none" stroke="#d4af37" stroke-width="0.6" opacity="0.45"/>
+                        <circle cx="25" cy="25" r="14" fill="#043823" stroke="#fef08a" stroke-width="0.9"/>
+                        <path d="M25,14 A8,8 0 0,0 29,29 A9.5,9.5 0 1,1 25,14 Z" fill="url(#sealGoldGradM)"/>
+                        <polygon points="28,19 29,21.5 31.5,21.5 29.5,23 30.5,25.5 28,24 25.5,25.5 26.5,23 24.5,21.5 27,21.5" fill="#fef08a"/>
+                        <path d="M20,29 L25,26.5 L30,29 L30,30 L25,27.5 L20,30 Z" fill="#fef08a"/>
+                        <path d="M22,30 L25,32.5 L28,30" fill="none" stroke="#d4af37" stroke-width="0.8"/>
                       </svg>
                     </div>
                     <div class="header-titles">
                       <h4 class="inst-name-bn">দারুল ক্বিরাত মজিদিয়া ফুলতলী ট্রাস্ট</h4>
                       <span class="inst-name-en">DARUL QIRAT MAJIDIA FULTALI TRUST</span>
-                      <div class="inst-tagline">ফুলতলী, জকিগঞ্জ, সিলেট • স্থাপিত: ১৯৫০ খ্রি.</div>
+                      <div class="inst-tagline">ফুলতলী, জকিগঞ্জ, সিলেট • স্থাপিত: ১৯৫০</div>
                     </div>
                   </div>
 
-                  <!-- Gold Accent Divider Ribbon -->
-                  <div class="gold-ribbon-divider"></div>
-
-                  <!-- Card Type Ribbon -->
+                  <!-- Gold Foil Accent Ribbon -->
                   <div class="card-type-ribbon">
                     <span>★ শিক্ষার্থী ডিজিটাল স্মার্ট কার্ড • STUDENT SMART ID ★</span>
                   </div>
@@ -699,67 +706,71 @@
                         class="card-photo-img"
                       />
                       <div v-else class="card-photo-monogram">
-                        <span class="monogram-letter">{{ (student?.name_bn || student?.name_en || 'শ').charAt(0) }}</span>
-                        <span class="monogram-sub">শিক্ষার্থী</span>
+                        <svg class="student-avatar-svg" viewBox="0 0 64 64" fill="none">
+                          <circle cx="32" cy="32" r="30" fill="#f0fdf4" stroke="#a7f3d0" stroke-width="1.5"/>
+                          <path d="M32 14 C24 14 20 18 20 23 C20 27 24 30 32 30 C40 30 44 27 44 23 C44 18 40 14 32 14 Z" fill="#064e3b" />
+                          <path d="M32 20 C27 20 24 23 24 26 C24 30 27 33 32 33 C37 33 40 30 40 26 C40 23 37 20 32 20 Z" fill="#fde68a" />
+                          <path d="M18 52 C18 43 24 38 32 38 C40 38 46 43 46 52 Z" fill="#064e3b" />
+                          <path d="M28 38 L32 44 L36 38" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span class="monogram-name">{{ student?.name_bn ? student.name_bn.split(' ')[0] : 'শিক্ষার্থী' }}</span>
                       </div>
                       <div class="photo-session-pill">
                         {{ currentEnrollment?.session?.name_bn || '২০২৫-২০২৬' }}
                       </div>
-                      <div class="photo-security-corner" title="অফিসিয়াল রেকর্ড">
-                        <svg viewBox="0 0 16 16" width="13" height="13" fill="#043823">
-                          <path d="M8 0 L15 3 L15 8 C15 12 8 16 8 16 C8 16 1 12 1 8 L1 3 Z" fill="#d4af37" />
-                          <path d="M5 8 L7 10 L11 6" fill="none" stroke="#043823" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </div>
                     </div>
 
                     <div class="card-names-box">
-                      <!-- Tech Row: EMV Chip + Contactless waves -->
+                      <!-- Tech Row: EMV Chip + Contactless waves + Status -->
                       <div class="card-tech-strip">
-                        <svg class="emv-chip-svg" viewBox="0 0 38 28" width="34" height="24">
-                          <defs>
-                            <linearGradient id="chipGoldM" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stop-color="#eab308" />
-                              <stop offset="40%" stop-color="#fef08a" />
-                              <stop offset="100%" stop-color="#ca8a04" />
-                            </linearGradient>
-                          </defs>
-                          <rect x="0.5" y="0.5" width="37" height="27" rx="4" fill="url(#chipGoldM)" stroke="#854d0e" stroke-width="1"/>
-                          <path d="M0.5,14 L12,14 M26,14 L37.5,14 M12,0.5 L12,27.5 M26,0.5 L26,27.5 M12,9 L26,9 M12,19 L26,19" stroke="#713f12" stroke-width="0.8" fill="none"/>
-                          <circle cx="19" cy="14" r="2.8" fill="#fef08a" stroke="#854d0e" stroke-width="0.7"/>
-                        </svg>
+                        <div class="chip-and-nfc">
+                          <svg class="emv-chip-svg" viewBox="0 0 46 34" width="36" height="26">
+                            <defs>
+                              <linearGradient id="chipGoldGradM" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#fef08a" />
+                                <stop offset="25%" stop-color="#eab308" />
+                                <stop offset="50%" stop-color="#fef9c3" />
+                                <stop offset="80%" stop-color="#ca8a04" />
+                                <stop offset="100%" stop-color="#854d0e" />
+                              </linearGradient>
+                            </defs>
+                            <rect x="1" y="1" width="44" height="32" rx="4" fill="url(#chipGoldGradM)" stroke="#78350f" stroke-width="0.9"/>
+                            <path d="M1,17 L15,17 M31,17 L45,17 M15,1 L15,33 M31,1 L31,33 M15,11 L31,11 M15,23 L31,23" stroke="#713f12" stroke-width="0.75" fill="none"/>
+                            <rect x="20" y="13.5" width="6" height="7" rx="1.5" fill="#fef08a" stroke="#854d0e" stroke-width="0.6"/>
+                          </svg>
 
-                        <svg class="nfc-waves-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#043823" stroke-width="2" stroke-linecap="round">
-                          <path d="M4 8.5c4-4 12-4 16 0" />
-                          <path d="M7 11.5c2.5-2.5 7.5-2.5 10 0" />
-                          <path d="M10 14.5c1-1 3-1 4 0" />
-                          <circle cx="12" cy="17.5" r="1.2" fill="#043823" />
-                        </svg>
+                          <svg class="nfc-waves-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#047857" stroke-width="2.2" stroke-linecap="round">
+                            <path d="M5 8c3.5-3.5 10.5-3.5 14 0" />
+                            <path d="M8 11c2-2 6-2 8 0" />
+                            <path d="M11 14c.5-.5 1.5-.5 2 0" />
+                          </svg>
+                        </div>
 
-                        <span class="card-status-badge">নিয়মিত</span>
+                        <span class="card-status-badge">
+                          <span class="status-dot"></span>
+                          <span>নিয়মিত</span>
+                        </span>
                       </div>
 
                       <h3 class="card-student-name-bn">{{ student?.name_bn }}</h3>
                       <div class="card-student-name-en">{{ student?.name_en || 'MUHAMMAD TANVIR AHMED' }}</div>
 
                       <div class="card-adm-pill">
-                        <span class="adm-k">ভর্তি নং:</span>
+                        <span class="adm-k">আইডি নং:</span>
                         <strong class="adm-v">{{ student?.admission_number || 'ADM-2026-9353' }}</strong>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Rich Details Grid -->
+                  <!-- Rich Architectural Details Grid -->
                   <div class="card-details-grid">
                     <div class="grid-detail-item">
                       <span class="item-k">শ্রেণি:</span>
-                      <strong class="item-v font-emerald">
-                        {{ currentEnrollment?.class?.name_bn || student?.class?.name_bn || 'নূরানী প্রথম শ্রেণি' }}
-                      </strong>
+                      <span class="class-pill-badge">{{ currentEnrollment?.class?.name_bn || student?.class?.name_bn || 'নূরানী প্রথম শ্রেণি' }}</span>
                     </div>
                     <div class="grid-detail-item">
                       <span class="item-k">রোল নং:</span>
-                      <strong class="item-v roll-badge">{{ student?.roll_number || currentEnrollment?.roll_number || '০১' }}</strong>
+                      <span class="roll-pill-badge">{{ student?.roll_number || currentEnrollment?.roll_number || '০১' }}</span>
                     </div>
                     <div class="grid-detail-item">
                       <span class="item-k">শাখা:</span>
@@ -767,7 +778,7 @@
                     </div>
                     <div class="grid-detail-item">
                       <span class="item-k">রক্তের গ্রুপ:</span>
-                      <strong class="item-v blood-pill-badge">🩸 {{ student?.blood_group || 'B+' }}</strong>
+                      <span class="blood-pill-badge">🩸 {{ student?.blood_group || 'B+' }}</span>
                     </div>
                     <div class="grid-detail-item">
                       <span class="item-k">জন্ম তারিখ:</span>
@@ -778,78 +789,56 @@
                       <strong class="item-v">{{ currentEnrollment?.session?.name_bn || '২০২৫-২০২৬' }}</strong>
                     </div>
                     <div class="grid-detail-item full">
-                      <span class="item-k">পিতা/অভিভাবক:</span>
+                      <span class="item-k">অভিভাবক:</span>
                       <strong class="item-v text-truncate">{{ student?.guardian_name || student?.father_name || 'মাওলানা শফিকুল ইসলাম' }}</strong>
                     </div>
-                    <div class="grid-detail-item full">
-                      <span class="item-k">জরুরি মোবাইল:</span>
-                      <strong class="item-v font-mono">{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
+                    <div class="grid-detail-item full hotline-item">
+                      <span class="item-k">জরুরি যোগাযোগ:</span>
+                      <strong class="item-v font-mono hotline-val">{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
                     </div>
                   </div>
 
-                  <!-- Barcode & Security Strip -->
+                  <!-- Barcode, Signature & Hologram Security Strip -->
                   <div class="card-security-footer">
                     <div class="footer-barcode-box">
                       <svg class="vector-barcode-svg" viewBox="0 0 160 38">
                         <rect x="0" y="0" width="160" height="38" fill="#ffffff" rx="2" />
-                        <g fill="#043823">
-                          <rect x="6" y="3" width="2.5" height="22" />
-                          <rect x="11" y="3" width="1.2" height="22" />
-                          <rect x="14" y="3" width="3.5" height="22" />
-                          <rect x="20" y="3" width="1.5" height="22" />
-                          <rect x="23" y="3" width="2" height="22" />
-                          <rect x="28" y="3" width="3.5" height="22" />
-                          <rect x="34" y="3" width="1.2" height="22" />
-                          <rect x="38" y="3" width="2" height="22" />
-                          <rect x="42" y="3" width="3.8" height="22" />
-                          <rect x="48" y="3" width="1.5" height="22" />
-                          <rect x="52" y="3" width="2.5" height="22" />
-                          <rect x="57" y="3" width="1.2" height="22" />
-                          <rect x="61" y="3" width="3.5" height="22" />
-                          <rect x="67" y="3" width="2" height="22" />
-                          <rect x="71" y="3" width="1.5" height="22" />
-                          <rect x="75" y="3" width="3.5" height="22" />
-                          <rect x="81" y="3" width="1.2" height="22" />
-                          <rect x="85" y="3" width="2" height="22" />
-                          <rect x="89" y="3" width="3.5" height="22" />
-                          <rect x="95" y="3" width="1.5" height="22" />
-                          <rect x="99" y="3" width="2.5" height="22" />
-                          <rect x="104" y="3" width="1.2" height="22" />
-                          <rect x="108" y="3" width="3.5" height="22" />
-                          <rect x="114" y="3" width="2" height="22" />
-                          <rect x="118" y="3" width="1.5" height="22" />
-                          <rect x="122" y="3" width="3.5" height="22" />
-                          <rect x="128" y="3" width="1.2" height="22" />
-                          <rect x="132" y="3" width="2" height="22" />
-                          <rect x="136" y="3" width="3.5" height="22" />
-                          <rect x="142" y="3" width="1.5" height="22" />
-                          <rect x="146" y="3" width="2.5" height="22" />
-                          <rect x="151" y="3" width="3" height="22" />
+                        <g fill="#022c22">
+                          <rect x="6" y="3" width="2.5" height="22" /><rect x="11" y="3" width="1.2" height="22" /><rect x="14" y="3" width="3.5" height="22" /><rect x="20" y="3" width="1.5" height="22" /><rect x="23" y="3" width="2" height="22" /><rect x="28" y="3" width="3.5" height="22" /><rect x="34" y="3" width="1.2" height="22" /><rect x="38" y="3" width="2" height="22" /><rect x="42" y="3" width="3.8" height="22" /><rect x="48" y="3" width="1.5" height="22" /><rect x="52" y="3" width="2.5" height="22" /><rect x="57" y="3" width="1.2" height="22" /><rect x="61" y="3" width="3.5" height="22" /><rect x="67" y="3" width="2" height="22" /><rect x="71" y="3" width="1.5" height="22" /><rect x="75" y="3" width="3.5" height="22" /><rect x="81" y="3" width="1.2" height="22" /><rect x="85" y="3" width="2" height="22" /><rect x="89" y="3" width="3.5" height="22" /><rect x="95" y="3" width="1.5" height="22" /><rect x="99" y="3" width="2.5" height="22" /><rect x="104" y="3" width="1.2" height="22" /><rect x="108" y="3" width="3.5" height="22" /><rect x="114" y="3" width="2" height="22" /><rect x="118" y="3" width="1.5" height="22" /><rect x="122" y="3" width="3.5" height="22" /><rect x="128" y="3" width="1.2" height="22" /><rect x="132" y="3" width="2" height="22" /><rect x="136" y="3" width="3.5" height="22" /><rect x="142" y="3" width="1.5" height="22" /><rect x="146" y="3" width="2.5" height="22" /><rect x="151" y="3" width="3" height="22" />
                         </g>
-                        <text x="80" y="33" text-anchor="middle" font-family="monospace" font-size="8" font-weight="700" fill="#043823">
+                        <text x="80" y="33" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="800" fill="#022c22">
                           * {{ student?.admission_number || 'ADM-2026-9353' }} *
                         </text>
                       </svg>
                     </div>
 
                     <div class="footer-signature-box">
-                      <svg class="signature-cursive-svg" viewBox="0 0 84 26">
-                        <path d="M4,18 C14,8 18,22 26,11 C32,4 36,19 44,13 C50,9 56,17 66,8 C70,6 74,12 80,7" fill="none" stroke="#043823" stroke-width="1.8" stroke-linecap="round"/>
-                      </svg>
+                      <div class="signature-wrap">
+                        <svg class="signature-cursive-svg" viewBox="0 0 90 28">
+                          <path d="M6,22 C14,10 18,24 26,12 C32,5 36,21 44,14 C52,9 58,19 68,9 C72,7 78,14 84,9" fill="none" stroke="#043823" stroke-width="1.8" stroke-linecap="round"/>
+                          <path d="M12,24 C35,27 65,24 82,18" fill="none" stroke="#043823" stroke-width="0.9" stroke-linecap="round" opacity="0.6"/>
+                        </svg>
+                        <div class="signature-stamp-circle">
+                          <span>ختم</span>
+                        </div>
+                      </div>
                       <div class="sign-label">মুহতামিম / অধ্যক্ষের স্বাক্ষর</div>
                     </div>
 
-                    <div class="hologram-seal-mockup" title="অফিসিয়াল নিরাপত্তা সিল">
+                    <div class="hologram-seal-mockup" title="অফিসিয়াল নিরাপত্তা হলোগ্রাম">
                       <div class="hologram-inner">
-                        <span class="holo-line1">VERIFIED</span>
-                        <span class="holo-line2">OFFICIAL</span>
+                        <svg viewBox="0 0 20 20" width="11" height="11" fill="#ffffff">
+                          <path d="M10 1 L12.5 6.5 L18.5 7 L14 11 L15.5 17 L10 14 L4.5 17 L6 11 L1.5 7 L7.5 6.5 Z"/>
+                        </svg>
+                        <span class="holo-line1">SECURE</span>
+                        <span class="holo-line2">VERIFIED</span>
                       </div>
                     </div>
                   </div>
 
                   <!-- Microprint security bottom border -->
                   <div class="card-microprint-strip">
-                    DARUL QIRAT MAJIDIA FULTALI TRUST • OFFICIAL STUDENT ID CARD • ISO/IEC 7810
+                    DARUL QIRAT MAJIDIA FULTALI TRUST • OFFICIAL STUDENT SMART ID • ISO/IEC 7810 ID-1
                   </div>
                 </div>
 
@@ -866,6 +855,7 @@
                   <!-- Magnetic Stripe Mockup -->
                   <div class="magnetic-stripe-bar">
                     <div class="mag-stripe-shimmer"></div>
+                    <span class="mag-stripe-text">DARUL QIRAT MAJIDIA FULTALI TRUST • ENCRYPTED MAGNETIC ENCODE</span>
                   </div>
 
                   <!-- Watermark Pattern -->
@@ -875,35 +865,38 @@
                   <div class="card-back-header">
                     <div class="back-header-titles">
                       <h4 class="back-inst-bn">দারুল ক্বিরাত মজিদিয়া ফুলতলী ট্রাস্ট</h4>
-                      <p class="back-inst-sub">কেন্দ্রীয় কার্যালয়: ফুলতলী, জকিগঞ্জ, সিলেট - ৩১৯০ | ট্রাস্ট প্রশাসন শাখা</p>
+                      <p class="back-inst-sub">কেন্দ্রীয় কার্যালয়: ফুলতলী, জকিগঞ্জ, সিলেট - ৩১৯০ • প্রশাসন ও পরীক্ষা নিয়ন্ত্রণ বিভাগ</p>
                     </div>
                   </div>
 
-                  <!-- Emergency & Address Section -->
+                  <!-- Emergency & Medical Section -->
                   <div class="back-emergency-card">
-                    <div class="emergency-header">
-                      <span class="blood-emergency-badge">🩸 জরুরি রক্তের গ্রুপ: <strong>{{ student?.blood_group || 'B+' }} (পজিটিভ)</strong></span>
+                    <div class="emergency-header-row">
+                      <span class="blood-emergency-badge">
+                        <span>🩸 রক্তের গ্রুপ: <strong>{{ student?.blood_group || 'B+' }} (পজিটিভ)</strong></span>
+                      </span>
+                      <span class="emergency-phone-tag">
+                        <span>জরুরি: </span>
+                        <strong>{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
+                      </span>
                     </div>
-                    <div class="emergency-body">
-                      <div class="emergency-row">
-                        <span class="em-k">জরুরি যোগাযোগ:</span>
-                        <strong class="em-v font-mono">{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
-                      </div>
-                      <div class="emergency-row addr">
-                        <span class="em-k">স্থায়ী ঠিকানা:</span>
-                        <span class="em-v">{{ student?.address_bn || 'গ্রাম: ফুলতলী, ডাকঘর: ফুলতলী বাজার, উপজেলা: জকিগঞ্জ, জেলা: সিলেট' }}</span>
-                      </div>
+                    <div class="emergency-addr-row">
+                      <span class="addr-label">স্থায়ী ঠিকানা:</span>
+                      <span class="addr-val">{{ student?.address_bn || 'গ্রাম: ফুলতলী, ডাকঘর: ফুলতলী বাজার, উপজেলা: জকিগঞ্জ, জেলা: সিলেট' }}</span>
                     </div>
                   </div>
 
                   <!-- Terms & Rules -->
                   <div class="back-terms-box">
-                    <div class="terms-title">সাধারণ নির্দেশাবলী ও নিয়মাবলী:</div>
+                    <div class="terms-title">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#043823" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                      <span>সাধারণ নির্দেশাবলী ও নিয়মাবলী:</span>
+                    </div>
                     <ul class="terms-list">
-                      <li>১. এই পরিচয়পত্রটি মাদ্রাসার সার্বক্ষণিক সম্পত্তি ও ক্যাম্পাসে বহন বাধ্যতামূলক।</li>
-                      <li>২. কার্ডটি অহস্তান্তরযোগ্য; কেবল উল্লেখিত শিক্ষার্থীর জন্য প্রযোজ্য।</li>
-                      <li>৩. স্মার্ট ডিজিটাল উপস্থিতি, লাইব্রেরি ও পরীক্ষার হলে কার্ড প্রদর্শন করতে হবে।</li>
-                      <li>৪. কার্ড হারালে বা ক্ষতিগ্রস্ত হলে অবিলম্বে প্রশাসন কার্যালয়ে অবহিত করতে হবে।</li>
+                      <li><span class="term-bullet">◆</span><span>এই পরিচয়পত্রটি মাদ্রাসার সার্বক্ষণিক সম্পত্তি ও ক্যাম্পাসে বহন বাধ্যতামূলক।</span></li>
+                      <li><span class="term-bullet">◆</span><span>কার্ডটি অহস্তান্তরযোগ্য; কেবল উল্লেখিত শিক্ষার্থীর ব্যবহারের জন্য প্রযোজ্য।</span></li>
+                      <li><span class="term-bullet">◆</span><span>স্মার্ট ডিজিটাল হাজিরা, লাইব্রেরি ও পরীক্ষার হলে কার্ড প্রদর্শন আবশ্যক।</span></li>
+                      <li><span class="term-bullet">◆</span><span>কার্ড হারালে বা ক্ষতিগ্রস্ত হলে অবিলম্বে প্রশাসন কার্যালয়ে রিপোর্ট করতে হবে।</span></li>
                     </ul>
                   </div>
 
@@ -914,28 +907,37 @@
                       <address class="return-address">
                         <strong>দারুল ক্বিরাত মজিদিয়া ফুলতলী ট্রাস্ট</strong><br />
                         ফুলতলী, জকিগঞ্জ, সিলেট - ৩১৯০<br />
-                        ফোন: +৮৮০১৭১২-৩৪৫৬৭৮ • ইমেইল: info@rihal.app<br />
-                        ওয়েব: attashil.softcredible.com
+                        হেল্পলাইন: +৮৮০১৭১২-৩৪৫৬৭৮ • ওয়েব: attashil.softcredible.com
                       </address>
                     </div>
 
                     <div class="back-qr-box">
-                      <img
-                        v-if="qrCodeDataUrl"
-                        :src="qrCodeDataUrl"
-                        alt="Verification QR Code"
-                        class="qr-code-img"
-                      />
-                      <div v-else class="qr-placeholder">QR</div>
-                      <span class="qr-label">স্ক্যান করে যাচাই করুন</span>
+                      <div class="qr-frame-reticle">
+                        <img
+                          v-if="qrCodeDataUrl"
+                          :src="qrCodeDataUrl"
+                          alt="Verification QR Code"
+                          class="qr-code-img"
+                        />
+                        <div v-else class="qr-placeholder">QR</div>
+                        <div class="reticle-corner top-left"></div>
+                        <div class="reticle-corner top-right"></div>
+                        <div class="reticle-corner bottom-left"></div>
+                        <div class="reticle-corner bottom-right"></div>
+                      </div>
+                      <span class="qr-label">অনলাইনে যাচাই করুন</span>
                     </div>
                   </div>
 
                   <!-- Validity & Security Footer -->
                   <div class="back-validity-footer">
-                    <div class="validity-text">মেয়াদ উত্তীর্ণ: ৩১ ডিসেম্বর, ২০২৬ (VALID THRU: 31-12-2026)</div>
+                    <div class="validity-text">
+                      <span class="val-k">মেয়াদ উত্তীর্ণ:</span>
+                      <strong class="val-v">৩১ ডিসেম্বর, ২০২৬</strong>
+                      <span class="val-en">(VALID THRU: 12/2026)</span>
+                    </div>
                     <div class="back-microprint">
-                      SECURITY ENCRYPTED CREDENTIAL • DARUL QIRAT MAJIDIA FULTALI TRUST • OFFICIAL
+                      ENCRYPTED STUDENT CREDENTIAL • DARUL QIRAT MAJIDIA FULTALI TRUST • SECURE RFID
                     </div>
                   </div>
                 </div>
@@ -988,27 +990,37 @@
                 <!-- Institutional Header -->
                 <div class="card-front-header">
                   <div class="header-seal-wrap">
-                    <svg viewBox="0 0 44 44" class="madrasa-seal-svg">
-                      <circle cx="22" cy="22" r="21" fill="#012215" stroke="#d4af37" stroke-width="1.6"/>
-                      <circle cx="22" cy="22" r="18.5" fill="none" stroke="#fef08a" stroke-width="0.8" stroke-dasharray="2,2"/>
-                      <path d="M22 8 A12 12 0 0 0 28 29 A14 14 0 1 1 22 8 Z" fill="#d4af37"/>
-                      <polygon points="26,15 27.5,18 30.5,18.5 28.2,20.5 29,23.5 26,22 23,23.5 23.8,20.5 21.5,18.5 24.5,18" fill="#fef08a"/>
-                      <path d="M16 32 L28 32 L26 27 L22 23 L18 27 Z" fill="#d4af37"/>
+                    <svg viewBox="0 0 50 50" class="madrasa-seal-svg">
+                      <defs>
+                        <radialGradient id="sealGoldGradP" cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stop-color="#fef08a" />
+                          <stop offset="60%" stop-color="#d4af37" />
+                          <stop offset="100%" stop-color="#92400e" />
+                        </radialGradient>
+                      </defs>
+                      <circle cx="25" cy="25" r="23.5" fill="#012215" stroke="url(#sealGoldGradP)" stroke-width="1.8"/>
+                      <circle cx="25" cy="25" r="21" fill="none" stroke="#fef08a" stroke-width="0.7" stroke-dasharray="1.5,1.5"/>
+                      <path d="M25,7 L28,14 L35,11 L32,18 L39,21 L33,25 L39,29 L32,32 L35,39 L28,36 L25,43 L22,36 L15,39 L18,32 L11,29 L17,25 L11,21 L18,18 L15,11 L22,14 Z" fill="none" stroke="#d4af37" stroke-width="0.6" opacity="0.45"/>
+                      <circle cx="25" cy="25" r="14" fill="#043823" stroke="#fef08a" stroke-width="0.9"/>
+                      <path d="M25,14 A8,8 0 0,0 29,29 A9.5,9.5 0 1,1 25,14 Z" fill="url(#sealGoldGradP)"/>
+                      <polygon points="28,19 29,21.5 31.5,21.5 29.5,23 30.5,25.5 28,24 25.5,25.5 26.5,23 24.5,21.5 27,21.5" fill="#fef08a"/>
+                      <path d="M20,29 L25,26.5 L30,29 L30,30 L25,27.5 L20,30 Z" fill="#fef08a"/>
+                      <path d="M22,30 L25,32.5 L28,30" fill="none" stroke="#d4af37" stroke-width="0.8"/>
                     </svg>
                   </div>
                   <div class="header-titles">
                     <h4 class="inst-name-bn">দারুল ক্বিরাত মজিদিয়া ফুলতলী ট্রাস্ট</h4>
                     <span class="inst-name-en">DARUL QIRAT MAJIDIA FULTALI TRUST</span>
-                    <div class="inst-tagline">ফুলতলী, জকিগঞ্জ, সিলেট • স্থাপিত: ১৯৫০ খ্রি.</div>
+                    <div class="inst-tagline">ফুলতলী, জকিগঞ্জ, সিলেট • স্থাপিত: ১৯৫০</div>
                   </div>
                 </div>
 
-                <div class="gold-ribbon-divider"></div>
-
+                <!-- Gold Foil Accent Ribbon -->
                 <div class="card-type-ribbon">
-                  <span>★ শিক্ষার্থী স্মার্ট পরিচয়পত্র • STUDENT SMART ID ★</span>
+                  <span>★ শিক্ষার্থী ডিজিটাল স্মার্ট কার্ড • STUDENT SMART ID ★</span>
                 </div>
 
+                <!-- Student Photo & Smart Identity Block -->
                 <div class="card-identity-center">
                   <div class="card-photo-wrapper">
                     <img
@@ -1018,8 +1030,14 @@
                       class="card-photo-img"
                     />
                     <div v-else class="card-photo-monogram">
-                      <span class="monogram-letter">{{ (student?.name_bn || student?.name_en || 'শ').charAt(0) }}</span>
-                      <span class="monogram-sub">শিক্ষার্থী</span>
+                      <svg class="student-avatar-svg" viewBox="0 0 64 64" fill="none">
+                        <circle cx="32" cy="32" r="30" fill="#f0fdf4" stroke="#a7f3d0" stroke-width="1.5"/>
+                        <path d="M32 14 C24 14 20 18 20 23 C20 27 24 30 32 30 C40 30 44 27 44 23 C44 18 40 14 32 14 Z" fill="#064e3b" />
+                        <path d="M32 20 C27 20 24 23 24 26 C24 30 27 33 32 33 C37 33 40 30 40 26 C40 23 37 20 32 20 Z" fill="#fde68a" />
+                        <path d="M18 52 C18 43 24 38 32 38 C40 38 46 43 46 52 Z" fill="#064e3b" />
+                        <path d="M28 38 L32 44 L36 38" fill="none" stroke="#d4af37" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                      <span class="monogram-name">{{ student?.name_bn ? student.name_bn.split(' ')[0] : 'শিক্ষার্থী' }}</span>
                     </div>
                     <div class="photo-session-pill">
                       {{ currentEnrollment?.session?.name_bn || '২০২৫-২০২৬' }}
@@ -1027,42 +1045,50 @@
                   </div>
 
                   <div class="card-names-box">
+                    <!-- Tech Row: EMV Chip + Status -->
                     <div class="card-tech-strip">
-                      <svg class="emv-chip-svg" viewBox="0 0 38 28" width="34" height="24">
-                        <defs>
-                          <linearGradient id="chipGoldP" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#eab308" />
-                            <stop offset="40%" stop-color="#fef08a" />
-                            <stop offset="100%" stop-color="#ca8a04" />
-                          </linearGradient>
-                        </defs>
-                        <rect x="0.5" y="0.5" width="37" height="27" rx="4" fill="url(#chipGoldP)" stroke="#854d0e" stroke-width="1"/>
-                        <path d="M0.5,14 L12,14 M26,14 L37.5,14 M12,0.5 L12,27.5 M26,0.5 L26,27.5 M12,9 L26,9 M12,19 L26,19" stroke="#713f12" stroke-width="0.8" fill="none"/>
-                        <circle cx="19" cy="14" r="2.8" fill="#fef08a" stroke="#854d0e" stroke-width="0.7"/>
-                      </svg>
-                      <span class="card-status-badge">নিয়মিত</span>
+                      <div class="chip-and-nfc">
+                        <svg class="emv-chip-svg" viewBox="0 0 46 34" width="36" height="26">
+                          <defs>
+                            <linearGradient id="chipGoldGradP" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stop-color="#fef08a" />
+                              <stop offset="25%" stop-color="#eab308" />
+                              <stop offset="50%" stop-color="#fef9c3" />
+                              <stop offset="80%" stop-color="#ca8a04" />
+                              <stop offset="100%" stop-color="#854d0e" />
+                            </linearGradient>
+                          </defs>
+                          <rect x="1" y="1" width="44" height="32" rx="4" fill="url(#chipGoldGradP)" stroke="#78350f" stroke-width="0.9"/>
+                          <path d="M1,17 L15,17 M31,17 L45,17 M15,1 L15,33 M31,1 L31,33 M15,11 L31,11 M15,23 L31,23" stroke="#713f12" stroke-width="0.75" fill="none"/>
+                          <rect x="20" y="13.5" width="6" height="7" rx="1.5" fill="#fef08a" stroke="#854d0e" stroke-width="0.6"/>
+                        </svg>
+                      </div>
+
+                      <span class="card-status-badge">
+                        <span class="status-dot"></span>
+                        <span>নিয়মিত</span>
+                      </span>
                     </div>
 
                     <h3 class="card-student-name-bn">{{ student?.name_bn }}</h3>
                     <div class="card-student-name-en">{{ student?.name_en || 'MUHAMMAD TANVIR AHMED' }}</div>
 
                     <div class="card-adm-pill">
-                      <span class="adm-k">ভর্তি নং:</span>
+                      <span class="adm-k">আইডি নং:</span>
                       <strong class="adm-v">{{ student?.admission_number || 'ADM-2026-9353' }}</strong>
                     </div>
                   </div>
                 </div>
 
+                <!-- Rich Architectural Details Grid -->
                 <div class="card-details-grid">
                   <div class="grid-detail-item">
                     <span class="item-k">শ্রেণি:</span>
-                    <strong class="item-v font-emerald">
-                      {{ currentEnrollment?.class?.name_bn || student?.class?.name_bn || 'নূরানী প্রথম শ্রেণি' }}
-                    </strong>
+                    <span class="class-pill-badge">{{ currentEnrollment?.class?.name_bn || student?.class?.name_bn || 'নূরানী প্রথম শ্রেণি' }}</span>
                   </div>
                   <div class="grid-detail-item">
                     <span class="item-k">রোল নং:</span>
-                    <strong class="item-v roll-badge">{{ student?.roll_number || currentEnrollment?.roll_number || '০১' }}</strong>
+                    <span class="roll-pill-badge">{{ student?.roll_number || currentEnrollment?.roll_number || '০১' }}</span>
                   </div>
                   <div class="grid-detail-item">
                     <span class="item-k">শাখা:</span>
@@ -1070,7 +1096,7 @@
                   </div>
                   <div class="grid-detail-item">
                     <span class="item-k">রক্তের গ্রুপ:</span>
-                    <strong class="item-v blood-pill-badge">🩸 {{ student?.blood_group || 'B+' }}</strong>
+                    <span class="blood-pill-badge">🩸 {{ student?.blood_group || 'B+' }}</span>
                   </div>
                   <div class="grid-detail-item">
                     <span class="item-k">জন্ম তারিখ:</span>
@@ -1081,45 +1107,55 @@
                     <strong class="item-v">{{ currentEnrollment?.session?.name_bn || '২০২৫-২০২৬' }}</strong>
                   </div>
                   <div class="grid-detail-item full">
-                    <span class="item-k">পিতা/অভিভাবক:</span>
+                    <span class="item-k">অভিভাবক:</span>
                     <strong class="item-v text-truncate">{{ student?.guardian_name || student?.father_name || 'মাওলানা শফিকুল ইসলাম' }}</strong>
                   </div>
-                  <div class="grid-detail-item full">
-                    <span class="item-k">জরুরি মোবাইল:</span>
-                    <strong class="item-v font-mono">{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
+                  <div class="grid-detail-item full hotline-item">
+                    <span class="item-k">জরুরি যোগাযোগ:</span>
+                    <strong class="item-v font-mono hotline-val">{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
                   </div>
                 </div>
 
+                <!-- Barcode, Signature & Hologram Security Strip -->
                 <div class="card-security-footer">
                   <div class="footer-barcode-box">
                     <svg class="vector-barcode-svg" viewBox="0 0 160 38">
                       <rect x="0" y="0" width="160" height="38" fill="#ffffff" rx="2" />
-                      <g fill="#043823">
+                      <g fill="#022c22">
                         <rect x="6" y="3" width="2.5" height="22" /><rect x="11" y="3" width="1.2" height="22" /><rect x="14" y="3" width="3.5" height="22" /><rect x="20" y="3" width="1.5" height="22" /><rect x="23" y="3" width="2" height="22" /><rect x="28" y="3" width="3.5" height="22" /><rect x="34" y="3" width="1.2" height="22" /><rect x="38" y="3" width="2" height="22" /><rect x="42" y="3" width="3.8" height="22" /><rect x="48" y="3" width="1.5" height="22" /><rect x="52" y="3" width="2.5" height="22" /><rect x="57" y="3" width="1.2" height="22" /><rect x="61" y="3" width="3.5" height="22" /><rect x="67" y="3" width="2" height="22" /><rect x="71" y="3" width="1.5" height="22" /><rect x="75" y="3" width="3.5" height="22" /><rect x="81" y="3" width="1.2" height="22" /><rect x="85" y="3" width="2" height="22" /><rect x="89" y="3" width="3.5" height="22" /><rect x="95" y="3" width="1.5" height="22" /><rect x="99" y="3" width="2.5" height="22" /><rect x="104" y="3" width="1.2" height="22" /><rect x="108" y="3" width="3.5" height="22" /><rect x="114" y="3" width="2" height="22" /><rect x="118" y="3" width="1.5" height="22" /><rect x="122" y="3" width="3.5" height="22" /><rect x="128" y="3" width="1.2" height="22" /><rect x="132" y="3" width="2" height="22" /><rect x="136" y="3" width="3.5" height="22" /><rect x="142" y="3" width="1.5" height="22" /><rect x="146" y="3" width="2.5" height="22" /><rect x="151" y="3" width="3" height="22" />
                       </g>
-                      <text x="80" y="33" text-anchor="middle" font-family="monospace" font-size="8" font-weight="700" fill="#043823">
+                      <text x="80" y="33" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="800" fill="#022c22">
                         * {{ student?.admission_number || 'ADM-2026-9353' }} *
                       </text>
                     </svg>
                   </div>
 
                   <div class="footer-signature-box">
-                    <svg class="signature-cursive-svg" viewBox="0 0 84 26">
-                      <path d="M4,18 C14,8 18,22 26,11 C32,4 36,19 44,13 C50,9 56,17 66,8 C70,6 74,12 80,7" fill="none" stroke="#043823" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
+                    <div class="signature-wrap">
+                      <svg class="signature-cursive-svg" viewBox="0 0 90 28">
+                        <path d="M6,22 C14,10 18,24 26,12 C32,5 36,21 44,14 C52,9 58,19 68,9 C72,7 78,14 84,9" fill="none" stroke="#043823" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M12,24 C35,27 65,24 82,18" fill="none" stroke="#043823" stroke-width="0.9" stroke-linecap="round" opacity="0.6"/>
+                      </svg>
+                      <div class="signature-stamp-circle">
+                        <span>ختম</span>
+                      </div>
+                    </div>
                     <div class="sign-label">মুহতামিম / অধ্যক্ষের স্বাক্ষর</div>
                   </div>
 
                   <div class="hologram-seal-mockup">
                     <div class="hologram-inner">
-                      <span class="holo-line1">VERIFIED</span>
-                      <span class="holo-line2">OFFICIAL</span>
+                      <svg viewBox="0 0 20 20" width="11" height="11" fill="#ffffff">
+                        <path d="M10 1 L12.5 6.5 L18.5 7 L14 11 L15.5 17 L10 14 L4.5 17 L6 11 L1.5 7 L7.5 6.5 Z"/>
+                      </svg>
+                      <span class="holo-line1">SECURE</span>
+                      <span class="holo-line2">VERIFIED</span>
                     </div>
                   </div>
                 </div>
 
                 <div class="card-microprint-strip">
-                  DARUL QIRAT MAJIDIA FULTALI TRUST • OFFICIAL STUDENT ID CARD • ISO/IEC 7810
+                  DARUL QIRAT MAJIDIA FULTALI TRUST • OFFICIAL STUDENT SMART ID • ISO/IEC 7810 ID-1
                 </div>
               </div>
             </div>
@@ -1141,6 +1177,7 @@
               <div class="id-card-cr80 id-card-back print-render">
                 <div class="magnetic-stripe-bar">
                   <div class="mag-stripe-shimmer"></div>
+                  <span class="mag-stripe-text">DARUL QIRAT MAJIDIA FULTALI TRUST • ENCRYPTED MAGNETIC ENCODE</span>
                 </div>
 
                 <div class="card-security-pattern-bg"></div>
@@ -1148,63 +1185,79 @@
                 <div class="card-back-header">
                   <div class="back-header-titles">
                     <h4 class="back-inst-bn">দারুল ক্বিরাত মজিদিয়া ফুলতলী ট্রাস্ট</h4>
-                    <p class="back-inst-sub">কেন্দ্রীয় কার্যালয়: ফুলতলী, জকিগঞ্জ, সিলেট - ৩১৯০ | ট্রাস্ট প্রশাসন শাখা</p>
+                    <p class="back-inst-sub">কেন্দ্রীয় কার্যালয়: ফুলতলী, জকিগঞ্জ, সিলেট - ৩১৯০ • প্রশাসন ও পরীক্ষা নিয়ন্ত্রণ বিভাগ</p>
                   </div>
                 </div>
 
+                <!-- Emergency & Medical Section -->
                 <div class="back-emergency-card">
-                  <div class="emergency-header">
-                    <span class="blood-emergency-badge">🩸 জরুরি রক্তের গ্রুপ: <strong>{{ student?.blood_group || 'B+' }} (পজিটিভ)</strong></span>
+                  <div class="emergency-header-row">
+                    <span class="blood-emergency-badge">
+                      <span>🩸 রক্তের গ্রুপ: <strong>{{ student?.blood_group || 'B+' }} (পজিটিভ)</strong></span>
+                    </span>
+                    <span class="emergency-phone-tag">
+                      <span>জরুরি: </span>
+                      <strong>{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
+                    </span>
                   </div>
-                  <div class="emergency-body">
-                    <div class="emergency-row">
-                      <span class="em-k">জরুরি যোগাযোগ:</span>
-                      <strong class="em-v font-mono">{{ student?.guardian_phone || student?.father_phone || student?.user?.phone || '০১৭১১-২২৩৩৪৪' }}</strong>
-                    </div>
-                    <div class="emergency-row addr">
-                      <span class="em-k">স্থায়ী ঠিকানা:</span>
-                      <span class="em-v">{{ student?.address_bn || 'গ্রাম: ফুলতলী, ডাকঘর: ফুলতলী বাজার, উপজেলা: জকিগঞ্জ, জেলা: সিলেট' }}</span>
-                    </div>
+                  <div class="emergency-addr-row">
+                    <span class="addr-label">স্থায়ী ঠিকানা:</span>
+                    <span class="addr-val">{{ student?.address_bn || 'গ্রাম: ফুলতলী, ডাকঘর: ফুলতলী বাজার, উপজেলা: জকিগঞ্জ, জেলা: সিলেট' }}</span>
                   </div>
                 </div>
 
+                <!-- Terms & Rules -->
                 <div class="back-terms-box">
-                  <div class="terms-title">সাধারণ নির্দেশাবলী ও নিয়মাবলী:</div>
+                  <div class="terms-title">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#043823" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    <span>সাধারণ নির্দেশাবলী ও নিয়মাবলী:</span>
+                  </div>
                   <ul class="terms-list">
-                    <li>১. এই পরিচয়পত্রটি মাদ্রাসার সার্বক্ষণিক সম্পত্তি ও ক্যাম্পাসে বহন বাধ্যতামূলক।</li>
-                    <li>২. কার্ডটি অহস্তান্তরযোগ্য; কেবল উল্লেখিত শিক্ষার্থীর জন্য প্রযোজ্য।</li>
-                    <li>৩. স্মার্ট ডিজিটাল উপস্থিতি, লাইব্রেরি ও পরীক্ষার হলে কার্ড প্রদর্শন করতে হবে।</li>
-                    <li>৪. কার্ড হারালে বা ক্ষতিগ্রস্ত হলে অবিলম্বে প্রশাসন কার্যালয়ে অবহিত করতে হবে।</li>
+                    <li><span class="term-bullet">◆</span><span>এই পরিচয়পত্রটি মাদ্রাসার সার্বক্ষণিক সম্পত্তি ও ক্যাম্পাসে বহন বাধ্যতামূলক।</span></li>
+                    <li><span class="term-bullet">◆</span><span>কার্ডটি অহস্তান্তরযোগ্য; কেবল উল্লেখিত শিক্ষার্থীর ব্যবহারের জন্য প্রযোজ্য।</span></li>
+                    <li><span class="term-bullet">◆</span><span>স্মার্ট ডিজিটাল হাজিরা, লাইব্রেরি ও পরীক্ষার হলে কার্ড প্রদর্শন আবশ্যক।</span></li>
+                    <li><span class="term-bullet">◆</span><span>কার্ড হারালে বা ক্ষতিগ্রস্ত হলে অবিলম্বে প্রশাসন কার্যালয়ে রিপোর্ট করতে হবে।</span></li>
                   </ul>
                 </div>
 
+                <!-- QR Code & Return Address Row -->
                 <div class="back-qr-return-row">
                   <div class="back-return-info">
                     <div class="return-label">কার্ড হারিয়ে গেলে ফেরত ঠিকানা:</div>
                     <address class="return-address">
                       <strong>দারুল ক্বিরাত মজিদিয়া ফুলতলী ট্রাস্ট</strong><br />
                       ফুলতলী, জকিগঞ্জ, সিলেট - ৩১৯০<br />
-                      ফোন: +৮৮০১৭১২-৩৪৫৬৭৮ • ইমেইল: info@rihal.app<br />
-                      ওয়েব: attashil.softcredible.com
+                      হেল্পলাইন: +৮৮০১৭১২-৩৪৫৬৭৮ • ওয়েব: attashil.softcredible.com
                     </address>
                   </div>
 
                   <div class="back-qr-box">
-                    <img
-                      v-if="qrCodeDataUrl"
-                      :src="qrCodeDataUrl"
-                      alt="Verification QR Code"
-                      class="qr-code-img"
-                    />
-                    <div v-else class="qr-placeholder">QR</div>
-                    <span class="qr-label">স্ক্যান করে যাচাই করুন</span>
+                    <div class="qr-frame-reticle">
+                      <img
+                        v-if="qrCodeDataUrl"
+                        :src="qrCodeDataUrl"
+                        alt="Verification QR Code"
+                        class="qr-code-img"
+                      />
+                      <div v-else class="qr-placeholder">QR</div>
+                      <div class="reticle-corner top-left"></div>
+                      <div class="reticle-corner top-right"></div>
+                      <div class="reticle-corner bottom-left"></div>
+                      <div class="reticle-corner bottom-right"></div>
+                    </div>
+                    <span class="qr-label">অনলাইনে যাচাই করুন</span>
                   </div>
                 </div>
 
+                <!-- Validity & Security Footer -->
                 <div class="back-validity-footer">
-                  <div class="validity-text">মেয়াদ উত্তীর্ণ: ৩১ ডিসেম্বর, ২০২৬ (VALID THRU: 31-12-2026)</div>
+                  <div class="validity-text">
+                    <span class="val-k">মেয়াদ উত্তীর্ণ:</span>
+                    <strong class="val-v">৩১ ডিসেম্বর, ২০২৬</strong>
+                    <span class="val-en">(VALID THRU: 12/2026)</span>
+                  </div>
                   <div class="back-microprint">
-                    SECURITY ENCRYPTED CREDENTIAL • DARUL QIRAT MAJIDIA FULTALI TRUST • OFFICIAL
+                    ENCRYPTED STUDENT CREDENTIAL • DARUL QIRAT MAJIDIA FULTALI TRUST • SECURE RFID
                   </div>
                 </div>
               </div>
@@ -2441,6 +2494,7 @@ onMounted(() => {
   gap: 0.65rem;
   position: relative;
   z-index: 2;
+  border-bottom: 1px solid #d4af37;
 }
 
 .header-seal-wrap {
@@ -2450,7 +2504,7 @@ onMounted(() => {
 .madrasa-seal-svg {
   width: 44px;
   height: 44px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
 }
 
 .header-titles {
@@ -2460,6 +2514,11 @@ onMounted(() => {
 
 .inst-name-bn {
   margin: 0;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: var(--font-bn);
+  line-height: 1.25;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
@@ -2467,23 +2526,33 @@ onMounted(() => {
   display: block;
   font-size: 7.2px;
   font-weight: 700;
-  color: #a7f3d0;
+  color: #fef08a;
   letter-spacing: 0.8px;
   margin-top: 1px;
 }
 
+.inst-tagline {
+  font-size: 7.5px;
+  color: #d1fae5;
+  font-family: var(--font-bn);
+  margin-top: 1px;
+}
+
 .card-type-ribbon {
-  background: linear-gradient(90deg, #b45309 0%, #d97706 50%, #b45309 100%);
-  color: #ffffff;
+  background: linear-gradient(90deg, #92400e 0%, #d4af37 25%, #fef08a 50%, #d4af37 75%, #92400e 100%);
+  color: #451a03;
   text-align: center;
   font-size: 8.5px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.8px;
-  padding: 2.5px 0;
+  padding: 3px 0;
   font-family: var(--font-bn);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   position: relative;
   z-index: 2;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(146, 64, 14, 0.4);
 }
 
 /* Center Identity & Photo */
@@ -2499,11 +2568,11 @@ onMounted(() => {
 .card-photo-wrapper {
   position: relative;
   width: 90px;
-  height: 106px;
+  height: 108px;
   border-radius: 8px;
   border: 2px solid #d4af37;
   outline: 2px solid #ffffff;
-  box-shadow: 0 6px 14px -3px rgba(6, 78, 59, 0.35);
+  box-shadow: 0 6px 14px -3px rgba(1, 34, 21, 0.35);
   flex-shrink: 0;
   background: #f8fafc;
   overflow: hidden;
@@ -2518,15 +2587,30 @@ onMounted(() => {
 .card-photo-monogram {
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle, #065f46 0%, #043823 100%);
-  color: #fef3c7;
+  background: radial-gradient(circle, #f0fdf4 0%, #dcfce7 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-bn);
-  font-size: 2.75rem;
-  font-weight: 800;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  padding-bottom: 12px;
+
+  .student-avatar-svg {
+    width: 52px;
+    height: 52px;
+    filter: drop-shadow(0 2px 4px rgba(6, 78, 59, 0.2));
+  }
+
+  .monogram-name {
+    font-size: 8.5px;
+    font-weight: 700;
+    color: #064e3b;
+    font-family: var(--font-bn);
+    margin-top: 2px;
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .photo-session-pill {
@@ -2534,14 +2618,15 @@ onMounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(4, 56, 35, 0.9);
-  color: #fef3c7;
+  background: linear-gradient(90deg, #012215 0%, #064e3b 100%);
+  color: #fef08a;
   font-size: 7.5px;
   font-weight: 700;
   text-align: center;
-  padding: 1.5px 0;
+  padding: 2px 0;
   font-family: var(--font-bn);
-  backdrop-filter: blur(2px);
+  letter-spacing: 0.5px;
+  border-top: 1px solid #d4af37;
 }
 
 .card-names-box {
@@ -2549,51 +2634,20 @@ onMounted(() => {
   text-align: left;
 }
 
-.card-student-name-bn {
-  margin: 0;
-  font-size: 15.5px;
-  font-weight: 800;
-  color: #043823;
-  font-family: var(--font-bn);
-  line-height: 1.25;
-}
-
-.card-student-name-en {
-  font-size: 9px;
-  font-weight: 700;
-  color: #64748b;
-  letter-spacing: 0.6px;
-  margin: 2px 0 6px;
-  text-transform: uppercase;
-}
-
-.card-adm-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 2px 7px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 4px;
-  font-size: 9px;
-  font-family: monospace;
-  color: #166534;
-
-  span {
-    color: #64748b;
-    font-size: 8px;
-    font-family: var(--font-bn);
-  }
-}
-
 .card-tech-strip {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
   margin-bottom: 5px;
 
+  .chip-and-nfc {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   .emv-chip-svg {
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
   }
 
   .nfc-waves-svg {
@@ -2601,31 +2655,85 @@ onMounted(() => {
   }
 
   .card-status-badge {
-    font-size: 8px;
+    font-size: 8.5px;
     font-weight: 700;
     color: #065f46;
-    background: #d1fae5;
+    background: #ecfdf5;
     border: 1px solid #a7f3d0;
     border-radius: 99px;
-    padding: 1px 7px;
+    padding: 1.5px 8px;
     font-family: var(--font-bn);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 0 2px #d1fae5;
+    }
   }
 }
 
-/* 2-Column Attributes Table */
-.card-details-grid {
-  margin: 0.2rem 0.85rem 0.5rem;
+.card-student-name-bn {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #012215;
+  font-family: var(--font-bn);
+  line-height: 1.25;
+}
+
+.card-student-name-en {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.8px;
+  margin: 2px 0 6px;
+  text-transform: uppercase;
+}
+
+.card-adm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 2.5px 8px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  font-size: 9px;
+
+  .adm-k {
+    color: #64748b;
+    font-size: 8.5px;
+    font-family: var(--font-bn);
+  }
+
+  .adm-v {
+    color: #043823;
+    font-weight: 800;
+    font-family: monospace;
+  }
+}
+
+/* 2-Column Architectural Attributes Grid */
+.card-details-grid {
+  margin: 0.2rem 0.85rem 0.45rem;
+  background: #fbfdfc;
+  border: 1px solid #e2e8f0;
+  border-top: 2px solid #d4af37;
   border-radius: 8px;
   padding: 0.45rem 0.65rem;
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
-  gap: 0.35rem 0.5rem;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 0.32rem 0.5rem;
   font-size: 9.5px;
   font-family: var(--font-bn);
   position: relative;
   z-index: 2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .grid-detail-item {
@@ -2635,6 +2743,20 @@ onMounted(() => {
 
   &.full {
     grid-column: span 2;
+  }
+
+  &.hotline-item {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-top: 1px;
+
+    .hotline-val {
+      color: #166534;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
   }
 }
 
@@ -2650,26 +2772,46 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
-  &.font-emerald {
-    color: #047857;
-  }
 }
 
-.blood-pill-badge {
-  background: #fee2e2;
-  color: #dc2626;
+.class-pill-badge {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
   padding: 1px 6px;
   border-radius: 3px;
-  border: 1px solid #fca5a5;
+  font-weight: 700;
+  font-size: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roll-pill-badge {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  padding: 1px 7px;
+  border-radius: 3px;
   font-weight: 800;
+  font-family: monospace;
   font-size: 9.5px;
 }
 
-/* Barcode & Security Strip */
+.blood-pill-badge {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid #fecaca;
+  font-weight: 800;
+  font-size: 9px;
+}
+
+/* Barcode, Signature & Hologram Security Strip */
 .card-security-footer {
   margin-top: auto;
-  padding: 0.5rem 0.85rem 0.35rem;
+  padding: 0.45rem 0.85rem 0.35rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2680,7 +2822,7 @@ onMounted(() => {
 }
 
 .footer-barcode-box {
-  width: 135px;
+  width: 130px;
 }
 
 .vector-barcode-svg {
@@ -2693,46 +2835,86 @@ onMounted(() => {
   text-align: center;
 }
 
+.signature-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+}
+
 .signature-cursive-svg {
-  width: 65px;
-  height: 20px;
+  width: 68px;
+  height: 22px;
   display: block;
-  margin: 0 auto;
+}
+
+.signature-stamp-circle {
+  position: absolute;
+  right: -4px;
+  top: -2px;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid #dc2626;
+  border-radius: 50%;
+  color: #dc2626;
+  font-size: 8px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.75;
+  transform: rotate(-12deg);
+  background: rgba(254, 242, 242, 0.4);
 }
 
 .sign-label {
   font-size: 7.5px;
   color: #64748b;
   font-family: var(--font-bn);
-  border-top: 1px solid #94a3b8;
+  border-top: 1px solid #cbd5e1;
   padding-top: 1px;
 }
 
 .hologram-seal-mockup {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: radial-gradient(circle, #fde68a 0%, #d97706 60%, #92400e 100%);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  background: radial-gradient(circle at 35% 35%, #fffbeb 0%, #fef08a 25%, #d4af37 55%, #b45309 85%, #78350f 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), inset 0 0 4px rgba(255, 255, 255, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #ffffff;
-  transform: rotate(-15deg);
+  border: 1px solid #fef08a;
+  transform: rotate(-10deg);
 }
 
 .hologram-inner {
-  font-size: 5.5px;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  color: #ffffff;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+
+  .holo-line1 {
+    font-size: 4.8px;
+    font-weight: 900;
+    color: #78350f;
+    letter-spacing: 0.5px;
+  }
+
+  .holo-line2 {
+    font-size: 4.2px;
+    font-weight: 800;
+    color: #012215;
+    letter-spacing: 0.4px;
+  }
 }
 
 .card-microprint-strip {
-  background: #022c1b;
+  background: #012215;
   color: #a7f3d0;
-  font-size: 6.5px;
+  font-size: 6px;
   font-weight: 700;
   letter-spacing: 0.8px;
   text-align: center;
@@ -2748,10 +2930,40 @@ onMounted(() => {
   flex-direction: column;
 }
 
+.magnetic-stripe-bar {
+  height: 34px;
+  background: linear-gradient(180deg, #111827 0%, #1f2937 45%, #111827 70%, #030712 100%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  margin-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+
+  .mag-stripe-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.07) 50%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .mag-stripe-text {
+    color: rgba(255, 255, 255, 0.22);
+    font-size: 5.5px;
+    font-family: monospace;
+    letter-spacing: 1.2px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
+
 .card-back-header {
-  background: linear-gradient(145deg, #022c1b 0%, #064e3b 100%);
+  background: linear-gradient(145deg, #012215 0%, #064e3b 100%);
   color: #ffffff;
-  padding: 1.4rem 0.85rem 0.55rem;
+  padding: 0.55rem 0.85rem 0.45rem;
   text-align: center;
   border-bottom: 2px solid #d4af37;
   position: relative;
@@ -2760,97 +2972,110 @@ onMounted(() => {
 
 .back-inst-bn {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
-  color: #fef3c7;
+  color: #fef08a;
   font-family: var(--font-bn);
 }
 
 .back-inst-sub {
   margin: 2px 0 0;
-  font-size: 7.5px;
-  color: #a7f3d0;
+  font-size: 7px;
+  color: #d1fae5;
   font-family: var(--font-bn);
 }
 
-/* Emergency Card Box */
+/* Emergency & Medical Alert Card Box */
 .back-emergency-card {
-  margin: 0.65rem 0.85rem 0.35rem;
+  margin: 0.45rem 0.85rem 0.3rem;
   background: #fff1f2;
   border: 1px solid #fecdd3;
-  border-radius: 8px;
-  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  padding: 0.4rem 0.65rem;
   position: relative;
   z-index: 2;
 }
 
-.emergency-header {
-  margin-bottom: 0.25rem;
+.emergency-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
 }
 
 .blood-emergency-badge {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
-  color: #be123c;
+  color: #b91c1c;
   font-family: var(--font-bn);
 }
 
-.emergency-body {
-  font-size: 8.5px;
-  font-family: var(--font-bn);
-  color: #334155;
-  line-height: 1.35;
-}
-
-.emergency-note {
+.emergency-phone-tag {
   font-size: 8px;
-  color: #64748b;
-  margin-bottom: 2px;
-}
+  font-family: var(--font-bn);
+  color: #475569;
 
-.contact-num {
-  margin-bottom: 3px;
   strong {
-    color: #be123c;
+    color: #dc2626;
+    font-family: monospace;
   }
 }
 
-.emergency-address {
-  span {
+.emergency-addr-row {
+  font-size: 7.5px;
+  color: #334155;
+  font-family: var(--font-bn);
+  line-height: 1.3;
+
+  .addr-label {
     color: #64748b;
+    margin-right: 4px;
   }
 }
 
 /* Terms Box */
 .back-terms-box {
-  margin: 0.35rem 0.85rem;
+  margin: 0.3rem 0.85rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  padding: 0.4rem 0.65rem;
   position: relative;
   z-index: 2;
 }
 
 .terms-title {
-  font-size: 9px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 8.5px;
   font-weight: 800;
-  color: #043823;
+  color: #012215;
   font-family: var(--font-bn);
-  margin-bottom: 0.25rem;
+  margin-bottom: 3px;
 }
 
 .terms-list {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 8px;
+  font-size: 7.5px;
   color: #475569;
   font-family: var(--font-bn);
-  line-height: 1.4;
+  line-height: 1.35;
 
   li {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
     margin-bottom: 2px;
+  }
+
+  .term-bullet {
+    color: #d4af37;
+    font-size: 6px;
+    margin-top: 1px;
+    flex-shrink: 0;
   }
 }
 
@@ -2869,40 +3094,85 @@ onMounted(() => {
 }
 
 .return-label {
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 700;
-  color: #043823;
+  color: #012215;
   font-family: var(--font-bn);
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .return-address {
   font-style: normal;
-  font-size: 7.5px;
+  font-size: 7px;
   color: #64748b;
   font-family: var(--font-bn);
   line-height: 1.35;
+
+  strong {
+    color: #043823;
+  }
 }
 
 .back-qr-box {
-  width: 72px;
+  width: 68px;
   display: flex;
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
 }
 
-.qr-code-img {
-  width: 64px;
-  height: 64px;
-  border: 1px solid #e2e8f0;
+.qr-frame-reticle {
+  position: relative;
+  padding: 3px;
+  background: #ffffff;
   border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .reticle-corner {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    pointer-events: none;
+    border-color: #d4af37;
+    border-style: solid;
+
+    &.top-left {
+      top: 0;
+      left: 0;
+      border-width: 1.5px 0 0 1.5px;
+    }
+    &.top-right {
+      top: 0;
+      right: 0;
+      border-width: 1.5px 1.5px 0 0;
+    }
+    &.bottom-left {
+      bottom: 0;
+      left: 0;
+      border-width: 0 0 1.5px 1.5px;
+    }
+    &.bottom-right {
+      bottom: 0;
+      right: 0;
+      border-width: 0 1.5px 1.5px 0;
+    }
+  }
+}
+
+.qr-code-img {
+  width: 52px;
+  height: 52px;
   display: block;
 }
 
 .qr-placeholder {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   background: #f1f5f9;
   border: 1px dashed #cbd5e1;
   display: grid;
@@ -2913,11 +3183,12 @@ onMounted(() => {
 }
 
 .qr-label {
-  font-size: 7px;
+  font-size: 6.8px;
   font-weight: 700;
   color: #043823;
   font-family: var(--font-bn);
   margin-top: 2px;
+  text-align: center;
 }
 
 /* Validity Footer */
@@ -2930,16 +3201,31 @@ onMounted(() => {
 .validity-text {
   text-align: center;
   font-size: 8px;
-  font-weight: 700;
-  color: #043823;
+  color: #012215;
   font-family: var(--font-bn);
   background: #f8fafc;
-  padding: 4px 0;
+  padding: 3px 0;
   border-top: 1px dashed #cbd5e1;
+
+  .val-k {
+    color: #64748b;
+    margin-right: 4px;
+  }
+
+  .val-v {
+    color: #012215;
+    font-weight: 800;
+    margin-right: 4px;
+  }
+
+  .val-en {
+    color: #64748b;
+    font-size: 7px;
+  }
 }
 
 .back-microprint {
-  background: #022c1b;
+  background: #012215;
   color: #a7f3d0;
   font-size: 6px;
   font-weight: 700;
@@ -3198,53 +3484,81 @@ onMounted(() => {
       display: none !important;
     }
 
+    .magnetic-stripe-bar {
+      height: 5.5mm !important;
+      margin-top: 0 !important;
+      padding: 0 2mm !important;
+      .mag-stripe-text {
+        font-size: 3pt !important;
+      }
+    }
+
     .card-front-header {
-      padding: 2.2mm 2mm 1.5mm !important;
+      padding: 1.8mm 2mm 1.2mm !important;
       gap: 1.5mm !important;
       border-bottom: 1px solid #d4af37 !important;
     }
 
     .madrasa-seal-svg {
-      width: 8mm !important;
-      height: 8mm !important;
+      width: 7.5mm !important;
+      height: 7.5mm !important;
     }
 
     .inst-name-bn {
-      font-size: 6.5pt !important;
+      font-size: 6.2pt !important;
       line-height: 1.2 !important;
     }
 
     .inst-name-en {
-      font-size: 3.8pt !important;
+      font-size: 3.5pt !important;
       letter-spacing: 0.2px !important;
     }
 
+    .inst-tagline {
+      font-size: 3.4pt !important;
+    }
+
     .card-type-ribbon {
-      font-size: 4.8pt !important;
-      padding: 0.8mm 0 !important;
+      font-size: 4.4pt !important;
+      padding: 0.6mm 0 !important;
     }
 
     .card-identity-center {
-      padding: 1.8mm 2mm 1mm !important;
-      gap: 1.8mm !important;
+      padding: 1.5mm 2mm 0.8mm !important;
+      gap: 1.6mm !important;
     }
 
     .card-photo-wrapper {
-      width: 17mm !important;
-      height: 21mm !important;
+      width: 16mm !important;
+      height: 20mm !important;
       border-radius: 1.5mm !important;
       border-width: 1px !important;
+    }
+
+    .photo-session-pill {
+      font-size: 3.8pt !important;
+      padding: 0.3mm 0 !important;
+    }
+
+    .card-photo-monogram {
+      .student-avatar-svg {
+        width: 9mm !important;
+        height: 9mm !important;
+      }
+      .monogram-name {
+        font-size: 3.8pt !important;
+      }
     }
 
     .card-tech-strip {
       display: flex !important;
       align-items: center !important;
-      gap: 1.2mm !important;
-      margin-bottom: 0.6mm !important;
+      gap: 1mm !important;
+      margin-bottom: 0.5mm !important;
 
       .emv-chip-svg {
-        width: 6.5mm !important;
-        height: 4.8mm !important;
+        width: 6mm !important;
+        height: 4.5mm !important;
       }
 
       .nfc-waves-svg {
@@ -3252,159 +3566,200 @@ onMounted(() => {
       }
 
       .card-status-badge {
-        font-size: 3.8pt !important;
-        padding: 0.2mm 1mm !important;
+        font-size: 3.6pt !important;
+        padding: 0.2mm 0.8mm !important;
+        .status-dot {
+          width: 1mm !important;
+          height: 1mm !important;
+        }
       }
     }
 
     .card-student-name-bn {
-      font-size: 7.5pt !important;
+      font-size: 7.2pt !important;
       line-height: 1.15 !important;
     }
 
     .card-student-name-en {
-      font-size: 4.5pt !important;
-      margin: 0.5mm 0 !important;
+      font-size: 4.2pt !important;
+      margin: 0.3mm 0 0.6mm !important;
     }
 
     .card-adm-pill {
-      font-size: 4.8pt !important;
-      padding: 0.4mm 1.2mm !important;
-    }
-
-    .photo-session-pill {
-      font-size: 4.2pt !important;
-      padding: 0.4mm 0 !important;
+      font-size: 4.4pt !important;
+      padding: 0.3mm 1mm !important;
+      .adm-k {
+        font-size: 4pt !important;
+      }
     }
 
     .card-details-grid {
-      margin: 1mm 2mm !important;
-      padding: 1mm 1.2mm !important;
-      gap: 0.8mm 1.2mm !important;
-      font-size: 5pt !important;
+      margin: 0.8mm 1.8mm !important;
+      padding: 0.8mm 1mm !important;
+      gap: 0.6mm 1mm !important;
+      font-size: 4.8pt !important;
       border-radius: 1.5mm !important;
     }
 
     .item-k {
-      font-size: 4.8pt !important;
+      font-size: 4.5pt !important;
     }
 
+    .class-pill-badge,
+    .roll-pill-badge,
     .blood-pill-badge {
-      font-size: 4.8pt !important;
-      padding: 0.2mm 1mm !important;
+      font-size: 4.5pt !important;
+      padding: 0.2mm 0.8mm !important;
+    }
+
+    .hotline-item {
+      padding: 0.2mm 0.8mm !important;
+      .hotline-val {
+        font-size: 4.8pt !important;
+      }
     }
 
     .card-security-footer {
-      padding: 1.2mm 2mm 0.8mm !important;
+      padding: 1mm 1.8mm 0.6mm !important;
     }
 
     .footer-barcode-box {
-      width: 26mm !important;
+      width: 25mm !important;
     }
 
     .vector-barcode-svg {
-      height: 6.5mm !important;
+      height: 6mm !important;
     }
 
     .footer-signature-box {
+      .signature-wrap {
+        height: 3.5mm !important;
+      }
       .signature-cursive-svg {
-        width: 12mm !important;
-        height: 4mm !important;
+        width: 11mm !important;
+        height: 3.5mm !important;
+      }
+      .signature-stamp-circle {
+        width: 3.5mm !important;
+        height: 3.5mm !important;
+        font-size: 2.8pt !important;
+        right: -2px !important;
       }
       .sign-label {
-        font-size: 4pt !important;
+        font-size: 3.8pt !important;
       }
     }
 
     .hologram-seal-mockup {
-      width: 6mm !important;
-      height: 6mm !important;
+      width: 5.5mm !important;
+      height: 5.5mm !important;
       .hologram-inner {
-        font-size: 3pt !important;
+        .holo-line1,
+        .holo-line2 {
+          font-size: 2.2pt !important;
+        }
       }
     }
 
     .card-microprint-strip {
-      font-size: 3.5pt !important;
-      padding: 0.6mm 0 !important;
+      font-size: 3.2pt !important;
+      padding: 0.4mm 0 !important;
     }
 
     /* Back side print scaling */
     .card-back-header {
-      padding: 2.2mm 2mm 1.2mm !important;
+      padding: 1.5mm 1.8mm 0.8mm !important;
       .back-inst-bn {
-        font-size: 6pt !important;
+        font-size: 5.8pt !important;
       }
       .back-inst-sub {
-        font-size: 4pt !important;
+        font-size: 3.6pt !important;
       }
     }
 
     .back-emergency-card {
-      margin: 1.2mm 2mm 0.8mm !important;
-      padding: 1mm 1.2mm !important;
+      margin: 0.8mm 1.8mm 0.5mm !important;
+      padding: 0.8mm 1mm !important;
       border-radius: 1.5mm !important;
       .blood-emergency-badge {
-        font-size: 5pt !important;
-      }
-      .emergency-body {
         font-size: 4.5pt !important;
-        line-height: 1.25 !important;
       }
-      .emergency-note {
+      .emergency-phone-tag {
+        font-size: 4.2pt !important;
+      }
+      .emergency-addr-row {
         font-size: 4pt !important;
+        line-height: 1.2 !important;
       }
     }
 
     .back-terms-box {
-      margin: 0.8mm 2mm !important;
-      padding: 1mm 1.2mm !important;
+      margin: 0.5mm 1.8mm !important;
+      padding: 0.8mm 1mm !important;
       border-radius: 1.5mm !important;
       .terms-title {
-        font-size: 5pt !important;
+        font-size: 4.6pt !important;
+        margin-bottom: 0.4mm !important;
       }
       .terms-list {
-        font-size: 4.2pt !important;
-        line-height: 1.25 !important;
+        font-size: 3.8pt !important;
+        line-height: 1.2 !important;
+        li {
+          gap: 0.8mm !important;
+          margin-bottom: 0.3mm !important;
+        }
+        .term-bullet {
+          font-size: 3.2pt !important;
+        }
       }
     }
 
     .back-qr-return-row {
-      margin: 0.8mm 2mm !important;
-      gap: 1.5mm !important;
+      margin: 0.6mm 1.8mm !important;
+      gap: 1.2mm !important;
     }
 
     .return-label {
-      font-size: 4.5pt !important;
+      font-size: 4.2pt !important;
     }
 
     .return-address {
-      font-size: 4pt !important;
-      line-height: 1.25 !important;
+      font-size: 3.6pt !important;
+      line-height: 1.2 !important;
     }
 
     .back-qr-box {
-      width: 14mm !important;
+      width: 13mm !important;
+    }
+
+    .qr-frame-reticle {
+      width: 12mm !important;
+      height: 12mm !important;
+      padding: 0.3mm !important;
+      .reticle-corner {
+        width: 1.2mm !important;
+        height: 1.2mm !important;
+      }
     }
 
     .qr-code-img,
     .qr-placeholder {
-      width: 13mm !important;
-      height: 13mm !important;
+      width: 11mm !important;
+      height: 11mm !important;
     }
 
     .qr-label {
-      font-size: 3.8pt !important;
+      font-size: 3.4pt !important;
     }
 
     .validity-text {
-      font-size: 4.5pt !important;
-      padding: 0.8mm 0 !important;
+      font-size: 4.2pt !important;
+      padding: 0.5mm 0 !important;
     }
 
     .back-microprint {
-      font-size: 3.5pt !important;
-      padding: 0.5mm 0 !important;
+      font-size: 3.2pt !important;
+      padding: 0.4mm 0 !important;
     }
   }
 
