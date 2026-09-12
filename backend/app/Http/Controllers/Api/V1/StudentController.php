@@ -21,20 +21,26 @@ class StudentController extends ApiController
         $perPage = min((int) $request->input('per_page', 15), 100);
 
         $query = Student::where('tenant_id', $user->tenant_id)
-            ->when($request->has('search'), function ($q) use ($request) {
+            ->when($request->filled('search'), function ($q) use ($request) {
                 $search = $request->input('search');
                 $q->where(function ($sq) use ($search) {
                     $sq->where('name_bn', 'like', "%{$search}%")
                         ->orWhere('name_en', 'like', "%{$search}%")
+                        ->orWhere('admission_number', 'like', "%{$search}%")
+                        ->orWhere('father_name', 'like', "%{$search}%")
+                        ->orWhere('mother_name', 'like', "%{$search}%")
                         ->orWhereHas('user', fn($u) => $u->where('name_bn', 'like', "%{$search}%")
                             ->orWhere('name_en', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%"))
-                        ->orWhere('roll_number', 'like', "%{$search}%")
-                        ->orWhere('admission_number', 'like', "%{$search}%");
+                            ->orWhere('email', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%"));
                 });
             })
-            ->when($request->has('class_id'), fn($q) => $q->whereHas('enrollments', fn($e) => $e->where('class_id', $request->input('class_id'))))
-            ->when($request->has('is_active'), fn($q) => $q->where('is_active', filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN)))
+            ->when($request->filled('class_id'), fn($q) => $q->whereHas('enrollments', fn($e) => $e->where('class_id', $request->input('class_id'))))
+            ->when($request->filled('status'), fn($q) => $q->where('status', $request->input('status')))
+            ->when($request->filled('is_active'), function ($q) use ($request) {
+                $isActive = filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN);
+                $q->where('status', $isActive ? 'active' : 'inactive');
+            })
             ->with(['user', 'enrollments.class'])
             ->orderBy('created_at', 'desc');
 
@@ -126,7 +132,6 @@ class StudentController extends ApiController
                 'name_en' => $nameEn,
                 'email' => $data['email'] ?? null,
                 'admission_number' => $data['admission_number'] ?? ('ADM-' . date('Y') . '-' . rand(1000, 9999)),
-                'roll_number' => $data['roll_number'] ?? null,
                 'date_of_birth' => $data['date_of_birth'] ?? null,
                 'gender' => $data['gender'] ?? null,
                 'blood_group' => $data['blood_group'] ?? null,
@@ -135,9 +140,8 @@ class StudentController extends ApiController
                 'guardian_name' => $data['guardian_name'] ?? null,
                 'address_bn' => $data['address_bn'] ?? null,
                 'guardian_id' => $data['guardian_id'] ?? null,
-                'status' => 'active',
+                'status' => isset($data['is_active']) ? ($data['is_active'] ? 'active' : 'inactive') : 'active',
                 'admission_date' => now(),
-                'is_active' => $data['is_active'] ?? true,
             ];
 
             $student = Student::create($studentData);
@@ -202,7 +206,17 @@ class StudentController extends ApiController
 
         $data = $validator->validated();
 
-        $student->update($data);
+        $studentPayload = $data;
+        if (isset($studentPayload['is_active'])) {
+            $studentPayload['status'] = $studentPayload['is_active'] ? 'active' : 'inactive';
+            unset($studentPayload['is_active']);
+        }
+        unset($studentPayload['roll_number']);
+        unset($studentPayload['phone']);
+        unset($studentPayload['class_id']);
+        unset($studentPayload['section_id']);
+
+        $student->update($studentPayload);
 
         // Sync name/email with associated user if provided
         if ($student->user) {
