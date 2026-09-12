@@ -70,9 +70,14 @@ Route::prefix('v1')->group(function () {
         $hasStaff = \Illuminate\Support\Facades\Schema::hasTable('staff');
 
         $artisanOutput = null;
+        $artisanError = null;
         if (!$hasProperties || !$hasLeave || !$hasStaff) {
-            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-            $artisanOutput = \Illuminate\Support\Facades\Artisan::output();
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                $artisanOutput = \Illuminate\Support\Facades\Artisan::output();
+            } catch (\Throwable $migEx) {
+                $artisanError = $migEx->getMessage();
+            }
         }
 
         $propError = null;
@@ -108,6 +113,7 @@ Route::prefix('v1')->group(function () {
                 'staff' => \Illuminate\Support\Facades\Schema::hasTable('staff'),
             ],
             'artisan_output' => $artisanOutput,
+            'artisan_error' => $artisanError,
             'errors' => [
                 'property' => $propError,
                 'leave' => $leaveError,
