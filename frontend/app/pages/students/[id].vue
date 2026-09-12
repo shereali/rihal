@@ -909,9 +909,7 @@
 </ClientOnly>
 
     <!-- Dedicated Print Sheet for PVC / Paper Card Printing (Shown ONLY during window.print) -->
-    <ClientOnly>
-      <Teleport to="body">
-        <div id="dedicated-print-sheet" class="print-only-sheet id-card-cr80-print-sheet">
+    <div id="dedicated-print-sheet" class="print-only-sheet id-card-cr80-print-sheet">
       <div class="print-meta-header">
         <div class="print-inst-name">দারুল ক্বিরাত মজিদিয়া ফুলতলী ট্রাস্ট</div>
         <div class="print-doc-sub">অফিসিয়াল শিক্ষার্থী ডিজিটাল পরিচয়পত্র (CR-80 PVC Badge Print Layout)</div>
@@ -1123,8 +1121,6 @@
         <p>• কার্ড সাইজ: ISO/IEC 7810 ID-1 (CR-80: 85.60 × 53.98 মিমি) • সফটওয়্যার: রিহাল মাদরাসা ম্যানেজমেন্ট সিস্টেম (rihal.app)</p>
       </div>
     </div>
-  </Teleport>
-</ClientOnly>
 
     <!-- Delete Confirmation Modal -->
     <ClientOnly>
@@ -2901,19 +2897,28 @@ onMounted(() => {
     visibility: hidden !important;
   }
 
-  /* Hide all screen elements and the entire Nuxt application */
-  #__nuxt,
-  .default-layout,
+  /* Hide profile page content and chrome */
+  .page-wrapper,
   .sidebar,
   .topbar,
-  .layout-main,
-  .layout-content,
-  .page-wrapper,
+  .sidebar-backdrop,
+  .ai-float-btn,
+  .ai-float-overlay,
   .id-card-modal-overlay,
   .modal-overlay,
   .no-print {
     display: none !important;
     visibility: hidden !important;
+  }
+
+  .default-layout,
+  .layout-main,
+  .layout-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
   }
 
   /* Show only the dedicated print sheet */
@@ -2928,9 +2933,9 @@ onMounted(() => {
     top: 0 !important;
     left: 0 !important;
     width: 100% !important;
-    max-width: 190mm !important;
+    max-width: 210mm !important;
     margin: 0 auto !important;
-    padding: 0 !important;
+    padding: 6mm 10mm !important;
     background: #ffffff !important;
     z-index: 9999999 !important;
   }
