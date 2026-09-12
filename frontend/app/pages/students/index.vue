@@ -3,7 +3,7 @@
     <div class="page-header">
       <div class="header-left">
         <h1>ছাত্র তালিকা</h1>
-        <p class="text-muted">{{ students?.data?.meta?.total || 0 }} জন ছাত্র</p>
+        <p class="text-muted">{{ totalStudents }} জন ছাত্র</p>
       </div>
       <div class="header-actions">
         <NuxtLink to="/enrollments/create" class="btn btn-outline">নতুন ভর্তি</NuxtLink>
@@ -63,8 +63,8 @@
                   <span class="text-muted" v-else>-</span>
                 </td>
                 <td>
-                  <span class="badge" :class="getClassBadge(student.enrollments?.[0]?.class?.name_bn || student.class?.name_bn || student.class_name || 'unknown')">
-                    {{ student.enrollments?.[0]?.class?.name_bn || student.class?.name_bn || student.class_name }}
+                  <span class="badge" :class="getClassBadge(student.enrollments?.[0]?.class?.name_bn || student.enrollments?.[0]?.class?.name_en || student.class?.name_bn || student.class_name || 'unknown')">
+                    {{ student.enrollments?.[0]?.class?.name_bn || student.enrollments?.[0]?.class?.name_en || student.class?.name_bn || student.class_name || '—' }}
                   </span>
                 </td>
                 <td>
@@ -93,9 +93,9 @@
           </table>
         </div>
 
-        <div v-if="students?.data?.meta && students.data.meta.total > students.data.per_page" class="pagination-wrapper">
+        <div v-if="totalPages > 1" class="pagination-wrapper">
           <div class="pagination">
-            <button v-for="page in totalPages" :key="page" :class="['page-btn', { active: page === students?.data?.current_page }]" @click="goToPage(page)">
+            <button v-for="page in totalPages" :key="page" :class="['page-btn', { active: page === currentPage }]" @click="goToPage(page)">
               {{ page }}
             </button>
           </div>
@@ -106,7 +106,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useApiClient } from '~/utils/api'
 
 const api = useApiClient()
@@ -116,6 +116,10 @@ const students = ref<any>(null)
 const totalPages = ref(1)
 const currentPage = ref(1)
 
+const totalStudents = computed(() => {
+  return students.value?.data?.total ?? students.value?.data?.meta?.total ?? students.value?.total ?? 0
+})
+
 async function loadStudents(page = 1) {
   loading.value = true
   loadError.value = ''
@@ -123,7 +127,7 @@ async function loadStudents(page = 1) {
     const res = await api.get(`/students?page=${page}&per_page=20`)
     students.value = res.data
     currentPage.value = page
-    totalPages.value = res.data.meta?.last_page || 1
+    totalPages.value = res.data?.data?.last_page || res.data?.last_page || res.data?.meta?.last_page || 1
   } catch (error: any) {
     students.value = null
     loadError.value = error?.code === 'ECONNABORTED'

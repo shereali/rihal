@@ -38,4 +38,9 @@ class AcademicClass extends Model
     {
         return $this->belongsTo(Tenant::class);
     }
+
+    public function promotions(): HasMany
+    {
+        return $this->hasMany(Promotion::class, 'from_class_id');
+    }
 }

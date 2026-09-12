@@ -31,7 +31,9 @@ class EnrollmentController extends ApiController
                         ->orWhereHas('student', function ($u) use ($search) {
                             $u->where('name_bn', 'like', "%{$search}%")
                                 ->orWhere('name_en', 'like', "%{$search}%")
-                                ->orWhere('phone', 'like', "%{$search}%");
+                                ->orWhere('father_phone', 'like', "%{$search}%")
+                                ->orWhere('guardian_phone', 'like', "%{$search}%")
+                                ->orWhereHas('user', fn($uq) => $uq->where('phone', 'like', "%{$search}%"));
                         });
                 });
             })
@@ -50,10 +52,7 @@ class EnrollmentController extends ApiController
             ->when($request->filled('session_id'), fn($q) => $q->where('session_id', $request->input('session_id')))
             ->when($request->filled('status'), fn($q) => $q->where('status', $request->input('status')))
             ->when($request->filled('is_active'), fn($q) => $q->where('is_active', filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN)))
-            ->with('student:id,name_bn,name_en,phone')
-            ->with('class:id,name_bn,name_en')
-            ->with('section:id,name_bn,name_en')
-            ->with('session:id,name_bn,name_en')
+            ->with(['student' => fn($q) => $q->with('user:id,phone'), 'class:id,name_bn,name_en', 'section:id,name_bn,name_en', 'session:id,name_bn,name_en'])
             ->orderBy('enrollment_date', 'desc');
 
             $enrollments = $query->paginate($perPage);
@@ -93,7 +92,7 @@ class EnrollmentController extends ApiController
             'section_id' => 'nullable|integer',
             'enrollment_date' => 'nullable|date',
             'enrollment_number' => 'nullable|string|max:50',
-            'status' => 'nullable|in:active,pending,completed,transferred,dropped',
+            'status' => 'nullable|in:active,pending,completed,transferred,dropped,rejected,approved,enrolled',
             'admission_type' => 'nullable|in:regular,transfer,religious,special',
             'previous_school' => 'nullable|string|max:255',
             'previous_board' => 'nullable|string|max:100',
@@ -149,7 +148,7 @@ class EnrollmentController extends ApiController
             'session_id' => 'nullable|integer',
             'section_id' => 'nullable|integer',
             'enrollment_date' => 'nullable|date',
-            'status' => 'nullable|in:active,pending,completed,transferred,dropped',
+            'status' => 'nullable|in:active,pending,completed,transferred,dropped,rejected,approved,enrolled',
             'admission_type' => 'nullable|in:regular,transfer,religious,special',
             'previous_school' => 'nullable|string|max:255',
             'previous_board' => 'nullable|string|max:100',

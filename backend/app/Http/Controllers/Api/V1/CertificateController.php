@@ -16,7 +16,9 @@ class CertificateController extends Controller
     public function templates(Request $request)
     {
         try {
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $query = CertificateTemplate::with(['classRelation', 'subjectRelation'])
+                ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
                 ->when($request->search, fn($q, $s) => $q->where('title', 'like', "%{$s}%"))
                 ->when($request->type, fn($q, $t) => $q->where('template_type', $t))
                 ->when($request->class_id, fn($q, $c) => $q->where('class_id', $c))
@@ -37,6 +39,7 @@ class CertificateController extends Controller
     public function storeTemplate(Request $request)
     {
         try {
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $validated = $request->validate([
                 'title'          => 'required|string|max:150',
                 'template_type'  => 'required|in:annual,transfer,sanction,conduct,others',
@@ -46,7 +49,7 @@ class CertificateController extends Controller
                 'is_active'      => 'boolean',
             ]);
             $template = CertificateTemplate::create(array_merge($validated, [
-                'tenant_id' => tenant('id'),
+                'tenant_id' => $tenantId,
                 'issued_by' => auth()->id(),
             ]));
             return response()->json(['status' => 201, 'message' => 'টেমপলেট তৈরি করা হয়েছে', 'data' => $template], 201);
@@ -88,13 +91,30 @@ class CertificateController extends Controller
         }
     }
 
+    public function store(Request $request)
+    {
+        return $this->storeTemplate($request);
+    }
+
+    public function update(Request $request, $id)
+    {
+        return $this->updateTemplate($request, $id);
+    }
+
+    public function destroy($id)
+    {
+        return $this->destroyTemplate($id);
+    }
+
     public function issueList(Request $request)
     {
         try {
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $query = IssuedCertificate::with(['templateRelation', 'studentRelation', 'classRelation', 'subjectRelation'])
+                ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
                 ->when($request->student_id, fn($q, $s) => $q->where('student_id', $s))
                 ->when($request->class_id, fn($q, $c) => $q->where('class_id', $c))
-                ->when($request->search, fn($q, $s) => $q->whereHas('studentRelation', fn($sq) => $sq->where('name', 'like', "%{$s}%")))
+                ->when($request->search, fn($q, $s) => $q->whereHas('studentRelation', fn($sq) => $sq->where('name_bn', 'like', "%{$s}%")->orWhere('name_en', 'like', "%{$s}%")->orWhere('admission_number', 'like', "%{$s}%")))
                 ->orderBy('issue_date', 'desc')
                 ->paginate($request->per_page ?? 15);
 
@@ -111,9 +131,11 @@ class CertificateController extends Controller
     public function issueCertificate(Request $request)
     {
         try {
+            $user = $request->user();
+            $tenantId = $user?->tenant_id ?? auth()->user()?->tenant_id;
             $validated = $request->validate([
                 'template_id'    => 'required|integer|exists:certificate_templates,id',
-                'student_id'     => 'required|integer|exists:students,id,tenant_id,' . tenant('id'),
+                'student_id'     => 'required|integer|exists:students,id' . ($tenantId ? ',tenant_id,' . $tenantId : ''),
                 'class_id'       => 'nullable|integer|exists:academic_classes,id',
                 'subject_id'     => 'nullable|integer|exists:academic_subjects,id',
                 'issue_date'     => 'required|date',
@@ -121,9 +143,11 @@ class CertificateController extends Controller
                 'remarks'        => 'nullable|string|max:300',
             ]);
 
+            $tenantSlug = $user?->tenant?->slug ?? 'RIHAL';
+            $nextId = (IssuedCertificate::max('id') ?? 0) + 1;
             $cert = IssuedCertificate::create(array_merge($validated, [
-                'tenant_id' => tenant('id'),
-                'certificate_number' => 'CERT-' . strtoupper(tenant('slug') ?? 'RIHAL') . '-' . date('Y') . '-' . str_pad(IssuedCertificate::max('id') + 1, 4, '0', STR_PAD_LEFT),
+                'tenant_id' => $tenantId,
+                'certificate_number' => 'CERT-' . strtoupper($tenantSlug) . '-' . date('Y') . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT),
             ]));
 
             return response()->json([
@@ -161,7 +185,9 @@ class CertificateController extends Controller
     public function markList(Request $request)
     {
         try {
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $query = CertificateMark::with(['templateRelation', 'studentRelation', 'classRelation', 'subjectRelation'])
+                ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
                 ->when($request->template_id, fn($q, $t) => $q->where('template_id', $t))
                 ->when($request->student_id, fn($q, $s) => $q->where('student_id', $s))
                 ->when($request->class_id, fn($q, $c) => $q->where('class_id', $c))
@@ -177,9 +203,10 @@ class CertificateController extends Controller
     public function storeMark(Request $request)
     {
         try {
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $validated = $request->validate([
                 'template_id'    => 'required|integer|exists:certificate_templates,id',
-                'student_id'     => 'required|integer|exists:students,id,tenant_id,' . tenant('id'),
+                'student_id'     => 'required|integer|exists:students,id' . ($tenantId ? ',tenant_id,' . $tenantId : ''),
                 'class_id'       => 'nullable|integer|exists:academic_classes,id',
                 'subject_id'     => 'nullable|integer|exists:academic_subjects,id',
                 'mark_obtained'  => 'required|integer|min:0',
@@ -188,7 +215,7 @@ class CertificateController extends Controller
                 'grade'          => 'nullable|string|max:10',
                 'remark'         => 'nullable|string|max:200',
             ]);
-            $mark = CertificateMark::create(array_merge($validated, ['tenant_id' => tenant('id')]));
+            $mark = CertificateMark::create(array_merge($validated, ['tenant_id' => $tenantId]));
             return response()->json(['status' => 201, 'message' => 'মার্ক যোগ করা হয়েছে', 'data' => $mark], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['status' => 422, 'message' => 'বৈধতা ত্রুটি', 'errors' => $e->errors()], 422);
@@ -210,9 +237,11 @@ class CertificateController extends Controller
     public function syllabusList(Request $request)
     {
         try {
-            $subjects = AcademicSubject::when($request->class_id, fn($q, $c) => $q->whereHas('classes', fn($qc) => $qc->where('academic_classes.id', $c)))
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
+            $subjects = AcademicSubject::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+                ->when($request->class_id, fn($q, $c) => $q->where('class_id', $c)->orWhereHas('classes', fn($qc) => $qc->where('academic_classes.id', $c)))
                 ->with('classes')
-                ->orderBy('name')
+                ->orderBy('name_bn')
                 ->get();
             return response()->json(['status' => 200, 'message' => 'পাঠ্যক্রম তালিকা পাওয়া গেছে', 'data' => $subjects], 200);
         } catch (\Exception $e) {
@@ -223,9 +252,11 @@ class CertificateController extends Controller
     public function bookList(Request $request)
     {
         try {
-            $subjects = AcademicSubject::with('books')
-                ->when($request->class_id, fn($q, $c) => $q->whereHas('classes', fn($qc) => $qc->where('academic_classes.id', $c)))
-                ->orderBy('name')
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
+            $subjects = AcademicSubject::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+                ->when($request->class_id, fn($q, $c) => $q->where('class_id', $c)->orWhereHas('classes', fn($qc) => $qc->where('academic_classes.id', $c)))
+                ->with('classes')
+                ->orderBy('name_bn')
                 ->get();
             return response()->json(['status' => 200, 'message' => 'বই তালিকা পাওয়া গেছে', 'data' => $subjects], 200);
         } catch (\Exception $e) {

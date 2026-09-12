@@ -72,8 +72,8 @@
             <tr v-for="t in templates.data" :key="t.id">
               <td><strong>{{ t.title }}</strong></td>
               <td><span class="badge badge-blue">{{ formatTemplateType(t.template_type) }}</span></td>
-              <td>{{ t.classRelation?.name || '—' }}</td>
-              <td>{{ t.subjectRelation?.name || '—' }}</td>
+              <td>{{ t.classRelation?.name_bn || t.classRelation?.name_en || t.classRelation?.name || '—' }}</td>
+              <td>{{ t.subjectRelation?.name_bn || t.subjectRelation?.name_en || t.subjectRelation?.name || '—' }}</td>
               <td>
                 <span :class="`status-switch ${t.is_active ? 'on' : 'off'}`">
                   {{ t.is_active ? 'হ্যাঁ' : 'না' }}
@@ -148,9 +148,9 @@
           <tbody>
             <tr v-for="c in issuedCerts.data" :key="c.id">
               <td><code class="mono">{{ c.certificate_number }}</code></td>
-              <td><strong>{{ c.studentRelation?.name?.trim() || 'অজানা' }}</strong></td>
+              <td><strong>{{ c.studentRelation?.name_bn || c.studentRelation?.name_en || c.studentRelation?.name?.trim() || 'অজানা' }}</strong></td>
               <td><code class="mono">{{ c.student_id }}</code></td>
-              <td>{{ c.classRelation?.name || '—' }}</td>
+              <td>{{ c.classRelation?.name_bn || c.classRelation?.name_en || c.classRelation?.name || '—' }}</td>
               <td>{{ c.templateRelation?.title || '—' }}</td>
               <td>{{ formatDate(c.issue_date) }}</td>
               <td class="actions-cell">
@@ -186,13 +186,13 @@
         <div class="syllabus-list">
           <div v-for="sub in subjects" :key="sub.id" class="syllabus-item">
             <div class="syllabus-header">
-              <strong>{{ sub.name }}</strong>
+              <strong>{{ sub.name_bn || sub.name_en || sub.name }}</strong>
               <span class="code-badge">{{ sub.code || '—' }}</span>
             </div>
             <div class="syllabus-body">
               <div class="syllabus-row">
                 <span class="label">শ্রেণি</span>
-                <span class="value">{{ sub.classes?.map(c => c.name).join(', ') || '—' }}</span>
+                <span class="value">{{ Array.isArray(sub.classes) ? (sub.classes.map(c => c.name_bn || c.name_en || c.name).join(', ') || '—') : (sub.classes?.name_bn || sub.classes?.name_en || sub.classes?.name || '—') }}</span>
               </div>
             </div>
           </div>
@@ -287,7 +287,7 @@
               <select v-model="issueForm.student_id" class="form-select">
                 <option value="">শিক্ষার্থী নির্বাচন করুন</option>
                 <option v-for="s in studentOptions" :key="s.id" :value="s.id">
-                  {{ s.name }} ({{ s.roll_no }}) — {{ s.class?.name }}
+                  {{ s.name }} ({{ s.roll_no }}) — {{ s.class?.name_bn || s.class?.name_en || s.class?.name || s.class || '' }}
                 </option>
               </select>
             </div>
@@ -352,8 +352,8 @@
         <div class="modal-body">
           <dl class="info-list">
             <div class="info-row"><dt>সার্টিফিকেট নং</dt><dd><code class="mono">{{ viewIssueData?.certificate_number }}</code></dd></div>
-            <div class="info-row"><dt>শিক্ষার্থী</dt><dd>{{ viewIssueData?.studentRelation?.name }}</dd></div>
-            <div class="info-row"><dt>শ্রেণি</dt><dd>{{ viewIssueData?.classRelation?.name }}</dd></div>
+            <div class="info-row"><dt>শিক্ষার্থী</dt><dd>{{ viewIssueData?.studentRelation?.name_bn || viewIssueData?.studentRelation?.name_en || viewIssueData?.studentRelation?.name || '—' }}</dd></div>
+            <div class="info-row"><dt>শ্রেণি</dt><dd>{{ viewIssueData?.classRelation?.name_bn || viewIssueData?.classRelation?.name_en || viewIssueData?.classRelation?.name || '—' }}</dd></div>
             <div class="info-row"><dt>টেমপলেট</dt><dd>{{ viewIssueData?.templateRelation?.title }}</dd></div>
             <div class="info-row"><dt>প্রকাশের তারিখ</dt><dd>{{ viewIssueData?.issue_date ? formatDate(viewIssueData.issue_date) : '—' }}</dd></div>
             <div class="info-row"><dt>অনুমোদনকারী</dt><dd>{{ viewIssueData?.authorized_by || '—' }}</dd></div>
@@ -414,15 +414,16 @@ let issueTimeout: any = null
 async function fetchClasses() {
   try {
     const res = await api.get('/academic/classes?per_page=100').catch(() => null)
-    classOptions.value = (res?.data?.data || []).map((c: any) => ({ id: c.id, name: c.name }))
+    const list = res?.data?.data?.data || res?.data?.data || []
+    classOptions.value = list.map((c: any) => ({ id: c.id, name: c.name_bn || c.name_en || c.name }))
   } catch (err) { console.error(err) }
 }
 
 async function fetchSubjects() {
   try {
     const res = await api.get('/certificates/syllabus').catch(() => null)
-    const list = res?.data || []
-    subjectOptions.value = list.map((s: any) => ({ id: s.id, name: s.name, code: s.code }))
+    const list = res?.data?.data || res?.data || []
+    subjectOptions.value = list.map((s: any) => ({ id: s.id, name: s.name_bn || s.name_en || s.name, code: s.code }))
     subjects.value = list
   } catch (err) { console.error(err) }
 }
@@ -438,7 +439,7 @@ async function fetchTemplates(page = 1) {
       ...(templateClassFilter.value ? { class_id: templateClassFilter.value } : {})
     })
     const res = await api.get(`/certificate-templates?${params}`).catch(() => null)
-    templates.value = res?.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
+    templates.value = res?.data?.data || res?.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
     templateOptions.value = (templates.value.data || []).map((t: any) => ({ id: t.id, title: t.title }))
   } catch (err) { console.error(err) }
   finally { templateLoading.value = false }
@@ -454,7 +455,7 @@ async function fetchIssueCerts(page = 1) {
       ...(issueClassFilter.value ? { class_id: issueClassFilter.value } : {})
     })
     const res = await api.get(`/certificates?${params}`).catch(() => null)
-    issuedCerts.value = res?.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
+    issuedCerts.value = res?.data?.data || res?.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
   } catch (err) { console.error(err) }
   finally { issueLoading.value = false }
 }

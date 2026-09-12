@@ -106,25 +106,35 @@ const registerData = ref<any[]>([
   }
 ])
 
+function formatDateBn(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—'
+  try {
+    return new Date(dateStr).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' })
+  } catch {
+    return dateStr
+  }
+}
+
 async function loadStudents() {
   try {
-    const res = await api.get('/students?per_page=50').catch(() => null)
+    const res = await api.get('/students?per_page=100').catch(() => null)
     const studs = res?.data?.data?.data || res?.data?.data || []
     if (studs.length > 0) {
       registerData.value = studs.map((s: any) => ({
         id: s.id,
-        admission_no: s.admission_number || `ADM-2026-${String(s.id).padStart(3, '0')}`,
-        admission_date: s.admission_date || '০১ জানু, ২০২৬',
+        admission_no: s.admission_number || `ADM-${s.id}`,
+        admission_date: s.admission_date ? formatDateBn(s.admission_date) : '—',
+        raw_admission_date: s.admission_date || '',
         name: s.name_bn || s.name_en || 'শিক্ষার্থী',
         father_name: s.father_name_bn || s.father_name || '—',
-        father_occupation: s.father_occupation || 'ব্যবসায়ী',
+        father_occupation: s.father_occupation || s.father_occupation_bn || '—',
         mother_name: s.mother_name || '—',
-        village: s.present_address || 'গোপালগঞ্জ',
-        post: s.present_address || 'গোপালগঞ্জ',
-        district: 'গোপালগঞ্জ',
-        dob: s.date_of_birth || '১২ মার্চ, ২০১২',
-        blood_group: s.blood_group || 'B+',
-        enrolled_class: s.academic_class?.name || 'হিফজ'
+        village: s.address_bn || s.present_address || '—',
+        post: s.post_office || '—',
+        district: s.district || '—',
+        dob: s.date_of_birth ? formatDateBn(s.date_of_birth) : '—',
+        blood_group: s.blood_group || '',
+        enrolled_class: s.enrollments?.[0]?.class?.name_bn || s.enrollments?.[0]?.class?.name_en || s.academic_class?.name_bn || s.academic_class?.name || s.class_name || '—'
       }))
     }
   } catch (e) {
@@ -135,7 +145,12 @@ async function loadStudents() {
 const filteredStudents = computed(() => {
   return registerData.value.filter(st => {
     const term = (st.admission_no + ' ' + st.name + ' ' + st.village + ' ' + st.district).toLowerCase()
-    return !search.value || term.includes(search.value.toLowerCase())
+    const matchesSearch = !search.value || term.includes(search.value.toLowerCase())
+    const matchesYear = !yearFilter.value ||
+      (st.raw_admission_date && String(st.raw_admission_date).includes(yearFilter.value)) ||
+      (st.admission_date && String(st.admission_date).includes(yearFilter.value)) ||
+      (st.admission_no && String(st.admission_no).includes(yearFilter.value))
+    return matchesSearch && matchesYear
   })
 })
 

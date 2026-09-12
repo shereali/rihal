@@ -61,13 +61,13 @@
           <tbody>
             <tr v-for="p in promotions.data" :key="p.id">
               <td>
-                <strong>{{ p.student?.name?.trim() || 'অজানা' }}</strong>
-                <br /><span class="text-muted text-sm">{{ p.student?.roll_no || '—' }}</span>
+                <strong>{{ p.student?.name_bn || p.student?.name_en || p.student?.name?.trim() || 'অজানা' }}</strong>
+                <br /><span class="text-muted text-sm">{{ p.student?.roll_number || p.student?.roll_no || '—' }}</span>
               </td>
               <td><code class="mono">{{ p.student_id }}</code></td>
-              <td>{{ p.fromClass?.name || '—' }}</td>
+              <td>{{ p.fromClass?.name_bn || p.fromClass?.name_en || p.fromClass?.name || '—' }}</td>
               <td>
-                <span class="badge badge-green">{{ p.toClass?.name || '—' }}</span>
+                <span class="badge badge-green">{{ p.toClass?.name_bn || p.toClass?.name_en || p.toClass?.name || '—' }}</span>
               </td>
               <td>{{ p.academic_year }}</td>
               <td>{{ formatDate(p.promotion_date) }}</td>
@@ -325,7 +325,7 @@ async function fetchPromotions(page = 1) {
       ...(classFilter.value ? { class_id: classFilter.value } : {})
     })
     const res = await api.get(`/promotions?${params}`).catch(() => null)
-    promotions.value = res?.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
+    promotions.value = res?.data?.data || res?.data || { data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null }
   } catch (err) { console.error('Fetch promotions failed:', err) }
   finally { loading.value = false }
 }
@@ -336,7 +336,8 @@ async function fetchClasses() {
       api.get('/academic/classes?per_page=100').catch(() => null),
       api.get('/students?per_page=100').catch(() => null)
     ])
-    classOptions.value = (classRes?.data?.data || []).map((c: any) => ({ id: c.id, name: c.name }))
+    const classList = classRes?.data?.data?.data || classRes?.data?.data || []
+    classOptions.value = classList.map((c: any) => ({ id: c.id, name: c.name_bn || c.name_en || c.name }))
     studentOptions.value = (studentRes?.data?.data?.data || studentRes?.data?.data || []).map((s: any) => ({
       id: s.id,
       name: s.name_bn || s.name_en,

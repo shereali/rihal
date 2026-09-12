@@ -402,24 +402,28 @@ Route::prefix('v1')->group(function () {
         // ─── Promotions ──────────────────────────────────────────────────────
         Route::get('/promotions', [PromotionController::class, 'index']);
         Route::post('/promotions', [PromotionController::class, 'store']);
-        Route::get('/promotions/{id}', [PromotionController::class, 'show']);
-        Route::put('/promotions/{id}/approve', [PromotionController::class, 'approve']);
-        Route::delete('/promotions/{id}', [PromotionController::class, 'destroy']);
+        Route::post('/promotions/bulk', [PromotionController::class, 'bulkPromote']);
+        Route::post('/promotions/bulk-promote', [PromotionController::class, 'bulkPromote']);
+        Route::get('/promotions/class-wise', [PromotionController::class, 'classWise']);
+        Route::get('/promotions/{id}', [PromotionController::class, 'show'])->whereNumber('id');
+        Route::put('/promotions/{id}', [PromotionController::class, 'update'])->whereNumber('id');
+        Route::put('/promotions/{id}/approve', [PromotionController::class, 'approve'])->whereNumber('id');
+        Route::delete('/promotions/{id}', [PromotionController::class, 'destroy'])->whereNumber('id');
 
         // ─── Certificate Templates & Issuance ────────────────────────────────
         Route::get('/certificate-templates', [CertificateController::class, 'templates']);
-        Route::post('/certificate-templates', [CertificateController::class, 'store']);
-        Route::put('/certificate-templates/{id}', [CertificateController::class, 'update']);
-        Route::delete('/certificate-templates/{id}', [CertificateController::class, 'destroy']);
-        Route::get('/certificates', [CertificateController::class, 'issueList']);
-        Route::post('/certificates', [CertificateController::class, 'issueCertificate']);
-        Route::get('/certificates/{id}', [CertificateController::class, 'issueDetails']);
-        Route::delete('/certificates/{id}', [CertificateController::class, 'destroyIssue']);
+        Route::post('/certificate-templates', [CertificateController::class, 'storeTemplate']);
+        Route::put('/certificate-templates/{id}', [CertificateController::class, 'updateTemplate'])->whereNumber('id');
+        Route::delete('/certificate-templates/{id}', [CertificateController::class, 'destroyTemplate'])->whereNumber('id');
         Route::get('/certificates/marks', [CertificateController::class, 'markList']);
         Route::post('/certificates/marks', [CertificateController::class, 'storeMark']);
-        Route::delete('/certificates/marks/{id}', [CertificateController::class, 'destroyMark']);
+        Route::delete('/certificates/marks/{id}', [CertificateController::class, 'destroyMark'])->whereNumber('id');
         Route::get('/certificates/syllabus', [CertificateController::class, 'syllabusList']);
         Route::get('/certificates/books', [CertificateController::class, 'bookList']);
+        Route::get('/certificates', [CertificateController::class, 'issueList']);
+        Route::post('/certificates', [CertificateController::class, 'issueCertificate']);
+        Route::get('/certificates/{id}', [CertificateController::class, 'issueDetails'])->whereNumber('id');
+        Route::delete('/certificates/{id}', [CertificateController::class, 'destroyIssue'])->whereNumber('id');
         Route::get('/reminder-tasks', [ReminderTaskController::class, 'index']);
         Route::post('/reminder-tasks', [ReminderTaskController::class, 'store']);
         Route::get('/reminder-tasks/{id}', [ReminderTaskController::class, 'show']);

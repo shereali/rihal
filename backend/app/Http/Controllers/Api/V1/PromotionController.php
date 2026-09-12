@@ -14,10 +14,13 @@ class PromotionController extends Controller
     public function index(Request $request)
     {
         try {
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $query = Promotion::with(['student', 'fromClass', 'toClass'])
+                ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
                 ->when($request->search, function ($q, $search) {
-                    $q->whereHas('student', fn($sq) => $sq->where('name', 'like', "%{$search}%")
-                        ->orWhere('student_id', 'like', "%{$search}%"));
+                    $q->whereHas('student', fn($sq) => $sq->where('name_bn', 'like', "%{$search}%")
+                        ->orWhere('name_en', 'like', "%{$search}%")
+                        ->orWhere('admission_number', 'like', "%{$search}%"));
                 })
                 ->when($request->status, fn($q, $status) => $q->where('status', $status))
                 ->when($request->class_id, fn($q, $cid) => $q->where('from_class_id', $cid))
@@ -42,10 +45,11 @@ class PromotionController extends Controller
     public function store(Request $request)
     {
         try {
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $validated = $request->validate([
-                'student_id'     => 'required|integer|exists:students,id,tenant_id,' . tenant('id'),
-                'from_class_id'  => 'required|integer|exists:academic_classes,id,tenant_id,' . tenant('id'),
-                'to_class_id'    => 'required|integer|exists:academic_classes,id,tenant_id,' . tenant('id'),
+                'student_id'     => 'required|integer|exists:students,id' . ($tenantId ? ',tenant_id,' . $tenantId : ''),
+                'from_class_id'  => 'required|integer|exists:academic_classes,id' . ($tenantId ? ',tenant_id,' . $tenantId : ''),
+                'to_class_id'    => 'required|integer|exists:academic_classes,id' . ($tenantId ? ',tenant_id,' . $tenantId : ''),
                 'academic_year'  => 'required|string|max:20',
                 'promotion_date' => 'required|date',
                 'status'         => 'required|in:pending,approved,rejected',
@@ -53,7 +57,7 @@ class PromotionController extends Controller
             ]);
 
             $promotion = Promotion::create(array_merge($validated, [
-                'tenant_id'   => tenant('id'),
+                'tenant_id'   => $tenantId,
                 'promoted_by' => auth()->id(),
             ]));
 
@@ -169,9 +173,10 @@ class PromotionController extends Controller
     public function bulkPromote(Request $request)
     {
         try {
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
             $validated = $request->validate([
-                'from_class_id'  => 'required|integer|exists:academic_classes,id,tenant_id,' . tenant('id'),
-                'to_class_id'    => 'required|integer|exists:academic_classes,id,tenant_id,' . tenant('id'),
+                'from_class_id'  => 'required|integer|exists:academic_classes,id' . ($tenantId ? ',tenant_id,' . $tenantId : ''),
+                'to_class_id'    => 'required|integer|exists:academic_classes,id' . ($tenantId ? ',tenant_id,' . $tenantId : ''),
                 'academic_year'  => 'required|string|max:20',
                 'promotion_date' => 'required|date',
                 'student_ids'    => 'required|array|min:1',
@@ -193,7 +198,7 @@ class PromotionController extends Controller
                         'academic_year'  => $validated['academic_year'],
                         'promotion_date' => $validated['promotion_date'],
                         'status'         => 'approved',
-                        'tenant_id'      => tenant('id'),
+                        'tenant_id'      => $tenantId,
                         'promoted_by'    => auth()->id(),
                     ]);
                     $results['promoted']++;
@@ -225,9 +230,10 @@ class PromotionController extends Controller
     public function classWise(Request $request)
     {
         try {
-            $classes = AcademicClass::where('tenant_id', tenant('id'))
+            $tenantId = $request->user()?->tenant_id ?? auth()->user()?->tenant_id;
+            $classes = AcademicClass::when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
                 ->withCount(['promotions' => fn($q) => $q->where('status', 'approved')])
-                ->orderBy('name')
+                ->orderBy('name_bn')
                 ->get();
             return response()->json([
                 'status'  => 200,

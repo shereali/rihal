@@ -56,7 +56,7 @@
           </select>
         </div>
         <div class="pagination-info">
-          মোট <span class="highlight">{{ filteredEnrollments.length }}</span> টি আবেদন পাওয়া গেছে
+          মোট <span class="highlight">{{ totalEnrollments }}</span> টি আবেদন পাওয়া গেছে
         </div>
       </div>
 
@@ -82,13 +82,13 @@
                     {{ (enrollment.student?.name_bn || enrollment.name || 'S').charAt(0) }}
                   </div>
                   <div class="user-info">
-                    <span class="user-name">{{ enrollment.student?.name_bn || enrollment.name || 'অজ্ঞাত' }}</span>
+                    <span class="user-name">{{ enrollment.student?.name_bn || enrollment.student?.name_en || enrollment.name || 'অজ্ঞাত' }}</span>
                     <small class="text-muted">{{ enrollment.student?.father_name || enrollment.fatherName || 'পিতার নাম নেই' }}</small>
                   </div>
                 </div>
               </td>
-              <td>{{ enrollment.class?.name_bn || enrollment.className || '-' }}</td>
-              <td>{{ enrollment.student?.phone || enrollment.phone || '-' }}</td>
+              <td>{{ enrollment.class?.name_bn || enrollment.class?.name_en || enrollment.className || '-' }}</td>
+              <td>{{ enrollment.student?.user?.phone || enrollment.student?.father_phone || enrollment.student?.guardian_phone || enrollment.phone || '-' }}</td>
               <td>{{ formatDate(enrollment.enrollment_date || enrollment.created_at || enrollment.date) }}</td>
               <td>
                 <span class="status-pill" :class="getStatusBadgeClass(enrollment.status)">
@@ -226,7 +226,7 @@ function getStatusLabel(status: string) {
   return status
 }
 
-async function approveEnrollment(id: string) {
+async function approveEnrollment(id: string | number) {
   if (!confirm('আপনি কি এই আবেদনটি অনুমোদন করতে চান?')) return
   loadingAction.value = id
   try {
@@ -240,7 +240,7 @@ async function approveEnrollment(id: string) {
   }
 }
 
-async function rejectEnrollment(id: string) {
+async function rejectEnrollment(id: string | number) {
   if (!confirm('আপনি কি এই আবেদনটি বাতিল করতে চান?')) return
   loadingAction.value = id
   try {
@@ -254,7 +254,7 @@ async function rejectEnrollment(id: string) {
   }
 }
 
-function viewDetails(id: string) {
+function viewDetails(id: string | number) {
   alert('ভর্তির বিস্তারিত (ID: ' + id + ') শীঘ্রই আসছে!')
 }
 
