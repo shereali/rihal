@@ -26,7 +26,7 @@ return new class extends Migration
             'address_bn' => 'গ্রাম: ফুলতলী, ডাকঘর: ফুলতলী বাজার, উপজেলা: জকিগঞ্জ, জেলা: সিলেট',
             'emergency_contact_name' => 'মাওলানা আব্দুল হাই (চাচা)',
             'emergency_contact_phone' => '01912345678',
-            'health_summary' => 'শারীরিক ও মানসিক অবস্থা স্বাভাবিক',
+            'health_summary' => json_encode(['status' => 'শারীরিক ও মানসিক অবস্থা স্বাভাবিক']),
             'nationality' => 'বাংলাদেশী',
         ]);
 
