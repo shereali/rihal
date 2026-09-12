@@ -162,6 +162,7 @@ const itemsPerPage = 8
 const totalPages = ref(1)
 
 const enrollments = ref<any[]>([])
+const filteredEnrollments = computed(() => enrollments.value || [])
 const totalEnrollments = ref(0)
 const pendingEnrollments = ref(0)
 const approvedEnrollments = ref(0)
@@ -180,18 +181,21 @@ async function fetchEnrollments() {
     if (statusFilter.value !== 'all') params.append('status', statusFilter.value)
 
     const [res, allRes] = await Promise.all([
-      api.get(`/enrollments?${params.toString()}`),
+      api.get(`/enrollments?${params.toString()}`).catch((err) => {
+        console.error('Failed to fetch paginated enrollments:', err)
+        return { data: { data: { data: [] } } }
+      }),
       api.get('/enrollments?per_page=1000').catch(() => ({ data: { data: { data: [] } } }))
     ])
     
     enrollments.value = res.data?.data?.data || res.data?.data || []
-    const meta = res.data?.data?.meta || {}
-    totalPages.value = meta.last_page || Math.ceil((res.data?.data?.total || enrollments.value.length) / itemsPerPage) || 1
+    const meta = res.data?.data?.meta || res.data?.meta || {}
+    totalPages.value = meta.last_page || Math.ceil((res.data?.data?.total || res.data?.total || enrollments.value.length) / itemsPerPage) || 1
     
     const all = allRes.data?.data?.data || allRes.data?.data || []
-    totalEnrollments.value = all.length
+    totalEnrollments.value = allRes.data?.data?.total || allRes.data?.total || all.length
     pendingEnrollments.value = all.filter((e: any) => e.status === 'pending').length
-    approvedEnrollments.value = all.filter((e: any) => e.status === 'active' || e.status === 'approved').length
+    approvedEnrollments.value = all.filter((e: any) => e.status === 'active' || e.status === 'approved' || e.status === 'enrolled').length
 
   } catch (error) {
     console.error('Failed to fetch enrollments:', error)
@@ -200,12 +204,13 @@ async function fetchEnrollments() {
   }
 }
 
-watch([currentPage, statusFilter, searchQuery], () => {
-  if (currentPage.value === 1 || arguments[0] === currentPage) {
-    fetchEnrollments()
-  } else {
-    currentPage.value = 1
-  }
+watch([statusFilter, searchQuery], () => {
+  currentPage.value = 1
+  fetchEnrollments()
+})
+
+watch(currentPage, () => {
+  fetchEnrollments()
 })
 
 onMounted(() => {

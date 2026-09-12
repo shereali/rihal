@@ -122,6 +122,39 @@ class AttendanceController extends ApiController
         return $this->successResponse($record->fresh(), 'উপস্থিতি রেকর্ড আপডেট সফল');
     }
 
+    public function summary(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $date = $request->input('date', today()->toDateString());
+
+        $query = AttendanceRecord::where('tenant_id', $user->tenant_id);
+
+        if ($request->filled('date')) {
+            $query->where('date', $request->input('date'));
+        } elseif (!$request->boolean('all')) {
+            $query->where('date', $date);
+        }
+
+        $total = (clone $query)->count();
+
+        // If today has no records and no specific date was queried, fallback to tenant overall count
+        if ($total === 0 && !$request->filled('date')) {
+            $query = AttendanceRecord::where('tenant_id', $user->tenant_id);
+            $total = (clone $query)->count();
+        }
+
+        $present = (clone $query)->whereIn('status', ['present', 'half_day'])->count();
+        $absent = (clone $query)->where('status', 'absent')->count();
+        $late = (clone $query)->where('status', 'late')->count();
+
+        return $this->successResponse([
+            'present' => $present,
+            'absent' => $absent,
+            'late' => $late,
+            'total' => $total,
+        ]);
+    }
+
     public function destroy(Request $request, int $id): JsonResponse
     {
         $user = $request->user();

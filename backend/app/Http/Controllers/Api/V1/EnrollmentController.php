@@ -4,33 +4,65 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\ApiController;
 use App\Models\Enrollment;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class EnrollmentController extends ApiController
 {
     public function index(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $perPage = min((int) $request->input('per_page', 15), 100);
+        try {
+            $user = $request->user();
+            $tenantId = $user?->tenant_id;
+            $perPage = min((int) $request->input('per_page', 15), 100);
 
-        $query = Enrollment::where('tenant_id', $user->tenant_id)
-            ->when($request->has('search'), fn($q) => $q->where('enrollment_number', 'like', "%{$request->input('search')}%"))
-            ->when($request->has('student_id'), fn($q) => $q->where('student_id', $request->input('student_id')))
-            ->when($request->has('class_id'), fn($q) => $q->where('class_id', $request->input('class_id')))
-            ->when($request->has('session_id'), fn($q) => $q->where('session_id', $request->input('session_id')))
-            ->when($request->has('status'), fn($q) => $q->where('status', $request->input('status')))
-            ->when($request->has('is_active'), fn($q) => $q->where('is_active', filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN)))
-            ->with('student:id,name_bn,name_en')
+            $query = Enrollment::query();
+            if ($tenantId) {
+                $query->where('tenant_id', $tenantId);
+            }
+
+            $query->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->input('search');
+                $q->where(function ($sq) use ($search) {
+                    $sq->where('enrollment_number', 'like', "%{$search}%")
+                        ->orWhereHas('student', function ($u) use ($search) {
+                            $u->where('name_bn', 'like', "%{$search}%")
+                                ->orWhere('name_en', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($request->filled('student_id'), function ($q) use ($request) {
+                $studentId = $request->input('student_id');
+                $student = Student::find($studentId);
+                $userId = $student?->user_id;
+                $q->where(function ($sq) use ($studentId, $userId) {
+                    $sq->where('student_id', $studentId);
+                    if ($userId) {
+                        $sq->orWhere('student_id', $userId);
+                    }
+                });
+            })
+            ->when($request->filled('class_id'), fn($q) => $q->where('class_id', $request->input('class_id')))
+            ->when($request->filled('session_id'), fn($q) => $q->where('session_id', $request->input('session_id')))
+            ->when($request->filled('status'), fn($q) => $q->where('status', $request->input('status')))
+            ->when($request->filled('is_active'), fn($q) => $q->where('is_active', filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN)))
+            ->with('student:id,name_bn,name_en,phone')
             ->with('class:id,name_bn,name_en')
             ->with('section:id,name_bn,name_en')
             ->with('session:id,name_bn,name_en')
             ->orderBy('enrollment_date', 'desc');
 
-        $enrollments = $query->paginate($perPage);
+            $enrollments = $query->paginate($perPage);
 
-        return $this->successResponse($enrollments);
+            return $this->successResponse($enrollments);
+        } catch (\Throwable $e) {
+            Log::error('Enrollment index error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return $this->errorResponse('ভর্তি তথ্য লোড করতে সমস্যা হয়েছে: ' . $e->getMessage(), 500);
+        }
     }
 
     public function show(Request $request, int $id): JsonResponse

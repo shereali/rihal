@@ -173,12 +173,12 @@ Route::prefix('v1')->group(function () {
         Route::get('/exams/{exam}/admit-cards/{student}', [ExamSeatsController::class, 'generateAdmitCard']);
 
         // ─── Attendance ───────────────────────────────────────────────────────
+        Route::get('/attendance/summary', [AttendanceController::class, 'summary']);
         Route::get('/attendance', [AttendanceController::class, 'index']);
         Route::post('/attendance', [AttendanceController::class, 'store']);
-        Route::get('/attendance/{id}', [AttendanceController::class, 'show']);
-        Route::put('/attendance/{id}', [AttendanceController::class, 'update']);
-        Route::delete('/attendance/{id}', [AttendanceController::class, 'destroy']);
-        Route::get('/attendance/summary', [AttendanceController::class, 'summary']);
+        Route::get('/attendance/{id}', [AttendanceController::class, 'show'])->whereNumber('id');
+        Route::put('/attendance/{id}', [AttendanceController::class, 'update'])->whereNumber('id');
+        Route::delete('/attendance/{id}', [AttendanceController::class, 'destroy'])->whereNumber('id');
 
         Route::middleware(['tenant.context', 'role:admin,tenant_admin,super_admin'])->group(function () {
         // ─── Finance ──────────────────────────────────────────────────────────
@@ -369,10 +369,10 @@ Route::prefix('v1')->group(function () {
         // ─── Enrollments ──────────────────────────────────────────────────────
         Route::get('/enrollments', [EnrollmentController::class, 'index']);
         Route::post('/enrollments', [EnrollmentController::class, 'store']);
-        Route::get('/enrollments/{id}', [EnrollmentController::class, 'show']);
-        Route::put('/enrollments/{id}', [EnrollmentController::class, 'update']);
-        Route::delete('/enrollments/{id}', [EnrollmentController::class, 'destroy']);
-        Route::patch('/enrollments/{id}/transfer', [EnrollmentController::class, 'transfer']);
+        Route::get('/enrollments/{id}', [EnrollmentController::class, 'show'])->whereNumber('id');
+        Route::put('/enrollments/{id}', [EnrollmentController::class, 'update'])->whereNumber('id');
+        Route::delete('/enrollments/{id}', [EnrollmentController::class, 'destroy'])->whereNumber('id');
+        Route::patch('/enrollments/{id}/transfer', [EnrollmentController::class, 'transfer'])->whereNumber('id');
 
         // ─── Teacher Assignments ──────────────────────────────────────────────
         Route::get('/teacher-assignments', [TeacherAssignmentController::class, 'index']);

@@ -165,7 +165,7 @@ const isFormValid = computed(() => form.title_bn.trim().length >= 3)
 async function loadOptions() {
   try {
     const [classesRes] = await Promise.all([api.get('/students?per_page=1000')])
-    const classes = new Map()
+    const classes = new Map();
     (classesRes.data.data || []).forEach((s: any) => {
       const key = s.class?.id || s.class_id
       const name = s.class?.name_bn || s.class_name || 'Unknown'

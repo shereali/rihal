@@ -4,9 +4,9 @@
       <div class="header-left">
         <h1>হাজিরা রেকর্ড</h1>
         <p class="text-muted">
-          {{ (attendanceData?.data?.meta?.total || 0) }}টি রেকর্ড
+          {{ totalRecords }}টি রেকর্ড
           <span v-if="summaryData">
-            | গড় হাজিরা: {{ attendanceData.data.meta.total > 0 ? Math.round((summaryData.present / (summaryData.present + summaryData.absent || 1)) * 100) : 0 }}%
+            | গড় হাজিরা: {{ totalRecords > 0 ? Math.round(((summaryData.present || 0) / (((summaryData.present || 0) + (summaryData.absent || 0)) || 1)) * 100) : 0 }}%
           </span>
         </p>
       </div>
@@ -48,7 +48,7 @@
     <div class="card">
       <div class="card-body">
         <div v-if="loading" class="loading-state"><div class="spinner" /><p>হাজিরা তথ্য লোড হচ্ছে...</p></div>
-        <div v-else-if="attendanceData?.data?.data?.length === 0" class="empty-state"><p>কোনো হাজিরা রেকর্ড নেই</p></div>
+        <div v-else-if="paginatedRecords.length === 0" class="empty-state"><p>কোনো হাজিরা রেকর্ড নেই</p></div>
         <div v-else class="table-responsive">
           <table class="table table-hover table-striped">
             <thead>
@@ -92,7 +92,7 @@
             </tbody>
           </table>
         </div>
-        <div v-if="attendanceData?.data?.meta && attendanceData.data.meta.total > attendanceData.data.per_page" class="pagination-wrapper">
+        <div v-if="totalRecords > (attendanceData?.data?.per_page || 20)" class="pagination-wrapper">
           <div class="pagination">
             <button v-for="page in totalPages" :key="page" :class="['page-btn', { active: page === attendanceData?.data?.current_page }]" @click="goToPage(page)">{{ page }}</button>
           </div>
@@ -115,6 +115,7 @@ const filter = ref({ dateFilter: 'today', classId: '' })
 const classOptions = ref<any[]>([])
 const todayDate = new Date().toISOString().split('T')[0]
 
+const totalRecords = computed(() => attendanceData.value?.data?.meta?.total ?? attendanceData.value?.data?.total ?? 0)
 const paginatedRecords = computed(() => attendanceData.value?.data?.data || [])
 
 async function loadAttendance() {
@@ -126,7 +127,7 @@ async function loadAttendance() {
     if (filter.value.classId) params.set('class_id', filter.value.classId)
     const res = await api.get(`/attendance?${params.toString()}`)
     attendanceData.value = res.data
-    totalPages.value = res.data.meta?.last_page || 1
+    totalPages.value = res.data?.meta?.last_page || res.data?.data?.last_page || 1
   } catch (error) { console.error('Failed to load attendance:', error) }
   finally { loading.value = false }
 }
@@ -141,7 +142,7 @@ async function loadSummary() {
 async function loadClassOptions() {
   try {
     const res = await api.get('/students?per_page=1000')
-    const classes = new Map()
+    const classes = new Map();
     (res.data.data || []).forEach((s: any) => {
       const key = s.class?.id || s.class_id
       const name = s.class?.name_bn || s.class_name || 'Unknown'

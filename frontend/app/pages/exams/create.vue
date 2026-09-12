@@ -56,7 +56,7 @@ const form = reactive({
 async function loadClassOptions() {
   try {
     const res = await api.get('/students?per_page=1000')
-    const classes = new Map()
+    const classes = new Map();
     (res.data.data || []).forEach((s: any) => {
       const key = s.class?.id || s.class_id
       const name = s.class?.name_bn || s.class_name || 'Unknown'
