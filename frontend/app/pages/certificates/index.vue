@@ -1,139 +1,156 @@
 <template>
-  <div class="page-wrapper">
+  <div class="page-wrapper slide-up-fade">
     <div class="page-header-row">
-      <div>
+      <div class="header-title-block">
         <span class="eyebrow">সার্টিফিকেশন</span>
         <h1>সার্টিফিকেট ও পাঠ্যক্রম</h1>
-        <p>সার্টিফিকেট টেমপলেট, প্রকাশনা, পাঠ্যক্রম ও বই পরিচালনা করুন</p>
+        <p class="page-subtitle">সার্টিফিকেট টেমপলেট, প্রকাশনা, পাঠ্যক্রম ও বই পরিচালনা করুন</p>
       </div>
-      <div class="page-actions">
+      <div class="header-actions">
         <button class="btn btn-primary" @click="activeTab = 'templates'; showCreate = true">
           <Icon name="plus" /> নতুন টেমপলেট
         </button>
         <button class="btn btn-outline" @click="activeTab = 'issue'; showIssue = true">
-          <Icon name="certificate" /> সার্টিফিকেট প্রকাশ করুন
+          <Icon name="tag" /> সার্টিফিকেট প্রকাশ করুন
         </button>
       </div>
     </div>
 
     <!-- Tab Navigation -->
-    <div class="tabs">
+    <div class="tabs-nav mb-3">
       <button
         v-for="tab in tabs"
         :key="tab.key"
         :class="['tab-btn', { active: activeTab === tab.key }]"
         @click="activeTab = tab.key"
       >
+        <Icon :name="tab.icon" />
         {{ tab.label }}
       </button>
     </div>
 
     <!-- Templates Tab -->
-    <div v-if="activeTab === 'templates'" class="card mt-3">
-      <div class="card-inner">
-        <div slot="header" class="card-header-inner">
-          <div class="search-bar">
-            <Icon name="search" />
-            <input v-model="templateSearch" type="text" placeholder="টেমপলেট খুঁজুন..." @input="debounceTemplateSearch" class="search-input" />
-          </div>
-          <div class="filter-row">
-            <select v-model="templateTypeFilter" class="form-select sm">
-              <option value="">সব ধরন</option>
-              <option value="annual">বার্ষিক</option>
-              <option value="transfer">হস্তান্তর</option>
-              <option value="sanction">অনুমোদন</option>
-              <option value="conduct">আচরণ</option>
-              <option value="others">অন্যান্য</option>
-            </select>
-            <select v-model="templateClassFilter" class="form-select sm ml-2">
-              <option value="">সব শ্রেণি</option>
-              <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
-          </div>
+    <div v-if="activeTab === 'templates'" class="table-card">
+      <div class="toolbar">
+        <div class="search-box">
+          <Icon name="search" class="search-icon" />
+          <input v-model="templateSearch" type="text" placeholder="টেমপলেট খুঁজুন..." @input="debounceTemplateSearch" />
+          <button v-if="templateSearch" @click="templateSearch = ''; fetchTemplates(1)" class="clear-search-btn" title="মুছে ফেলুন">
+            <Icon name="close" />
+          </button>
         </div>
-
-        <div v-if="templateLoading" class="loading-state">
-          <div class="spinner"></div>
-          <p>টেমপলেট লোড হচ্ছে...</p>
+        <div class="select-wrapper">
+          <select v-model="templateTypeFilter" class="form-select" @change="fetchTemplates(1)">
+            <option value="">সব ধরন</option>
+            <option value="annual">বার্ষিক</option>
+            <option value="transfer">হস্তান্তর</option>
+            <option value="sanction">অনুমোদন</option>
+            <option value="conduct">আচরণ</option>
+            <option value="others">অন্যান্য</option>
+          </select>
         </div>
+        <div class="select-wrapper">
+          <select v-model="templateClassFilter" class="form-select" @change="fetchTemplates(1)">
+            <option value="">সব শ্রেণি</option>
+            <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+        <div class="pagination-info text-muted">
+          মোট <strong style="color: var(--color-primary);">{{ templates.total || 0 }}</strong> টি টেমপলেট
+        </div>
+      </div>
 
-        <table v-else-if="templates.data?.length" class="data-table">
+      <div v-if="templateLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>টেমপলেট লোড হচ্ছে...</p>
+      </div>
+
+      <div v-else-if="templates.data?.length" class="table-responsive">
+        <table class="premium-table">
           <thead>
             <tr>
               <th>শিরোনাম</th>
               <th>ধরন</th>
               <th>শ্রেণি</th>
               <th>বিষয়</th>
-              <th>সক্রিয়</th>
-              <th>কর্ম</th>
+              <th>অবস্থা</th>
+              <th class="text-right">কর্ম</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="t in templates.data" :key="t.id">
               <td><strong>{{ t.title }}</strong></td>
-              <td><span class="badge badge-blue">{{ formatTemplateType(t.template_type) }}</span></td>
+              <td><span class="badge-pill type-pill">{{ formatTemplateType(t.template_type) }}</span></td>
               <td>{{ t.classRelation?.name_bn || t.classRelation?.name_en || t.classRelation?.name || '—' }}</td>
               <td>{{ t.subjectRelation?.name_bn || t.subjectRelation?.name_en || t.subjectRelation?.name || '—' }}</td>
               <td>
-                <span :class="`status-switch ${t.is_active ? 'on' : 'off'}`">
-                  {{ t.is_active ? 'হ্যাঁ' : 'না' }}
+                <span class="status-pill" :class="t.is_active ? 'badge-approved' : 'badge-rejected'">
+                  <span class="status-dot"></span> {{ t.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}
                 </span>
               </td>
-              <td class="actions-cell">
-                <button class="btn btn-icon btn-sm" @click="editTemplate(t)">
-                  <Icon name="pencil" />
-                </button>
-                <button class="btn btn-icon btn-sm text-danger" @click="deleteTemplate(t)">
-                  <Icon name="trash" />
-                </button>
+              <td class="text-right">
+                <div class="flex gap-1" style="justify-content: flex-end;">
+                  <button class="action-btn edit" title="সম্পাদনা" @click="editTemplate(t)">
+                    <Icon name="pencil" />
+                  </button>
+                  <button class="action-btn delete" title="মুছে ফেলুন" @click="deleteTemplate(t)">
+                    <Icon name="delete" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
 
-        <div v-else class="empty-state">
-          <Icon name="table" large />
-          <h3>কোনো টেমপলেট নেই</h3>
-          <button class="btn btn-primary" @click="showCreate = true">প্রথম টেমপলেট তৈরি করুন</button>
-        </div>
+      <div v-else class="empty-state">
+        <h3>কোনো টেমপলেট পাওয়া যায়নি</h3>
+        <p class="text-muted">এখনও কোনো সার্টিফিকেট টেমপলেট তৈরি করা হয়নি।</p>
+        <button class="btn btn-primary mt-2" @click="showCreate = true">প্রথম টেমপলেট তৈরি করুন</button>
+      </div>
 
-        <div slot="footer" class="card-footer-inner">
-          <div class="pagination-info">{{ templates.from }}–{{ templates.to }} / {{ templates.total }} টেমপলেট</div>
-          <div class="pagination" v-if="templates.last_page > 1">
-            <button class="btn btn-outline btn-sm" :disabled="!templates.prev_page_url" @click="goTemplatePage(templates.current_page - 1)">
-              <Icon name="chevron-left" />
-            </button>
-            <span class="page-info">পৃষ্ঠা {{ templates.current_page }} / {{ templates.last_page }}</span>
-            <button class="btn btn-outline btn-sm" :disabled="!templates.next_page_url" @click="goTemplatePage(templates.current_page + 1)">
-              <Icon name="chevron-right" />
-            </button>
-          </div>
+      <div v-if="templates.last_page > 1" class="pagination-wrapper">
+        <div class="pagination-info">{{ templates.from }}–{{ templates.to }} / মোট {{ templates.total }} টেমপলেট</div>
+        <div class="pagination-numbers">
+          <button class="pagination-btn" :disabled="!templates.prev_page_url" @click="goTemplatePage(templates.current_page - 1)">
+            <Icon name="chevron-left" /> পূর্ববর্তী
+          </button>
+          <span class="page-info">পৃষ্ঠা {{ templates.current_page }} / {{ templates.last_page }}</span>
+          <button class="pagination-btn" :disabled="!templates.next_page_url" @click="goTemplatePage(templates.current_page + 1)">
+            পরবর্তী <Icon name="chevron-right" />
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Issue Certificates Tab -->
-    <div v-if="activeTab === 'issue'" class="card mt-3">
-      <div class="card-inner">
-        <div slot="header" class="card-header-inner">
-          <div class="search-bar">
-            <Icon name="search" />
-            <input v-model="issueSearch" type="text" placeholder="শিক্ষার্থী নাম দিয়ে খুঁজুন..." @input="debounceIssueSearch" class="search-input" />
-          </div>
-          <div class="filter-row">
-            <select v-model="issueClassFilter" class="form-select sm">
-              <option value="">সব শ্রেণি</option>
-              <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
-          </div>
+    <div v-if="activeTab === 'issue'" class="table-card">
+      <div class="toolbar">
+        <div class="search-box">
+          <Icon name="search" class="search-icon" />
+          <input v-model="issueSearch" type="text" placeholder="শিক্ষার্থী নাম দিয়ে খুঁজুন..." @input="debounceIssueSearch" />
+          <button v-if="issueSearch" @click="issueSearch = ''; fetchIssueCerts(1)" class="clear-search-btn" title="মুছে ফেলুন">
+            <Icon name="close" />
+          </button>
         </div>
-
-        <div v-if="issueLoading" class="loading-state">
-          <div class="spinner"></div>
-          <p>সার্টিফিকেট প্রকাশনা লোড হচ্ছে...</p>
+        <div class="select-wrapper">
+          <select v-model="issueClassFilter" class="form-select" @change="fetchIssueCerts(1)">
+            <option value="">সব শ্রেণি</option>
+            <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </select>
         </div>
+        <div class="pagination-info text-muted">
+          মোট <strong style="color: var(--color-primary);">{{ issuedCerts.total || 0 }}</strong> টি সনদ
+        </div>
+      </div>
 
-        <table v-else-if="issuedCerts.data?.length" class="data-table">
+      <div v-if="issueLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>সার্টিফিকেট প্রকাশনা লোড হচ্ছে...</p>
+      </div>
+
+      <div v-else-if="issuedCerts.data?.length" class="table-responsive">
+        <table class="premium-table">
           <thead>
             <tr>
               <th>সার্টিফিকেট নং</th>
@@ -142,86 +159,97 @@
               <th>শ্রেণি</th>
               <th>টেমপলেট</th>
               <th>প্রকাশের তারিখ</th>
-              <th>কর্ম</th>
+              <th class="text-right">কর্ম</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="c in issuedCerts.data" :key="c.id">
-              <td><code class="mono">{{ c.certificate_number }}</code></td>
+              <td><code class="mono cert-badge">{{ c.certificate_number }}</code></td>
               <td><strong>{{ c.studentRelation?.name_bn || c.studentRelation?.name_en || c.studentRelation?.name?.trim() || 'অজানা' }}</strong></td>
               <td><code class="mono">{{ c.student_id }}</code></td>
               <td>{{ c.classRelation?.name_bn || c.classRelation?.name_en || c.classRelation?.name || '—' }}</td>
               <td>{{ c.templateRelation?.title || '—' }}</td>
               <td>{{ formatDate(c.issue_date) }}</td>
-              <td class="actions-cell">
-                <button class="btn btn-icon btn-sm" @click="viewIssue(c)">
-                  <Icon name="eye" />
-                </button>
-                <button class="btn btn-icon btn-sm text-danger" @click="deleteIssue(c)">
-                  <Icon name="trash" />
-                </button>
+              <td class="text-right">
+                <div class="flex gap-1" style="justify-content: flex-end;">
+                  <button class="action-btn edit" title="বিবরণ দেখুন" @click="viewIssue(c)">
+                    <Icon name="eye" />
+                  </button>
+                  <button class="action-btn delete" title="মুছে ফেলুন" @click="deleteIssue(c)">
+                    <Icon name="delete" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
 
-        <div v-else class="empty-state">
-          <Icon name="table" large />
-          <h3>কোনো প্রকাশনা নেই</h3>
-          <button class="btn btn-outline" @click="showIssue = true">প্রথম সার্টিফিকেট প্রকাশ করুন</button>
-        </div>
+      <div v-else class="empty-state">
+        <h3>কোনো প্রকাশনা নেই</h3>
+        <p class="text-muted">এখনও কোনো শিক্ষার্থীকে সার্টিফিকেট প্রদান করা হয়নি।</p>
+        <button class="btn btn-outline mt-2" @click="showIssue = true">প্রথম সার্টিফিকেট প্রকাশ করুন</button>
+      </div>
 
-        <div slot="footer" class="card-footer-inner">
-          <div class="pagination-info">{{ issuedCerts.from }}–{{ issuedCerts.to }} / {{ issuedCerts.total }} রেকর্ড</div>
+      <div v-if="issuedCerts.last_page > 1" class="pagination-wrapper">
+        <div class="pagination-info">{{ issuedCerts.from }}–{{ issuedCerts.to }} / মোট {{ issuedCerts.total }} রেকর্ড</div>
+        <div class="pagination-numbers">
+          <button class="pagination-btn" :disabled="!issuedCerts.prev_page_url" @click="goIssuePage(issuedCerts.current_page - 1)">
+            <Icon name="chevron-left" /> পূর্ববর্তী
+          </button>
+          <span class="page-info">পৃষ্ঠা {{ issuedCerts.current_page }} / {{ issuedCerts.last_page }}</span>
+          <button class="pagination-btn" :disabled="!issuedCerts.next_page_url" @click="goIssuePage(issuedCerts.current_page + 1)">
+            পরবর্তী <Icon name="chevron-right" />
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Syllabus & Books Tab -->
-    <div v-if="activeTab === 'syllabus'" class="card mt-3">
-      <div class="card-inner">
-        <div slot="header" class="card-header-inner">
-          <h3>পাঠ্যক্রম ও বই</h3>
+    <div v-if="activeTab === 'syllabus'" class="table-card p-4" style="padding: 1.5rem;">
+      <div class="flex-between mb-3">
+        <div>
+          <h3 style="font-weight: 700; font-size: 1.15rem; color: var(--color-text);">পাঠ্যক্রম ও বই তালিকা</h3>
+          <p class="text-muted text-sm">বিভিন্ন শ্রেণির জন্য অনুমোদিত বিষয় ও পাঠ্যসূচি</p>
         </div>
-        <div class="syllabus-list">
-          <div v-for="sub in subjects" :key="sub.id" class="syllabus-item">
-            <div class="syllabus-header">
-              <strong>{{ sub.name_bn || sub.name_en || sub.name }}</strong>
-              <span class="code-badge">{{ sub.code || '—' }}</span>
-            </div>
-            <div class="syllabus-body">
-              <div class="syllabus-row">
-                <span class="label">শ্রেণি</span>
-                <span class="value">{{ Array.isArray(sub.classes) ? (sub.classes.map(c => c.name_bn || c.name_en || c.name).join(', ') || '—') : (sub.classes?.name_bn || sub.classes?.name_en || sub.classes?.name || '—') }}</span>
-              </div>
+      </div>
+      <div class="syllabus-grid">
+        <div v-for="sub in subjects" :key="sub.id" class="syllabus-card">
+          <div class="syllabus-card-header">
+            <h4>{{ sub.name_bn || sub.name_en || sub.name }}</h4>
+            <span class="code-badge">{{ sub.code || '—' }}</span>
+          </div>
+          <div class="syllabus-card-body">
+            <div class="syllabus-field">
+              <span class="label">শ্রেণি:</span>
+              <span class="value">{{ Array.isArray(sub.classes) ? (sub.classes.map(c => c.name_bn || c.name_en || c.name).join(', ') || '—') : (sub.classes?.name_bn || sub.classes?.name_en || sub.classes?.name || '—') }}</span>
             </div>
           </div>
-          <div v-if="subjects.length === 0" class="empty-state">
-            <Icon name="book" large />
-            <h3>কোনো পাঠ্যক্রম নেই</h3>
-          </div>
+        </div>
+        <div v-if="subjects.length === 0" class="empty-state">
+          <h3>কোনো পাঠ্যক্রম পাওয়া যায়নি</h3>
         </div>
       </div>
     </div>
 
     <!-- Create/Edit Template Modal -->
     <div v-if="showCreate" class="modal-overlay" @click.self="showCreate = false">
-      <div class="modal">
+      <div class="modal-card">
         <div class="modal-header">
           <h3>{{ editingTemplate ? 'টেমপলেট সম্পাদনা' : 'নতুন টেমপলেট' }}</h3>
-          <button class="btn btn-icon" @click="showCreate = false">
+          <button class="action-btn" @click="showCreate = false">
             <Icon name="close" />
           </button>
         </div>
         <div class="modal-body">
           <form @submit.prevent="saveTemplate">
             <div class="form-group">
-              <label class="form-label">শিরোনাম <span class="required">*</span></label>
-              <input v-model="templateForm.title" type="text" class="form-control" placeholder="যেমন: বার্ষিক পরীক্ষা ফলাফল সার্টিফিকেট" />
+              <label class="form-label">শিরোনাম <span class="required" style="color: var(--color-error);">*</span></label>
+              <input v-model="templateForm.title" type="text" class="form-control" placeholder="যেমন: বার্ষিক পরীক্ষা ফলাফল সার্টিফিকেট" required />
             </div>
             <div class="form-group">
-              <label class="form-label">ধরন <span class="required">*</span></label>
-              <select v-model="templateForm.template_type" class="form-select">
+              <label class="form-label">ধরন <span class="required" style="color: var(--color-error);">*</span></label>
+              <select v-model="templateForm.template_type" class="form-select" required>
                 <option value="annual">বার্ষিক</option>
                 <option value="transfer">হস্তান্তর</option>
                 <option value="sanction">অনুমোদন</option>
@@ -247,7 +275,7 @@
             </div>
             <div class="form-group">
               <label class="form-label">টেমপলেট ডেটা (JSON)</label>
-              <textarea v-model="templateForm.template_data_json" class="form-control font-mono" rows="4" placeholder='{"header": "...", "footer": "..."}'></textarea>
+              <textarea v-model="templateForm.template_data_json" class="form-control font-mono" rows="3" placeholder='{"header": "...", "footer": "..."}'></textarea>
             </div>
             <div class="form-group">
               <label class="form-label">সক্রিয়</label>
@@ -256,7 +284,7 @@
                   <input type="checkbox" v-model="templateForm.is_active" />
                   <span class="toggle-slider"></span>
                 </label>
-                <span class="ml-2 text-muted">{{ templateForm.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span>
+                <span class="ml-2 text-muted" style="margin-left: 0.5rem;">{{ templateForm.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়' }}</span>
               </div>
             </div>
           </form>
@@ -264,7 +292,7 @@
         <div class="modal-footer">
           <button class="btn btn-outline" @click="showCreate = false">বাতিল</button>
           <button class="btn btn-primary" @click="saveTemplate" :disabled="templateSaving">
-            <Icon name="spinner" v-if="templateSaving" />
+            <Icon name="loader" v-if="templateSaving" />
             {{ editingTemplate ? 'আপডেট করুন' : 'সংরক্ষণ করুন' }}
           </button>
         </div>
@@ -273,18 +301,18 @@
 
     <!-- Issue Certificate Modal -->
     <div v-if="showIssue" class="modal-overlay" @click.self="showIssue = false">
-      <div class="modal">
+      <div class="modal-card">
         <div class="modal-header">
           <h3>সার্টিফিকেট প্রকাশ করুন</h3>
-          <button class="btn btn-icon" @click="showIssue = false">
+          <button class="action-btn" @click="showIssue = false">
             <Icon name="close" />
           </button>
         </div>
         <div class="modal-body">
           <form @submit.prevent="issueCertificate">
             <div class="form-group">
-              <label class="form-label">শিক্ষার্থী <span class="required">*</span></label>
-              <select v-model="issueForm.student_id" class="form-select">
+              <label class="form-label">শিক্ষার্থী <span class="required" style="color: var(--color-error);">*</span></label>
+              <select v-model="issueForm.student_id" class="form-select" required>
                 <option value="">শিক্ষার্থী নির্বাচন করুন</option>
                 <option v-for="s in studentOptions" :key="s.id" :value="s.id">
                   {{ s.name }} ({{ s.roll_no }}) — {{ s.class?.name_bn || s.class?.name_en || s.class?.name || s.class || '' }}
@@ -292,10 +320,10 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">টেমপলেট <span class="required">*</span></label>
-              <select v-model="issueForm.template_id" class="form-select">
+              <label class="form-label">টেমপলেট <span class="required" style="color: var(--color-error);">*</span></label>
+              <select v-model="issueForm.template_id" class="form-select" required>
                 <option value="">টেমপলেট নির্বাচন করুন</option>
-                <option v-for="t in templateOptions" :key="t.id" :value="t.id">{{ t.title }} ({{ t.template_type }})</option>
+                <option v-for="t in templateOptions" :key="t.id" :value="t.id">{{ t.title }}</option>
               </select>
             </div>
             <div class="form-row">
@@ -316,8 +344,8 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">প্রকাশের তারিখ <span class="required">*</span></label>
-                <input v-model="issueForm.issue_date" type="date" class="form-control" />
+                <label class="form-label">প্রকাশের তারিখ <span class="required" style="color: var(--color-error);">*</span></label>
+                <input v-model="issueForm.issue_date" type="date" class="form-control" required />
               </div>
               <div class="form-group">
                 <label class="form-label">অনুমোদনকারী</label>
@@ -333,7 +361,7 @@
         <div class="modal-footer">
           <button class="btn btn-outline" @click="showIssue = false">বাতিল</button>
           <button class="btn btn-primary" @click="issueCertificate" :disabled="issueSaving">
-            <Icon name="spinner" v-if="issueSaving" />
+            <Icon name="loader" v-if="issueSaving" />
             প্রকাশ করুন
           </button>
         </div>
@@ -342,25 +370,25 @@
 
     <!-- View Issue Modal -->
     <div v-if="showViewIssue" class="modal-overlay" @click.self="showViewIssue = false">
-      <div class="modal">
+      <div class="modal-card">
         <div class="modal-header">
           <h3>সার্টিফিকেটের বিবরণ</h3>
-          <button class="btn btn-icon" @click="showViewIssue = false">
+          <button class="action-btn" @click="showViewIssue = false">
             <Icon name="close" />
           </button>
         </div>
         <div class="modal-body">
           <dl class="info-list">
-            <div class="info-row"><dt>সার্টিফিকেট নং</dt><dd><code class="mono">{{ viewIssueData?.certificate_number }}</code></dd></div>
+            <div class="info-row"><dt>সার্টিফিকেট নং</dt><dd><code class="cert-badge">{{ viewIssueData?.certificate_number }}</code></dd></div>
             <div class="info-row"><dt>শিক্ষার্থী</dt><dd>{{ viewIssueData?.studentRelation?.name_bn || viewIssueData?.studentRelation?.name_en || viewIssueData?.studentRelation?.name || '—' }}</dd></div>
             <div class="info-row"><dt>শ্রেণি</dt><dd>{{ viewIssueData?.classRelation?.name_bn || viewIssueData?.classRelation?.name_en || viewIssueData?.classRelation?.name || '—' }}</dd></div>
-            <div class="info-row"><dt>টেমপলেট</dt><dd>{{ viewIssueData?.templateRelation?.title }}</dd></div>
+            <div class="info-row"><dt>টেমপলেট</dt><dd>{{ viewIssueData?.templateRelation?.title || '—' }}</dd></div>
             <div class="info-row"><dt>প্রকাশের তারিখ</dt><dd>{{ viewIssueData?.issue_date ? formatDate(viewIssueData.issue_date) : '—' }}</dd></div>
             <div class="info-row"><dt>অনুমোদনকারী</dt><dd>{{ viewIssueData?.authorized_by || '—' }}</dd></div>
           </dl>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-outline" @click="showViewIssue = false">বাতিল</button>
+          <button class="btn btn-outline" @click="showViewIssue = false">বন্ধ করুন</button>
         </div>
       </div>
     </div>
@@ -376,9 +404,9 @@ const api = useApiClient()
 
 const activeTab = ref('templates')
 const tabs = [
-  { key: 'templates', label: 'টেমপলেট' },
-  { key: 'issue', label: 'প্রকাশনা' },
-  { key: 'syllabus', label: 'পাঠ্যক্রম ও বই' },
+  { key: 'templates', label: 'টেমপলেট', icon: 'book' },
+  { key: 'issue', label: 'প্রকাশনা', icon: 'tag' },
+  { key: 'syllabus', label: 'পাঠ্যক্রম ও বই', icon: 'book' },
 ]
 
 const templateLoading = ref(true)
@@ -487,6 +515,11 @@ function goTemplatePage(page: number) {
   fetchTemplates(page)
 }
 
+function goIssuePage(page: number) {
+  if (page < 1 || page > issuedCerts.value.last_page) return
+  fetchIssueCerts(page)
+}
+
 function editTemplate(t: any) {
   editingTemplate.value = t
   templateForm.title = t.title || ''
@@ -508,15 +541,10 @@ async function saveTemplate() {
       subject_id: Number(templateForm.subject_id) || null,
       template_data: templateForm.template_data_json ? JSON.parse(templateForm.template_data_json) : {},
     }
-    const res = editingTemplate.value ? await api.put(url, body).catch(() => null) : await api.post(url, body).catch(() => null)
-    if (res?.data?.status && res.data.status < 500) {
-      showCreate.value = false
-      editingTemplate.value = null
-      fetchTemplates(templates.value.current_page)
-    } else {
-      showCreate.value = false
-      fetchTemplates(templates.value.current_page)
-    }
+    await (editingTemplate.value ? api.put(url, body) : api.post(url, body)).catch(() => null)
+    showCreate.value = false
+    editingTemplate.value = null
+    fetchTemplates(templates.value.current_page)
   } catch (err) { console.error('Template save failed:', err) }
   finally { templateSaving.value = false }
 }
@@ -545,7 +573,7 @@ async function deleteIssue(c: any) {
 async function issueCertificate() {
   issueSaving.value = true
   try {
-    const res = await api.post('/certificates', {
+    await api.post('/certificates', {
       student_id: Number(issueForm.student_id),
       template_id: Number(issueForm.template_id),
       class_id: Number(issueForm.class_id) || null,
@@ -584,18 +612,226 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.mono { font-family: 'Courier New', monospace; font-size: 0.85rem; }
-.text-muted { color: #6c757d; }
-.actions-cell { white-space: nowrap; }
-.status-switch { font-weight: 500; &.on { color: #2e7d32; } &.off { color: #c62828; } }
-.syllabus-list { max-height: 400px; overflow-y: auto; }
-.syllabus-item { border-bottom: 1px solid rgba(0,0,0,0.06); padding: 0.75rem 0; }
-.syllabus-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; }
-.code-badge { font-size: 0.8rem; background: #e3f2fd; color: #1565c0; padding: 0.1rem 0.5rem; border-radius: 4px; }
-.syllabus-row { display: flex; gap: 0.5rem; font-size: 0.9rem; }
-.syllabus-row .label { color: #6c757d; min-width: 60px; }
-.syllabus-row .value { flex: 1; }
-.font-mono { font-family: 'Courier New', monospace; font-size: 0.85rem; }
+.tabs-nav {
+  display: inline-flex;
+  gap: 0.35rem;
+  background: var(--color-bg-card);
+  padding: 0.35rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--elevation-1);
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-light);
+  font-family: var(--font-bn);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    color: var(--color-text);
+    background: var(--color-bg-muted);
+  }
+
+  &.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #ffffff;
+    font-weight: var(--weight-bold);
+    box-shadow: 0 2px 8px rgba(20, 80, 50, 0.25);
+  }
+}
+
+.badge-pill {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-bn);
+
+  &.type-pill {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+  }
+}
+
+.cert-badge {
+  background: var(--color-bg-muted);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-light);
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.modal-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border-light);
+  background: var(--color-bg-muted);
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border-light);
+
+    dt {
+      color: var(--color-text-light);
+      font-weight: var(--weight-medium);
+      font-size: var(--text-sm);
+    }
+
+    dd {
+      font-weight: var(--weight-semibold);
+      color: var(--color-text);
+      font-size: var(--text-sm);
+    }
+  }
+}
+
+.syllabus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.syllabus-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-primary-100);
+    box-shadow: var(--elevation-1);
+    transform: translateY(-2px);
+  }
+}
+
+.syllabus-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+
+  h4 {
+    margin: 0;
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+    color: var(--color-text);
+  }
+}
+
+.code-badge {
+  font-size: var(--text-xs);
+  background: rgba(20, 80, 50, 0.1);
+  color: var(--color-primary);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.syllabus-field {
+  display: flex;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+
+  .label {
+    color: var(--color-text-light);
+    min-width: 45px;
+  }
+
+  .value {
+    color: var(--color-text);
+    font-weight: var(--weight-medium);
+  }
+}
+
+.pagination-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border-light);
+  background: var(--color-bg-card);
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-family: var(--font-bn);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-50);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-bg-muted);
+  }
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-info {
+  font-size: var(--text-sm);
+  color: var(--color-text-light);
+  font-family: var(--font-bn);
+}
+
 .toggle-row { display: flex; align-items: center; }
 .toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
 .toggle input { opacity: 0; width: 0; height: 0; }

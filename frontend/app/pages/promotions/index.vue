@@ -1,51 +1,61 @@
 <template>
-  <div class="page-wrapper">
+  <div class="page-wrapper slide-up-fade">
     <div class="page-header-row">
-      <div>
+      <div class="header-title-block">
         <span class="eyebrow">শিক্ষার্থী প্রমোশন</span>
         <h1>প্রমোশন ও গ্র্যাজুয়েশন</h1>
-        <p>শ্রেণি প্রমোশন ও গ্র্যাজুয়েশন পরিচালনা করুন</p>
+        <p class="page-subtitle">শ্রেণি প্রমোশন ও গ্র্যাজুয়েশন পরিচালনা করুন</p>
       </div>
-      <div class="page-actions">
+      <div class="header-actions">
+        <button class="btn btn-outline" @click="openBulk">
+          <Icon name="users" /> বাল্ক প্রমোশন
+        </button>
         <button class="btn btn-primary" @click="showCreate = true">
           <Icon name="plus" /> নতুন প্রমোশন
         </button>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-inner">
-        <div slot="header" class="card-header-inner">
-          <div class="search-bar">
-            <Icon name="search" />
-            <input
-              v-model="search"
-              type="text"
-              placeholder="শিক্ষার্থী নাম বা আইডি দিয়ে খুঁজুন..."
-              @input="debounceSearch"
-              class="search-input"
-            />
-          </div>
-          <div class="filter-row">
-            <select v-model="statusFilter" class="form-select sm">
-              <option value="">সব অবস্থা</option>
-              <option value="pending">মুলতুবি</option>
-              <option value="approved">অনুমোদিত</option>
-              <option value="rejected">প্রত্যাখ্যান</option>
-            </select>
-            <select v-model="classFilter" class="form-select sm ml-2">
-              <option value="">সব শ্রেণি</option>
-              <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
-          </div>
+    <div class="table-card">
+      <div class="toolbar">
+        <div class="search-box">
+          <Icon name="search" class="search-icon" />
+          <input
+            v-model="search"
+            type="text"
+            placeholder="শিক্ষার্থী নাম বা আইডি দিয়ে খুঁজুন..."
+            @input="debounceSearch"
+          />
+          <button v-if="search" @click="search = ''; fetchPromotions(1)" class="clear-search-btn" title="মুছে ফেলুন">
+            <Icon name="close" />
+          </button>
         </div>
-
-        <div v-if="loading" class="loading-state">
-          <div class="spinner"></div>
-          <p>প্রমোশন তালিকা লোড হচ্ছে...</p>
+        <div class="select-wrapper">
+          <select v-model="statusFilter" class="form-select" @change="fetchPromotions(1)">
+            <option value="">সব অবস্থা</option>
+            <option value="pending">মুলতুবি</option>
+            <option value="approved">অনুমোদিত</option>
+            <option value="rejected">প্রত্যাখ্যান</option>
+          </select>
         </div>
+        <div class="select-wrapper">
+          <select v-model="classFilter" class="form-select" @change="fetchPromotions(1)">
+            <option value="">সব শ্রেণি</option>
+            <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+        <div class="pagination-info text-muted">
+          মোট <strong style="color: var(--color-primary);">{{ promotions.total || 0 }}</strong> টি রেকর্ড
+        </div>
+      </div>
 
-        <table v-else-if="promotions.data?.length" class="data-table">
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>প্রমোশন তালিকা লোড হচ্ছে...</p>
+      </div>
+
+      <div v-else-if="promotions.data?.length" class="table-responsive">
+        <table class="premium-table">
           <thead>
             <tr>
               <th>শিক্ষার্থী</th>
@@ -55,77 +65,76 @@
               <th>শিক্ষাবর্ষ</th>
               <th>প্রমোশনের তারিখ</th>
               <th>অবস্থা</th>
-              <th>কর্ম</th>
+              <th class="text-right">কর্ম</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="p in promotions.data" :key="p.id">
               <td>
                 <strong>{{ p.student?.name_bn || p.student?.name_en || p.student?.name?.trim() || 'অজানা' }}</strong>
-                <br /><span class="text-muted text-sm">{{ p.student?.roll_number || p.student?.roll_no || '—' }}</span>
+                <div class="text-muted text-xs" v-if="p.student?.roll_number || p.student?.roll_no">রোল: {{ p.student?.roll_number || p.student?.roll_no }}</div>
               </td>
-              <td><code class="mono">{{ p.student_id }}</code></td>
+              <td><code class="mono id-badge">{{ p.student_id }}</code></td>
               <td>{{ p.fromClass?.name_bn || p.fromClass?.name_en || p.fromClass?.name || '—' }}</td>
               <td>
-                <span class="badge badge-green">{{ p.toClass?.name_bn || p.toClass?.name_en || p.toClass?.name || '—' }}</span>
+                <span class="badge-pill class-pill">{{ p.toClass?.name_bn || p.toClass?.name_en || p.toClass?.name || '—' }}</span>
               </td>
               <td>{{ p.academic_year }}</td>
               <td>{{ formatDate(p.promotion_date) }}</td>
               <td>
-                <span :class="`badge badge-${statusClass(p.status)}`">
-                  {{ formatStatus(p.status) }}
+                <span class="status-pill" :class="getStatusBadgeClass(p.status)">
+                  <span class="status-dot"></span> {{ formatStatus(p.status) }}
                 </span>
               </td>
-              <td class="actions-cell">
-                <button class="btn btn-icon btn-sm" @click="editPromotion(p)" title="সম্পাদনা">
-                  <Icon name="pencil" />
-                </button>
-                <button class="btn btn-icon btn-sm text-danger" @click="deletePromotion(p)" title="মুছে ফেলুন">
-                  <Icon name="trash" />
-                </button>
+              <td class="text-right">
+                <div class="flex gap-1" style="justify-content: flex-end;">
+                  <button class="action-btn edit" @click="editPromotion(p)" title="সম্পাদনা">
+                    <Icon name="pencil" />
+                  </button>
+                  <button class="action-btn delete" @click="deletePromotion(p)" title="মুছে ফেলুন">
+                    <Icon name="delete" />
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
 
-        <div v-else class="empty-state">
-          <Icon name="table" large />
-          <h3>কোনো প্রমোশন নেই</h3>
-          <p>এখনও কোনো শিক্ষার্থী প্রমোশন করা হয়নি।</p>
-          <button class="btn btn-primary" @click="showCreate = true">প্রথম প্রমোশন যোগ করুন</button>
-        </div>
+      <div v-else class="empty-state">
+        <h3>কোনো প্রমোশন পাওয়া যায়নি</h3>
+        <p class="text-muted">এখনও কোনো শিক্ষার্থী প্রমোশন করা হয়নি।</p>
+        <button class="btn btn-primary mt-2" @click="showCreate = true">প্রথম প্রমোশন যোগ করুন</button>
+      </div>
 
-        <div slot="footer" class="card-footer-inner">
-          <div class="pagination-info">
-            {{ promotions.from }}–{{ promotions.to }} / {{ promotions.total }} রেকর্ড
-          </div>
-          <div class="pagination" v-if="promotions.last_page > 1">
-            <button class="btn btn-outline btn-sm" :disabled="!promotions.prev_page_url" @click="goPage(promotions.current_page - 1)">
-              <Icon name="chevron-left" />
-            </button>
-            <span class="page-info">পৃষ্ঠা {{ promotions.current_page }} / {{ promotions.last_page }}</span>
-            <button class="btn btn-outline btn-sm" :disabled="!promotions.next_page_url" @click="goPage(promotions.current_page + 1)">
-              <Icon name="chevron-right" />
-            </button>
-          </div>
+      <div v-if="promotions.last_page > 1" class="pagination-wrapper">
+        <div class="pagination-info">{{ promotions.from }}–{{ promotions.to }} / মোট {{ promotions.total }} রেকর্ড</div>
+        <div class="pagination-numbers">
+          <button class="pagination-btn" :disabled="!promotions.prev_page_url" @click="goPage(promotions.current_page - 1)">
+            <Icon name="chevron-left" /> পূর্ববর্তী
+          </button>
+          <span class="page-info">পৃষ্ঠা {{ promotions.current_page }} / {{ promotions.last_page }}</span>
+          <button class="pagination-btn" :disabled="!promotions.next_page_url" @click="goPage(promotions.current_page + 1)">
+            পরবর্তী <Icon name="chevron-right" />
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Create/Edit Modal -->
-    <div v-if="showCreate" class="modal-overlay" @click.self="showCreate = false">
-      <div class="modal" :class="{ 'modal-lg': editingPromotion }">
+    <div v-if="showCreate" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-card">
         <div class="modal-header">
           <h3>{{ editingPromotion ? 'প্রমোশন সম্পাদনা' : 'নতুন প্রমোশন' }}</h3>
-          <button class="btn btn-icon" @click="closeModal">
+          <button class="action-btn" @click="closeModal">
             <Icon name="close" />
           </button>
         </div>
         <div class="modal-body">
           <form @submit.prevent="savePromotion">
             <div class="form-group">
-              <label class="form-label">শিক্ষার্থী <span class="required">*</span></label>
-              <select v-model="form.student_id" class="form-select">
+              <label class="form-label">শিক্ষার্থী <span class="required" style="color: var(--color-error);">*</span></label>
+              <select v-model="form.student_id" class="form-select" required>
                 <option value="">শিক্ষার্থী নির্বাচন করুন</option>
                 <option v-for="s in studentOptions" :key="s.id" :value="s.id">
                   {{ s.name }} ({{ s.roll_no }}) — {{ s.class?.name || '—' }}
@@ -134,15 +143,15 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">পূর্বের শ্রেণি <span class="required">*</span></label>
-                <select v-model="form.from_class_id" class="form-select">
+                <label class="form-label">পূর্বের শ্রেণি <span class="required" style="color: var(--color-error);">*</span></label>
+                <select v-model="form.from_class_id" class="form-select" required>
                   <option value="">শ্রেণি নির্বাচন করুন</option>
                   <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">পরবর্তী শ্রেণি <span class="required">*</span></label>
-                <select v-model="form.to_class_id" class="form-select">
+                <label class="form-label">পরবর্তী শ্রেণি <span class="required" style="color: var(--color-error);">*</span></label>
+                <select v-model="form.to_class_id" class="form-select" required>
                   <option value="">শ্রেণি নির্বাচন করুন</option>
                   <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
                 </select>
@@ -150,12 +159,12 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">শিক্ষাবর্ষ <span class="required">*</span></label>
-                <input v-model="form.academic_year" type="text" class="form-control" placeholder="যেমন: ২০২৫-২০২৬" />
+                <label class="form-label">শিক্ষাবর্ষ <span class="required" style="color: var(--color-error);">*</span></label>
+                <input v-model="form.academic_year" type="text" class="form-control" placeholder="যেমন: ২০২৫-২০২৬" required />
               </div>
               <div class="form-group">
-                <label class="form-label">প্রমোশনের তারিখ <span class="required">*</span></label>
-                <input v-model="form.promotion_date" type="date" class="form-control" />
+                <label class="form-label">প্রমোশনের তারিখ <span class="required" style="color: var(--color-error);">*</span></label>
+                <input v-model="form.promotion_date" type="date" class="form-control" required />
               </div>
             </div>
             <div class="form-group">
@@ -175,31 +184,31 @@
         <div class="modal-footer">
           <button class="btn btn-outline" @click="closeModal">বাতিল</button>
           <button class="btn btn-primary" @click="savePromotion" :disabled="saving">
-            <Icon name="spinner" v-if="saving" />
+            <Icon name="loader" v-if="saving" />
             {{ editingPromotion ? 'আপডেট করুন' : 'সংরক্ষণ করুন' }}
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Delete Confirm -->
+    <!-- Delete Confirm Modal -->
     <div v-if="showDelete" class="modal-overlay" @click.self="showDelete = false">
-      <div class="modal">
+      <div class="modal-card" style="max-width: 440px;">
         <div class="modal-header">
           <h3>আপনি কি নিশ্চিত?</h3>
-          <button class="btn btn-icon" @click="showDelete = false">
+          <button class="action-btn" @click="showDelete = false">
             <Icon name="close" />
           </button>
         </div>
         <div class="modal-body">
           <p>
-            "{{ deleteTarget?.student?.name || 'শিক্ষার্থী' }}" এর প্রমোশন মুছে ফেলতে চান।
+            "<strong>{{ deleteTarget?.student?.name_bn || deleteTarget?.student?.name || 'শিক্ষার্থী' }}</strong>" এর প্রমোশন রেকর্ড মুছে ফেলতে চান?
           </p>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline" @click="showDelete = false">বাতিল</button>
           <button class="btn btn-danger" @click="confirmDelete" :disabled="deleting">
-            <Icon name="spinner" v-if="deleting" />
+            <Icon name="loader" v-if="deleting" />
             মুছে ফেলুন
           </button>
         </div>
@@ -208,10 +217,10 @@
 
     <!-- Bulk Promote Modal -->
     <div v-if="showBulk" class="modal-overlay" @click.self="showBulk = false">
-      <div class="modal modal-lg">
+      <div class="modal-card">
         <div class="modal-header">
           <h3>বাল্ক প্রমোশন</h3>
-          <button class="btn btn-icon" @click="showBulk = false">
+          <button class="action-btn" @click="showBulk = false">
             <Icon name="close" />
           </button>
         </div>
@@ -219,15 +228,15 @@
           <form @submit.prevent="doBulkPromote">
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">পূর্বের শ্রেণি <span class="required">*</span></label>
-                <select v-model="bulkForm.from_class_id" class="form-select">
+                <label class="form-label">পূর্বের শ্রেণি <span class="required" style="color: var(--color-error);">*</span></label>
+                <select v-model="bulkForm.from_class_id" class="form-select" required>
                   <option value="">নির্বাচন করুন</option>
                   <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">পরবর্তী শ্রেণি <span class="required">*</span></label>
-                <select v-model="bulkForm.to_class_id" class="form-select">
+                <label class="form-label">পরবর্তী শ্রেণি <span class="required" style="color: var(--color-error);">*</span></label>
+                <select v-model="bulkForm.to_class_id" class="form-select" required>
                   <option value="">নির্বাচন করুন</option>
                   <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
                 </select>
@@ -235,8 +244,8 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">শিক্ষাবর্ষ <span class="required">*</span></label>
-                <input v-model="bulkForm.academic_year" type="text" class="form-control" placeholder="২০২৫-২০২৬" />
+                <label class="form-label">শিক্ষাবর্ষ <span class="required" style="color: var(--color-error);">*</span></label>
+                <input v-model="bulkForm.academic_year" type="text" class="form-control" placeholder="২০২৫-২০২৬" required />
               </div>
               <div class="form-group">
                 <label class="form-label">প্রমোশনের তারিখ</label>
@@ -244,35 +253,37 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">শিক্ষার্থীদের তালিকা</label>
+              <label class="form-label">শিক্ষার্থীদের নির্বাচন</label>
+              <div class="flex gap-1 mb-2">
+                <select v-model="newStudentId" class="form-select" style="flex: 1;">
+                  <option value="">শিক্ষার্থী যোগ করুন...</option>
+                  <option v-for="s in studentOptions" :key="s.id" :value="s.id">
+                    {{ s.name }} ({{ s.roll_no }})
+                  </option>
+                </select>
+                <button type="button" class="btn btn-outline" @click="addStudent" :disabled="!newStudentId">
+                  যোগ করুন
+                </button>
+              </div>
               <div class="bulk-list">
                 <div v-for="s in selectedStudents" :key="s.id" class="bulk-chip">
                   <span>{{ s.name }} ({{ s.roll_no }})</span>
-                  <button type="button" class="chip-remove" @click="removeStudent(s.id)">
-                    <Icon name="close" />
+                  <button type="button" class="chip-remove" @click="removeStudent(s.id)" title="মুছুন">
+                    <Icon name="close" size="14" />
                   </button>
                 </div>
                 <div v-if="selectedStudents.length === 0" class="bulk-empty">
-                  কোনো শিক্ষার্থী নির্বাচন করা হয়নি
+                  কোনো শিক্ষার্থী নির্বাচিত হয়নি
                 </div>
               </div>
-              <select v-model="newStudentId" class="form-select mt-2">
-                <option value="">আরও শিক্ষার্থী যোগ করুন</option>
-                <option v-for="s in availableStudents" :key="s.id" :value="s.id">
-                  {{ s.name }} ({{ s.roll_no }}) — {{ s.class?.name }}
-                </option>
-              </select>
-              <button v-if="newStudentId" class="btn btn-outline btn-sm mt-2" @click="addStudent">
-                <Icon name="plus" /> যোগ করুন
-              </button>
             </div>
           </form>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline" @click="showBulk = false">বাতিল</button>
           <button class="btn btn-primary" @click="doBulkPromote" :disabled="bulkSaving || selectedStudents.length === 0">
-            <Icon name="spinner" v-if="bulkSaving" />
-            বাল্ক প্রমোশন করুন ({{ selectedStudents.length }} জন)
+            <Icon name="loader" v-if="bulkSaving" />
+            বাল্ক প্রমোশন সম্পাদন করুন ({{ selectedStudents.length }})
           </button>
         </div>
       </div>
@@ -289,14 +300,23 @@ const api = useApiClient()
 
 const loading = ref(true)
 const promotions = ref<any>({ data: [], from: 0, to: 0, total: 0, current_page: 1, last_page: 1, prev_page_url: null, next_page_url: null })
-const classOptions = ref<any[]>([])
-const studentOptions = ref<any[]>([])
 const search = ref('')
 const statusFilter = ref('')
 const classFilter = ref('')
+const classOptions = ref<any[]>([])
+const studentOptions = ref<any[]>([])
+
 const showCreate = ref(false)
 const editingPromotion = ref<any>(null)
-const form = reactive({ student_id: '', from_class_id: '', to_class_id: '', academic_year: '২০২৫-২০২৬', promotion_date: '', status: 'approved', comments: '' })
+const form = reactive({
+  student_id: '',
+  from_class_id: '',
+  to_class_id: '',
+  academic_year: '২০২৫-২০২৬',
+  promotion_date: '',
+  status: 'approved',
+  comments: '',
+})
 const saving = ref(false)
 const showDelete = ref(false)
 const deleteTarget = ref<any>(null)
@@ -308,11 +328,6 @@ const selectedStudents = ref<any[]>([])
 const newStudentId = ref('')
 let searchTimeout: any = null
 const per_page = 15
-
-const availableStudents = computed(() => {
-  if (!newStudentId.value) return []
-  return studentOptions.value.filter(s => !selectedStudents.value.find(x => x.id === Number(newStudentId.value)))
-})
 
 async function fetchPromotions(page = 1) {
   loading.value = true
@@ -391,9 +406,11 @@ function formatDate(date: string) {
   try { return new Date(date).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' }) } catch { return date }
 }
 
-function statusClass(s: string) {
-  const map: Record<string, string> = { pending: 'yellow', approved: 'green', rejected: 'red' }
-  return map[s] || 'gray'
+function getStatusBadgeClass(status: string) {
+  if (status === 'approved') return 'badge-approved'
+  if (status === 'pending') return 'badge-pending'
+  if (status === 'rejected') return 'badge-rejected'
+  return 'badge-pending'
 }
 
 function formatStatus(s: string) {
@@ -488,11 +505,142 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.mono { font-family: 'Courier New', monospace; font-size: 0.85rem; }
-.text-muted { color: #6c757d; }
-.actions-cell { white-space: nowrap; }
-.bulk-list { max-height: 200px; overflow-y: auto; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 0.5rem; }
-.bulk-chip { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0.5rem; background: #f5f5f5; border-radius: 6px; margin-bottom: 0.3rem; font-size: 0.9rem; }
-.chip-remove { color: #c62828; background: none; border: none; cursor: pointer; padding: 0; font-size: 0.9rem; }
-.bulk-empty { color: #6c757d; font-size: 0.85rem; padding: 0.5rem; text-align: center; }
+.id-badge {
+  background: var(--color-bg-muted);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-light);
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.badge-pill {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  font-family: var(--font-bn);
+
+  &.class-pill {
+    background: rgba(20, 80, 50, 0.1);
+    color: var(--color-primary);
+  }
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.modal-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border-light);
+  background: var(--color-bg-muted);
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+.bulk-list {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem;
+  background: var(--color-bg);
+}
+
+.bulk-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0.65rem;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.35rem;
+  font-size: var(--text-sm);
+  font-family: var(--font-bn);
+}
+
+.chip-remove {
+  color: var(--color-error);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.1rem;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
+
+.bulk-empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  padding: 0.8rem;
+  text-align: center;
+  font-family: var(--font-bn);
+}
+
+.pagination-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border-light);
+  background: var(--color-bg-card);
+}
+
+.pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-family: var(--font-bn);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-50);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-bg-muted);
+  }
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.page-info {
+  font-size: var(--text-sm);
+  color: var(--color-text-light);
+  font-family: var(--font-bn);
+}
 </style>
