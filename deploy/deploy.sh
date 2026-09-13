@@ -9,6 +9,9 @@ STATUS_FILE="$LOG_DIR/deploy.status"
 
 mkdir -p "$LOG_DIR"
 
+# Ensure sentinel is ALWAYS written on exit so CI/CD runner never hangs
+trap 'echo "done" > "$SENTINEL"' EXIT
+
 echo "=== $(date -u '+%Y-%m-%d %H:%M:%S UTC') deploy start ===" >> "$LOG_FILE"
 
 cd "$DEPLOY_DIR"
@@ -31,5 +34,4 @@ else
 fi
 
 echo "=== deploy done ===" >> "$LOG_FILE"
-echo "done" > "$SENTINEL"
 exit 0
