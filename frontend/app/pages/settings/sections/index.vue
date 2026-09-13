@@ -65,9 +65,9 @@
                 </span>
               </td>
               <td class="text-center">
-                <NuxtLink :to="`/settings/sections/${s.id}`" class="btn btn-ghost btn-sm">
-                  <Icon name="eye" class="btn-icon" /> দেখুন
-                </NuxtLink>
+                <button type="button" class="btn btn-ghost btn-sm" @click="editSection(s)">
+                  <Icon name="pencil" class="btn-icon" /> সম্পাদনা
+                </button>
               </td>
             </tr>
           </tbody>
@@ -208,6 +208,17 @@ function resetForm() {
   form.status = 'active'
   currentId.value = null
   isEditing.value = false
+}
+
+function editSection(s: any) {
+  currentId.value = s.id
+  form.class_id = String(s.class_id || '')
+  form.section_name = s.section_name_en || s.section_name || ''
+  form.section_bn = s.section_bn || ''
+  form.capacity = s.capacity || 40
+  form.status = s.status || 'active'
+  isEditing.value = true
+  showForm.value = true
 }
 
 function statusClass(s: string) {

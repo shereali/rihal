@@ -52,9 +52,9 @@
                 </span>
               </td>
               <td class="text-center">
-                <NuxtLink :to="`/settings/classes/${c.id}`" class="btn btn-ghost btn-sm">
-                  <Icon name="eye" class="btn-icon" /> দেখুন
-                </NuxtLink>
+                <button type="button" class="btn btn-ghost btn-sm" @click="editClass(c)">
+                  <Icon name="pencil" class="btn-icon" /> সম্পাদনা
+                </button>
               </td>
             </tr>
           </tbody>
@@ -175,6 +175,16 @@ function resetForm() {
   form.status = 'active'
   currentId.value = null
   isEditing.value = false
+}
+
+function editClass(c: any) {
+  currentId.value = c.id
+  form.class_name = c.class_name || c.name || ''
+  form.class_bn = c.class_bn || ''
+  form.class_order = c.class_order || 0
+  form.status = c.status || 'active'
+  isEditing.value = true
+  showForm.value = true
 }
 
 function statusClass(s: string) {

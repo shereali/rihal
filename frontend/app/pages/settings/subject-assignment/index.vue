@@ -74,9 +74,9 @@
                 </span>
               </td>
               <td class="text-center">
-                <NuxtLink :to="`/settings/subject-assignment/${a.id}`" class="btn btn-ghost btn-sm">
-                  <Icon name="eye" class="btn-icon" /> দেখুন
-                </NuxtLink>
+                <button type="button" class="btn btn-ghost btn-sm" @click="editAssignment(a)">
+                  <Icon name="pencil" class="btn-icon" /> সম্পাদনা
+                </button>
               </td>
             </tr>
           </tbody>
@@ -238,6 +238,17 @@ function resetForm() {
   form.status = 'active'
   currentId.value = null
   isEditing.value = false
+}
+
+function editAssignment(a: any) {
+  currentId.value = a.id
+  form.teacher_id = String(a.teacher_id || '')
+  form.subject_id = String(a.subject_id || '')
+  form.class_id = String(a.class_id || '')
+  form.section_id = String(a.section_id || '')
+  form.status = a.status || 'active'
+  isEditing.value = true
+  showForm.value = true
 }
 
 function formatDate(d: string | undefined) {

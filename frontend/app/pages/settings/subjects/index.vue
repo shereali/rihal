@@ -69,9 +69,9 @@
                 </span>
               </td>
               <td class="text-center">
-                <NuxtLink :to="`/settings/subjects/${s.id}`" class="btn btn-ghost btn-sm">
-                  <Icon name="eye" class="btn-icon" /> দেখুন
-                </NuxtLink>
+                <button type="button" class="btn btn-ghost btn-sm" @click="editSubject(s)">
+                  <Icon name="pencil" class="btn-icon" /> সম্পাদনা
+                </button>
               </td>
             </tr>
           </tbody>
@@ -219,6 +219,18 @@ function resetForm() {
   form.status = 'active'
   currentId.value = null
   isEditing.value = false
+}
+
+function editSubject(s: any) {
+  currentId.value = s.id
+  form.class_id = String(s.class_id || '')
+  form.subject_name = s.subject_name_en || s.subject_name || ''
+  form.subject_bn = s.subject_bn || ''
+  form.subject_code = s.subject_code || ''
+  form.total_marks = s.total_marks || 100
+  form.status = s.status || 'active'
+  isEditing.value = true
+  showForm.value = true
 }
 
 function statusClass(s: string) {

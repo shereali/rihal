@@ -46,9 +46,9 @@
               <td>{{ u.phone || '-' }}</td>
               <td><span class="status-badge" :class="statusClass(u.status)">{{ statusLabel(u.status) }}</span></td>
               <td class="text-center">
-                <NuxtLink :to="`/settings/admin-users/${u.id}`" class="btn btn-ghost btn-sm">
-                  <Icon name="eye" class="btn-icon" />
-                </NuxtLink>
+                <button type="button" class="btn btn-ghost btn-sm" @click="editUser(u)">
+                  <Icon name="pencil" class="btn-icon" />
+                </button>
               </td>
             </tr>
           </tbody>
@@ -190,6 +190,19 @@ function resetForm() {
   form.status = 'active'
   currentId.value = null
   isEditing.value = false
+}
+
+function editUser(u: any) {
+  currentId.value = u.id
+  form.name_bn = u.name_bn || ''
+  form.name = u.name || ''
+  form.email = u.email || ''
+  form.phone = u.phone || ''
+  form.role = u.role || ''
+  form.password = ''
+  form.status = u.status || 'active'
+  isEditing.value = true
+  showForm.value = true
 }
 
 function roleClass(role: string) {

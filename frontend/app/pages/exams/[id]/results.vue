@@ -67,7 +67,7 @@
       <h3>এই পরীক্ষার কোনো ফলাফল নেই</h3>
       <p>প্রথমে মার্ক এন্ট্রি করুন অথবা ফলাফল তৈরি করুন</p>
       <NuxtLink :to="`/marks/create?exam=${exam?.id}`" class="btn btn-primary"><icon name="plus" /> মার্ক এন্ট্রি</NuxtLink>
-      <NuxtLink to="/exam-results/create" class="btn btn-outline btn-sm">ফলাফল তৈরি করুন</NuxtLink>
+      <NuxtLink :to="`/exam-results/create?exam=${exam?.id}`" class="btn btn-outline btn-sm">ফলাফল তৈরি করুন</NuxtLink>
     </div>
     <div v-else class="results-table-wrapper">
       <table class="results-table">

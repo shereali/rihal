@@ -50,9 +50,9 @@
                 <span v-if="s.is_active" class="active-mark">সক্রিয়</span>
               </td>
               <td class="text-center">
-                <NuxtLink :to="`/settings/sessions/${s.id}`" class="btn btn-ghost btn-sm">
-                  <Icon name="eye" class="btn-icon" /> দেখুন
-                </NuxtLink>
+                <button type="button" class="btn btn-ghost btn-sm" @click="editSession(s)">
+                  <Icon name="pencil" class="btn-icon" /> সম্পাদনা
+                </button>
               </td>
             </tr>
           </tbody>
@@ -186,6 +186,17 @@ function resetForm() {
   form.status = 'active'
   currentId.value = null
   isEditing.value = false
+}
+
+function editSession(s: any) {
+  currentId.value = s.id
+  form.session_name = s.session_name || s.name || ''
+  form.session_bn = s.session_bn || ''
+  form.start_date = s.start_date ? s.start_date.substring(0, 10) : ''
+  form.end_date = s.end_date ? s.end_date.substring(0, 10) : ''
+  form.status = s.status || 'active'
+  isEditing.value = true
+  showForm.value = true
 }
 
 function formatDate(d: string | undefined) {
