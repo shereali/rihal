@@ -16,6 +16,9 @@ echo "=== $(date -u '+%Y-%m-%d %H:%M:%S UTC') deploy start ===" >> "$LOG_FILE"
 
 cd "$DEPLOY_DIR"
 
+# Configure git safe directory to avoid dubious ownership block
+git config --global --add safe.directory "$DEPLOY_DIR" || true
+
 # Pull latest commits from master
 git fetch origin master >> "$LOG_FILE" 2>&1 || true
 git reset --hard origin/master >> "$LOG_FILE" 2>&1 || true
