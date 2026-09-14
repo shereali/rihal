@@ -23,6 +23,7 @@ module.exports = defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'রিহাল — মাদ্রাসা ব্যবস্থাপনা প্ল্যাটফর্ম' },
         { name: 'theme-color', content: '#145032' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
       ],
