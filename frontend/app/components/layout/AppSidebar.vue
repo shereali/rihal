@@ -450,14 +450,17 @@ onMounted(() => {
 @media (max-width: 768px) {
   .sidebar-backdrop {
     display: block;
+    z-index: 95;
   }
 
   .sidebar {
     transform: translateX(-100%);
+    z-index: 100;
   }
 
   .sidebar.open {
     transform: translateX(0);
+    box-shadow: var(--elevation-3);
   }
 
   .sidebar-close {

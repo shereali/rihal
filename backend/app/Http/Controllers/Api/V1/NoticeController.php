@@ -142,4 +142,38 @@ class NoticeController extends ApiController
 
         return $this->successResponse(null, 'বিজ্ঞপ্তি মুছে ফেলা সফল');
     }
+
+    public function pin(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+
+        $notice = Notice::where('tenant_id', $user->tenant_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$notice) {
+            return $this->errorResponse('বিজ্ঞপ্তি পাওয়া যায়নি', 404);
+        }
+
+        $notice->update(['is_pinned' => true]);
+
+        return $this->successResponse($notice->fresh(), 'বিজ্ঞপ্তি পিন করা হয়েছে');
+    }
+
+    public function unpin(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+
+        $notice = Notice::where('tenant_id', $user->tenant_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$notice) {
+            return $this->errorResponse('বিজ্ঞপ্তি পাওয়া যায়নি', 404);
+        }
+
+        $notice->update(['is_pinned' => false]);
+
+        return $this->successResponse($notice->fresh(), 'বিজ্ঞপ্তি আনপিন করা হয়েছে');
+    }
 }

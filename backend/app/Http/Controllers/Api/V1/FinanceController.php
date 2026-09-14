@@ -60,6 +60,50 @@ class FinanceController extends ApiController
         return $this->successResponse($fund, 'ফান্ড তৈরি সফল', 201);
     }
 
+    public function updateFund(Request $request, int $id): JsonResponse
+    {
+        $fund = Fund::where('tenant_id', $request->user()->tenant_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$fund) {
+            return $this->errorResponse('ফান্ড পাওয়া যায়নি', 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name_bn' => 'nullable|string|max:255',
+            'name_en' => 'nullable|string|max:255',
+            'type' => 'nullable|string|max:50',
+            'target_amount' => 'nullable|numeric',
+            'collected_amount' => 'nullable|numeric',
+            'description_bn' => 'nullable|string',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse('বৈধতা ত্রুটি', 422, $validator->errors());
+        }
+
+        $fund->update($validator->validated());
+
+        return $this->successResponse($fund->fresh(), 'ফান্ড আপডেট সফল');
+    }
+
+    public function destroyFund(Request $request, int $id): JsonResponse
+    {
+        $fund = Fund::where('tenant_id', $request->user()->tenant_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$fund) {
+            return $this->errorResponse('ফান্ড পাওয়া যায়নি', 404);
+        }
+
+        $fund->delete();
+
+        return $this->successResponse(null, 'ফান্ড মুছে ফেলা সফল');
+    }
+
     // ─── Donors ───────────────────────────────────────────────────────────────
 
     public function donors(Request $request): JsonResponse

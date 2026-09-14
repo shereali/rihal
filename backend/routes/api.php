@@ -69,6 +69,8 @@ Route::prefix('v1')->group(function () {
         // Auth
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/user', [AuthController::class, 'user']);
+        Route::get('/auth/me', [AuthController::class, 'user']);
+        Route::get('/users/me', [AuthController::class, 'user']);
 
         // Dashboard
         Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
@@ -94,6 +96,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/academic/subjects', [AcademicController::class, 'storeSubject']);
         Route::put('/academic/subjects/{id}', [AcademicController::class, 'updateSubject']);
         Route::delete('/academic/subjects/{id}', [AcademicController::class, 'destroySubject']);
+        Route::get('/academic/teachers', [TeacherController::class, 'index']);
 
         // Guardian portal
         Route::get('/guardian/portal', [GuardianController::class, 'portal']);
@@ -186,6 +189,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/finance/funds', [FinanceController::class, 'funds']);
         Route::post('/finance/funds', [FinanceController::class, 'storeFund'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/funds/{id}', [FinanceController::class, 'showFund']);
+        Route::put('/finance/funds/{id}', [FinanceController::class, 'updateFund'])->middleware('role:admin,tenant_admin,super_admin');
+        Route::delete('/finance/funds/{id}', [FinanceController::class, 'destroyFund'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/donors', [FinanceController::class, 'donors']);
         Route::post('/finance/donors', [FinanceController::class, 'storeDonor'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/donations', [FinanceController::class, 'donations']);
@@ -260,6 +265,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/hr/staff/{id}', [HRController::class, 'destroyStaff']);
         Route::get('/hr/recruitments', [HRController::class, 'recruitments']);
         Route::post('/hr/recruitments', [HRController::class, 'storeRecruitment']);
+        Route::get('/hr/recruitments/{id}', [HRController::class, 'showRecruitment']);
         Route::put('/hr/recruitments/{id}', [HRController::class, 'updateRecruitment']);
         Route::delete('/hr/recruitments/{id}', [HRController::class, 'destroyRecruitment']);
         Route::get('/hr/recruitments/{id}/applications', [HRController::class, 'applications']);
@@ -314,7 +320,9 @@ Route::prefix('v1')->group(function () {
         Route::delete('/properties/{propertyId}/visitors/{id}', [PropertyVisitorController::class, 'destroy']);
 
         // ─── Settings ──────────────────────────────────────────────────────────
+        Route::get('/settings', [SettingsController::class, 'general']);
         Route::get('/settings/general', [SettingsController::class, 'general']);
+        Route::post('/settings/update', [SettingsController::class, 'updateSettings']);
 
         // Admin Users & Roles
         Route::get('/settings/admin-users', [SettingsController::class, 'adminUsers']);
@@ -366,6 +374,8 @@ Route::prefix('v1')->group(function () {
         Route::delete('/exam-results/{id}', [ExamResultController::class, 'destroy']);
         Route::patch('/exam-results/{id}/publish', [ExamResultController::class, 'publish']);
         Route::patch('/exam-results/{id}/unpublish', [ExamResultController::class, 'unpublish']);
+        Route::post('/exam-marks/save-comments', [ExamResultController::class, 'saveComments']);
+        Route::post('/exam-results/comments', [ExamResultController::class, 'saveComments']);
 
         // ─── Mark Entries ─────────────────────────────────────────────────────
         Route::get('/mark-entries', [MarkEntryController::class, 'index']);
@@ -487,8 +497,6 @@ Route::prefix('v1')->group(function () {
         Route::delete('/lesson-evaluations/books/{id}', [LessonEvaluationController::class, 'destroyBook']);
 
         // ─── Digital Attendance Suite (ডিজিটাল বায়োমেট্রিক ও ADMS) ───────────
-        Route::get('/digital-attendance/devices', [DigitalAttendanceController::class, 'devices']);
-        Route::post('/digital-attendance/devices', [DigitalAttendanceController::class, 'store']);
         Route::post('/digital-attendance/devices/{id}/ping', [DigitalAttendanceController::class, 'ping']);
         Route::post('/digital-attendance/tools/sync-time', [DigitalAttendanceController::class, 'syncTime']);
         Route::post('/digital-attendance/tools/upload-users', [DigitalAttendanceController::class, 'uploadUsers']);

@@ -17,11 +17,11 @@ class DigitalAttendanceController extends Controller
     {
         try {
             $devices = AttendanceDevice::when($request->search, function ($q, $search) {
-                $q->where('name', 'like', "%{$search}%")
+                $q->where('device_name', 'like', "%{$search}%")
                   ->orWhere('serial_number', 'like', "%{$search}%");
             })
             ->when($request->status, fn($q, $status) => $q->where('status', $status))
-            ->orderBy('name')
+            ->orderBy('device_name')
             ->get();
 
             return response()->json([
@@ -40,7 +40,8 @@ class DigitalAttendanceController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name'             => 'required|string|max:100',
+            'name'             => 'sometimes|string|max:100',
+            'device_name'      => 'sometimes|string|max:100',
             'serial_number'    => 'required|string|max:50',
             'device_type'      => 'nullable|string|max:50',
             'model'            => 'nullable|string|max:100',
@@ -51,17 +52,122 @@ class DigitalAttendanceController extends Controller
             'location'         => 'nullable|string|max:200',
         ]);
 
-        $device = AttendanceDevice::create(array_merge($validated, [
-            'tenant_id' => $request->user()?->tenant_id,
-            'device_type' => $validated['device_type'] ?? 'biometric',
-            'status' => $validated['status'] ?? 'active',
-        ]));
+        $deviceName = $validated['device_name'] ?? $validated['name'] ?? 'বায়োমেট্রিক ডিভাইস';
+
+        $device = AttendanceDevice::create([
+            'tenant_id'     => $request->user()?->tenant_id,
+            'device_name'   => $deviceName,
+            'serial_number' => $validated['serial_number'],
+            'device_type'   => $validated['device_type'] ?? 'biometric',
+            'model'         => $validated['model'] ?? null,
+            'ip_address'    => $validated['ip_address'] ?? null,
+            'status'        => $validated['status'] ?? 'active',
+        ]);
 
         return response()->json([
             'status'  => 201,
             'message' => 'ডিভাইস সফলভাবে তৈরি করা হয়েছে',
             'data'    => $device,
         ], 201);
+    }
+
+    public function show($id): JsonResponse
+    {
+        $device = AttendanceDevice::findOrFail($id);
+        return response()->json([
+            'status'  => 200,
+            'message' => 'ডিভাইসের বিবরণ পাওয়া গেছে',
+            'data'    => $device,
+        ]);
+    }
+
+    public function update(Request $request, $id): JsonResponse
+    {
+        $device = AttendanceDevice::findOrFail($id);
+        $validated = $request->validate([
+            'name'          => 'sometimes|string|max:100',
+            'device_name'   => 'sometimes|string|max:100',
+            'serial_number' => 'sometimes|string|max:50',
+            'device_type'   => 'nullable|string|max:50',
+            'model'         => 'nullable|string|max:100',
+            'protocol'      => 'nullable|string|max:50',
+            'ip_address'    => 'nullable|string|max:50',
+            'port'          => 'nullable|integer',
+            'status'        => 'nullable|string|max:30',
+            'location'      => 'nullable|string|max:200',
+        ]);
+
+        if (isset($validated['name'])) {
+            $validated['device_name'] = $validated['name'];
+            unset($validated['name']);
+        }
+
+        $device->update($validated);
+
+        return response()->json([
+            'status'  => 200,
+            'message' => 'ডিভাইস সফলভাবে আপডেট করা হয়েছে',
+            'data'    => $device->fresh(),
+        ]);
+    }
+
+    public function destroy($id): JsonResponse
+    {
+        $device = AttendanceDevice::findOrFail($id);
+        $device->delete();
+
+        return response()->json([
+            'status'  => 200,
+            'message' => 'ডিভাইস সফলভাবে মুছে ফেলা হয়েছে',
+            'data'    => null,
+        ]);
+    }
+
+    public function syncStatus(Request $request): JsonResponse
+    {
+        $tenantId = $request->user()?->tenant_id;
+        $totalDevices = AttendanceDevice::where('tenant_id', $tenantId)->count();
+        $onlineDevices = AttendanceDevice::where('tenant_id', $tenantId)->where('status', 'active')->count();
+        $lastSync = AttendanceDevice::where('tenant_id', $tenantId)->max('last_sync_at');
+        $pendingCommands = AdmsCommand::where('tenant_id', $tenantId)->where('status', 'pending')->count();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'সিঙ্ক স্ট্যাটাস পাওয়া গেছে',
+            'data' => [
+                'total_devices' => $totalDevices,
+                'online_devices' => $onlineDevices,
+                'offline_devices' => max(0, $totalDevices - $onlineDevices),
+                'last_sync_at' => $lastSync,
+                'pending_commands' => $pendingCommands,
+                'is_healthy' => $onlineDevices > 0 || $totalDevices === 0,
+            ],
+        ]);
+    }
+
+    public function syncReport(Request $request): JsonResponse
+    {
+        $tenantId = $request->user()?->tenant_id;
+        $date = $request->input('date', today()->toDateString());
+
+        $punchesCount = AttendanceRecord::where('tenant_id', $tenantId)
+            ->whereDate('date', $date)
+            ->count();
+
+        $recentLogs = AdmsCommand::where('tenant_id', $tenantId)
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'সিঙ্ক রিপোর্ট পাওয়া গেছে',
+            'data' => [
+                'date' => $date,
+                'punches_synced' => $punchesCount,
+                'recent_commands' => $recentLogs,
+            ],
+        ]);
     }
 
     public function ping($id): JsonResponse

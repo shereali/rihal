@@ -249,7 +249,7 @@ const form = reactive({
 async function fetchExams() {
   loadingExams.value = true
   try {
-    const res = await api.get('/api/v1/exams', { params: { per_page: 100 } })
+    const res = await api.get('/exams', { params: { per_page: 100 } })
     const data = res?.data || res
     exams.value = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []
   } catch (err) {
@@ -262,7 +262,7 @@ async function fetchExams() {
 async function fetchStudents() {
   loadingStudents.value = true
   try {
-    const res = await api.get('/api/v1/students', { params: { per_page: 150 } })
+    const res = await api.get('/students', { params: { per_page: 150 } })
     const data = res?.data || res
     students.value = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []
   } catch (err) {
@@ -333,7 +333,7 @@ async function handleSubmit() {
       is_published: !!form.is_published
     }
 
-    const res = await api.post('/api/v1/exam-results', payload)
+    const res = await api.post('/exam-results', payload)
     const newId = res?.data?.id || res?.id
 
     successMsg.value = 'ফলাফল সফলভাবে তৈরি হয়েছে!'

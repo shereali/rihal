@@ -539,7 +539,7 @@ async function executeApprove() {
   if (!actionTarget.value) return
   actionLoading.value = true
   try {
-    await api.put('/leave-applications/' + actionTarget.value.id, { ...actionTarget.value, status: 'approved' })
+    await api.put('/leave-applications/' + actionTarget.value.id, { status: 'approved' })
     showApproveModal.value = false
     actionTarget.value = null
     showToast('ছুটির আবেদন সফলভাবে অনুমোদন করা হয়েছে')
@@ -562,9 +562,8 @@ async function executeReject() {
   actionLoading.value = true
   try {
     await api.put('/leave-applications/' + actionTarget.value.id, {
-      ...actionTarget.value,
       status: 'rejected',
-      rejection_reason: rejectionReason.value || undefined
+      notes: rejectionReason.value || undefined
     })
     showRejectModal.value = false
     actionTarget.value = null

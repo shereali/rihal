@@ -9,6 +9,8 @@ use App\Models\HostelRoom;
 use App\Models\Holiday;
 use App\Models\Event;
 use App\Models\EventRegistration;
+use App\Models\Recruitment;
+use App\Models\JobApplication;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -607,5 +609,200 @@ class HRController extends ApiController
         $registration->delete();
 
         return $this->successResponse(null, 'নাম নিবন্ধন মুছে ফেলা সফল');
+    }
+
+    // ─── Hostel Visitor Aliases ────────────────────────────────────────────────
+
+    public function visitors(Request $request): JsonResponse
+    {
+        return $this->hostelVisitors($request);
+    }
+
+    public function storeVisitor(Request $request): JsonResponse
+    {
+        return $this->storeHostelVisitor($request);
+    }
+
+    public function updateVisitor(Request $request, int $id): JsonResponse
+    {
+        return $this->updateHostelVisitor($request, $id);
+    }
+
+    // ─── Recruitments ──────────────────────────────────────────────────────────
+
+    public function recruitments(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $perPage = min((int) $request->input('per_page', 15), 100);
+
+        $query = Recruitment::where('tenant_id', $user->tenant_id)
+            ->when($request->has('search'), function ($q) use ($request) {
+                $search = $request->input('search');
+                $q->where('job_title', 'like', "%{$search}%")
+                    ->orWhere('department', 'like', "%{$search}%");
+            })
+            ->when($request->has('status'), fn($q) => $q->where('status', $request->input('status')))
+            ->when($request->has('department'), fn($q) => $q->where('department', $request->input('department')))
+            ->withCount('applications')
+            ->orderBy('created_at', 'desc');
+
+        $recruitments = $query->paginate($perPage);
+
+        return $this->successResponse($recruitments);
+    }
+
+    public function showRecruitment(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $recruitment = Recruitment::where('tenant_id', $user->tenant_id)
+            ->withCount('applications')
+            ->find($id);
+
+        if (!$recruitment) {
+            return $this->errorResponse('নিয়োগ বিজ্ঞপ্তি পাওয়া যায়নি', 404);
+        }
+
+        return $this->successResponse($recruitment);
+    }
+
+    public function storeRecruitment(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'job_title' => 'required|string|max:255',
+            'department' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'requirements' => 'nullable',
+            'status' => 'nullable|string|max:50',
+            'posted_date' => 'nullable|date',
+            'closing_date' => 'nullable|date',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse('বৈধতা ত্রুটি', 422, $validator->errors());
+        }
+
+        $data = $validator->validated();
+        $data['tenant_id'] = $request->user()->tenant_id;
+        $data['posted_date'] = $data['posted_date'] ?? today()->toDateString();
+        $data['status'] = $data['status'] ?? 'open';
+        $data['applicant_count'] = 0;
+
+        $recruitment = Recruitment::create($data);
+
+        return $this->successResponse($recruitment, 'নিয়োগ বিজ্ঞপ্তি সফলভাবে তৈরি হয়েছে', 201);
+    }
+
+    public function updateRecruitment(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $recruitment = Recruitment::where('tenant_id', $user->tenant_id)->find($id);
+
+        if (!$recruitment) {
+            return $this->errorResponse('নিয়োগ বিজ্ঞপ্তি পাওয়া যায়নি', 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'job_title' => 'nullable|string|max:255',
+            'department' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'requirements' => 'nullable',
+            'status' => 'nullable|string|max:50',
+            'posted_date' => 'nullable|date',
+            'closing_date' => 'nullable|date',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse('বৈধতা ত্রুটি', 422, $validator->errors());
+        }
+
+        $recruitment->update($validator->validated());
+
+        return $this->successResponse($recruitment->fresh(), 'নিয়োগ বিজ্ঞপ্তি আপডেট সফল');
+    }
+
+    public function destroyRecruitment(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $recruitment = Recruitment::where('tenant_id', $user->tenant_id)->find($id);
+
+        if (!$recruitment) {
+            return $this->errorResponse('নিয়োগ বিজ্ঞপ্তি পাওয়া যায়নি', 404);
+        }
+
+        $recruitment->delete();
+
+        return $this->successResponse(null, 'নিয়োগ বিজ্ঞপ্তি মুছে ফেলা সফল');
+    }
+
+    public function applications(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $recruitment = Recruitment::where('tenant_id', $user->tenant_id)->find($id);
+
+        if (!$recruitment) {
+            return $this->errorResponse('নিয়োগ বিজ্ঞপ্তি পাওয়া যায়নি', 404);
+        }
+
+        $perPage = min((int) $request->input('per_page', 15), 100);
+        $applications = $recruitment->applications()
+            ->when($request->has('status'), fn($q) => $q->where('status', $request->input('status')))
+            ->orderBy('applied_at', 'desc')
+            ->paginate($perPage);
+
+        return $this->successResponse($applications);
+    }
+
+    public function storeApplication(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'recruitment_id' => 'required|integer|exists:recruitments,id',
+            'applicant_name' => 'required|string|max:255',
+            'applicant_phone' => 'nullable|string|max:50',
+            'applicant_email' => 'nullable|email',
+            'applicant_address' => 'nullable|string',
+            'qualifications' => 'nullable|array',
+            'experience' => 'nullable|array',
+            'resume_url' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse('বৈধতা ত্রুটি', 422, $validator->errors());
+        }
+
+        $data = $validator->validated();
+        $data['applied_at'] = now();
+        $data['status'] = 'pending';
+        $data['applicant_user_id'] = $request->user()?->id;
+
+        $application = JobApplication::create($data);
+        Recruitment::where('id', $data['recruitment_id'])->increment('applicant_count');
+
+        return $this->successResponse($application, 'আবেদন সফলভাবে জমা দেওয়া হয়েছে', 201);
+    }
+
+    public function updateApplication(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $application = JobApplication::whereHas('recruitment', function ($q) use ($user) {
+            $q->where('tenant_id', $user->tenant_id);
+        })->find($id);
+
+        if (!$application) {
+            return $this->errorResponse('আবেদন পাওয়া যায়নি', 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'status' => 'nullable|string|in:pending,reviewed,shortlisted,interviewed,selected,rejected',
+            'notes' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse('বৈধতা ত্রুটি', 422, $validator->errors());
+        }
+
+        $application->update($validator->validated());
+
+        return $this->successResponse($application->fresh(), 'আবেদনের অবস্থা আপডেট হয়েছে');
     }
 }

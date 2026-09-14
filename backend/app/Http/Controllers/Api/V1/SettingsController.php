@@ -39,9 +39,37 @@ class SettingsController extends Controller
                 'locale'     => 'bn',
                 'created_at' => $tenant?->created_at?->format('d M, Y'),
             ],
+            'settings' => $tenant?->settings ?? [],
             'version' => '2.5.0',
             'system_status' => 'operational'
         ]);
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $tenant = $request->user()?->tenant;
+        if (!$tenant) {
+            return ApiResource::error('প্রতিষ্ঠান পাওয়া যায়নি', 404);
+        }
+
+        $data = $request->all();
+        $currentSettings = $tenant->settings ?? [];
+
+        foreach ($data as $key => $val) {
+            if (in_array($key, ['name_bn', 'name_en', 'phone', 'email', 'address', 'logo_url', 'domain'])) {
+                $tenant->{$key} = $val;
+            } else {
+                $currentSettings[$key] = $val;
+            }
+        }
+
+        $tenant->settings = $currentSettings;
+        $tenant->save();
+
+        return ApiResource::success([
+            'tenant' => $tenant->fresh(),
+            'settings' => $tenant->settings,
+        ], 200);
     }
 
     // ─── Admin Users & Roles ──────────────────────────────────────────────────

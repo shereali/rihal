@@ -198,6 +198,47 @@ const aliases: Record<string, string> = {
   'chart-timeline-variant': 'chart',
   'clipboard-text-clock-outline': 'assignment',
   'google-classroom': 'building',
+  
+  // Missing Icons & MDI Aliases
+  'gender-male-female': 'genderMaleFemale',
+  'bell-ring-outline': 'bellRing',
+  'bell-ring': 'bellRing',
+  'delete-outline': 'deleteOutline',
+  'trash-can-outline': 'deleteOutline',
+  'trash-outline': 'deleteOutline',
+  'playlist-remove': 'playlistRemove',
+  'book-open-page-variant-outline': 'bookOpen',
+  'book-open': 'bookOpen',
+  'calendar-blank-outline': 'calendarBlank',
+  'calendar-blank': 'calendarBlank',
+  'spinner': 'loader',
+  'table': 'table',
+  'account-question-outline': 'accountQuestion',
+  'playlist-edit': 'playlistEdit',
+  'file-document-edit-outline': 'fileEdit',
+  'check-all': 'checkAll',
+  'alert-circle-outline': 'alertCircle',
+  'pencil-outline': 'pencil',
+  'account-school-outline': 'school',
+  'account-school': 'school',
+  'school-outline': 'school',
+  'school': 'school',
+  'view-dashboard-outline': 'dashboardGrid',
+  'view-dashboard': 'dashboardGrid',
+  'account-tie': 'accountTie',
+  'account-tie-outline': 'accountTie',
+  'domain': 'building',
+  'bed': 'bed',
+  'bullhorn-outline': 'bullhorn',
+  'bullhorn': 'bullhorn',
+  'cog-outline': 'settings',
+  'cog': 'settings',
+  'account-child-outline': 'accountChild',
+  'account-child': 'accountChild',
+  'clipboard-text-outline': 'assignment',
+  'clipboard-text': 'assignment',
+  'wallet': 'cash',
+  'cash-register': 'cash',
 }
 
 const additionalPaths: Record<string, string> = {
@@ -219,12 +260,30 @@ const additionalPaths: Record<string, string> = {
   percent: 'M19 5L5 19 M6.5 6.5h.01 M17.5 17.5h.01 M6.5 6.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z M17.5 17.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z',
   undo: 'M3 7v6h6 M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13',
   wifi: 'M12 20h.01 M5 12.22a10 10 0 0 1 14 0 M8.53 15.76a5 5 0 0 1 6.94 0 M1 8.68a16 16 0 0 1 22 0',
+  genderMaleFemale: 'M10 14a5 5 0 1 0-4-8 5 5 0 0 0 4 8zm0 0v6m-3-3h6m8-9a4 4 0 1 0-3.5 6m3.5-6h-4m4 0v4',
+  bellRing: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0M4 4l2 2M20 4l-2 2',
+  deleteOutline: 'M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6',
+  playlistRemove: 'M14 10H3M14 6H3M10 14H3M14 18H3M16 16l6 6M22 16l-6 6',
+  bookOpen: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
+  calendarBlank: 'M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM16 2v4M8 2v4M3 10h18',
+  table: 'M3 3h18v18H3V3zm0 6h18M3 15h18M9 3v18M15 3v18',
+  accountQuestion: 'M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm-6 16a6 6 0 0 1 12 0v2H6v-2zm14-4a2 2 0 0 1 2 2c0 1-1 2-2 2v1m0 3h.01',
+  playlistEdit: 'M14 10H3M14 6H3M10 14H3M18 13l3 3-6 6h-3v-3l6-6z',
+  fileEdit: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM14 2v6h6M10 13H8M10 17H8M13 17l4-4 2 2-4 4h-2v-2z',
+  checkAll: 'M18 6L7 17l-5-5M22 10l-7.5 7.5',
+  school: 'M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z',
+  dashboardGrid: 'M3 3h8v8H3V3zm10 0h8v5h-8V3zm0 7h8v11h-8V10zm-10 3h8v8H3v-8z',
+  accountTie: 'M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 7l2 3 2-3-1 6h-2l-1-6zM12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  bed: 'M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v5',
+  bullhorn: 'M11 5L6 9H2v6h4l5 4V5zm4 4a5 5 0 0 1 0 6M19 6a9 9 0 0 1 0 12',
+  accountChild: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-4 7a4 4 0 0 1 8 0v2H5v-2zm12-4a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm-3 5a3 3 0 0 1 6 0v1h-6v-1z',
+  fallbackDot: 'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0',
 }
 
 const path = computed(() => {
-  if (!props.name) return ''
+  if (!props.name) return additionalPaths.fallbackDot
   
-  let name = props.name.replace(/^mdi:/, '') // Strip mdi:
+  let name = props.name.replace(/^mdi:/, '').trim()
   
   let key = aliases[name] || name
   let p = iconPaths[key] || iconPaths[name] || additionalPaths[key] || additionalPaths[name]
@@ -236,7 +295,7 @@ const path = computed(() => {
     p = iconPaths[key] || iconPaths[camelCase] || additionalPaths[key] || additionalPaths[camelCase]
   }
   
-  return p || ''
+  return p || additionalPaths.fallbackDot
 })
 </script>
 

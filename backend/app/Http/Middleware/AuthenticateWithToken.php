@@ -37,6 +37,11 @@ class AuthenticateWithToken
         $request->setUserResolver(fn () => $user);
         $accessToken->forceFill(['last_used_at' => now()])->save();
 
+        if ($user->tenant) {
+            $request->attributes->set('tenant', $user->tenant);
+            $request->merge(['tenant' => $user->tenant]);
+        }
+
         if (!$user->is_active) {
             return response()->json([
                 'success' => false,

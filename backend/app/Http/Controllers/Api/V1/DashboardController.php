@@ -166,18 +166,12 @@ class DashboardController extends ApiController
                 })
                 ->sum('balance') ?? 0;
 
+            $bnMonthNames = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
             $monthlyDues[] = [
-                'month' => $monthDate->locale('bn')->format('F'), // Bengali month name via Carbon
+                'month' => $bnMonthNames[$monthDate->month - 1] ?? $monthDate->format('M'),
                 'due_amount' => round((float) $dueAmount, 2),
             ];
         }
-
-        // Fallback: if Carbon doesn't render Bengali, provide manual labels
-        $bnMonthNames = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
-        $monthlyDues = array_map(function ($item) use ($bnMonthNames) {
-            $item['month'] = $bnMonthNames[Carbon::parse($item['month'])->month - 1] ?? $item['month'];
-            return $item;
-        }, $monthlyDues);
 
         // ======================================================================
         // NEW: Class-wise attendance detail (today, with leave)

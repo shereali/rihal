@@ -14,7 +14,7 @@ export const useSystemStore = defineStore('system', () => {
       
       // Attempt to load critical data simultaneously
       const [settingsRes, classesRes] = await Promise.all([
-        api.get('/settings').catch(() => ({ data: {} })),
+        api.get('/settings/general').catch(() => ({ data: {} })),
         api.get('/settings/classes').catch(() => ({ data: [] }))
       ])
 

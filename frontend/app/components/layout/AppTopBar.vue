@@ -184,10 +184,12 @@ onMounted(async () => {
     currentTheme.value = saved
   }
   applyTheme()
-  try {
-    const r = await api.get('/notifications?per_page=8')
-    notifications.value = r.data?.data?.data || r.data?.data || []
-  } catch {}
+  if (currentUser.value) {
+    try {
+      const r = await api.get('/notifications?per_page=8')
+      notifications.value = r.data?.data?.data || r.data?.data || []
+    } catch {}
+  }
 })
 
 onUnmounted(() => {

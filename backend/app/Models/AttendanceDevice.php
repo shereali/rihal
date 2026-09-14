@@ -15,13 +15,22 @@ class AttendanceDevice extends Model
 
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'name', 'serial_number', 'device_type', 'ip_address',
-        'port', 'api_key', 'status', 'location', 'tenant_id',
-    ];
+    protected $guarded = [];
+
+    protected $appends = ['name'];
+
+    public function getNameAttribute(): ?string
+    {
+        return $this->attributes['device_name'] ?? null;
+    }
+
+    public function setNameAttribute($value): void
+    {
+        $this->attributes['device_name'] = $value;
+    }
 
     protected $casts = [
-        'last_synced_at' => 'datetime',
+        'last_sync_at' => 'datetime',
     ];
 
     public function tenant(): BelongsTo

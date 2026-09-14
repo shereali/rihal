@@ -156,7 +156,7 @@ async function simulatePunch() {
 
   try {
     const student = demoStudents.value.find(s => s.id === Number(selectedStudentId.value)) || demoStudents.value[0]
-    await api.post('/digital-attendance/punch-simulate', {
+    await api.post('/digital-attendance/simulate-punch', {
       user_id: student?.id,
       punch_state: 'check_in',
       device_id: 1

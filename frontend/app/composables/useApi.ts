@@ -68,7 +68,7 @@ export function useApi() {
   }
 
   async function getCurrentUser(): Promise<User> {
-    const response = await get<PaginatedResponse<User>>('/users/me');
+    const response = await get<PaginatedResponse<User>>('/auth/user');
     return response.data as User;
   }
 
@@ -82,7 +82,7 @@ export function useApi() {
   }
 
   async function getMe(): Promise<User> {
-    const response = await get<PaginatedResponse<User>>('/auth/me');
+    const response = await get<PaginatedResponse<User>>('/auth/user');
     return response.data as User;
   }
 

@@ -297,13 +297,21 @@ const tenantName = computed(() => currentUser.value?.tenant?.name_bn || 'রি�
 const greeting = computed(() => { const h = new Date().getHours(); return h < 12 ? 'সুপ্রভাত' : h < 17 ? 'শুভ অপরাহ্ন' : 'শুভ সন্ধ্যা' })
 const todayLabel = computed(() => new Date().toLocaleDateString('bn-BD', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
 const s = computed(() => dashboard.value || {})
-const attendance = computed(() => { const a = s.value.attendance || {}; return { present: Number(a.present || 0), absent: Number(a.absent || 0), late: Number(a.late || 0), rate: Number(a.attendance_rate || a.rate || 0) } })
+const attendance = computed(() => {
+  const a = s.value.attendance || {}
+  const present = Number(a.present || 0)
+  const absent = Number(a.absent || 0)
+  const late = Number(a.late || 0)
+  const rawRate = Number(a.attendance_rate ?? a.rate ?? 0)
+  const rate = isNaN(rawRate) ? 0 : Math.min(100, Math.max(0, Math.round(rawRate)))
+  return { present, absent, late, rate }
+})
 const license = computed(() => s.value.license || {})
 const licenseOpen = ref(false)
 
 const kpis = computed(() => [
   { label: 'মোট শিক্ষার্থী', value: Number(s.value.total_students || 0).toLocaleString('bn-BD'), icon: 'mdi:account-school-outline', tone: 'green', trend: 'সক্রিয়', onClick: () => navigateTo('/students') },
-  { label: 'আজকের উপস্থিতি', value: `${attendance.value.rate}%`, icon: 'mdi:clipboard-check-outline', tone: 'blue', trend: 'আজ', onClick: () => navigateTo('/attendance') },
+  { label: 'আজকের উপস্থিতি', value: `${attendance.value.rate.toLocaleString('bn-BD')}%`, icon: 'mdi:clipboard-check-outline', tone: 'blue', trend: 'আজ', onClick: () => navigateTo('/attendance') },
   { label: 'নিট ব্যালেন্স', value: `৳${Number(s.value.finance?.net_balance || finance.value?.net_balance || 0).toLocaleString('bn-BD')}`, icon: 'mdi:bank-outline', tone: 'gold', trend: 'হিসাব', onClick: () => navigateTo('/finance') },
   { label: 'অপ্রকাশিত ফলাফল', value: Number(s.value.unpublished_results || 0).toLocaleString('bn-BD'), icon: 'mdi:alert-circle-outline', tone: 'amber', trend: 'অ্যাকশন', onClick: () => navigateTo('/results') },
 ])
@@ -314,8 +322,20 @@ const monthlyDues = computed(() => Array.isArray(s.value.monthly_dues) ? s.value
 const maxMonthlyDues = computed(() => Math.max(...monthlyDues.value.map((m: any) => m.due_amount), 1))
 const monthlyDuesWithPct = computed(() => monthlyDues.value.map((m: any) => ({ ...m, dueAmountPct: maxMonthlyDues.value > 0 ? Math.round((m.due_amount / maxMonthlyDues.value) * 100) : 0 })))
 const classWiseAttendance = computed(() => Array.isArray(s.value.class_wise_attendance_detail) ? s.value.class_wise_attendance_detail.map((r: any) => ({ class_name: String(r.class_name ?? 'অজ্ঞাত শ্রেণি'), present: Number(r.present ?? 0), absent: Number(r.absent ?? 0), late: Number(r.late ?? 0), leave: Number(r.leave ?? 0), total: Number(r.total ?? (r.present + r.absent + r.late + r.leave)) })) : [])
-const genderRatio = computed(() => s.value.gender_ratio || { male: 0, female: 0, other: 0, male_percent: 0, female_percent: 0, total: 0 })
-const otherPercent = computed(() => Math.max(0, 100 - Number(genderRatio.value.male_percent ?? 0) - Number(genderRatio.value.female_percent ?? 0)))
+const genderRatio = computed(() => {
+  const gr = s.value.gender_ratio || {}
+  const male = Number(gr.male || 0)
+  const female = Number(gr.female || 0)
+  const other = Number(gr.other || 0)
+  const total = Number(gr.total || (male + female + other))
+  const male_percent = total > 0 ? Number((male / total * 100).toFixed(1)) : 0
+  const female_percent = total > 0 ? Number((female / total * 100).toFixed(1)) : 0
+  return { male, female, other, male_percent, female_percent, total }
+})
+const otherPercent = computed(() => {
+  if (!genderRatio.value.total) return 0
+  return Math.max(0, Math.min(100, Number((100 - genderRatio.value.male_percent - genderRatio.value.female_percent).toFixed(1))))
+})
 const topFunds = computed(() => Array.isArray(s.value.top_funds) ? s.value.top_funds.map((f: any) => ({ name: String(f.name ?? 'ফান্ড'), balance: Number(f.balance ?? 0), percent_of_total: Number(f.percent_of_total ?? 0) })) : [])
 const funds = computed(() => { const raw = finance.value?.funds || finance.value?.data?.funds || []; return Array.isArray(raw) ? raw.slice(0, 8).map((f: any, i: number) => ({ label: f.name_bn || f.name || f.title || ['ভর্তি ফান্ড', 'বেতন ফান্ড', 'সাধারণ ফান্ড', 'যাকাত ফান্ড'][i % 4], value: `৳${Number(f.balance ?? f.amount ?? 0).toLocaleString('bn-BD')}`, note: f.type_bn || 'সাধারণ ফান্ড', icon: i % 3 === 0 ? 'mdi:cash-multiple' : i % 3 === 1 ? 'mdi:wallet' : 'mdi:mosque', tone: ['green', 'blue', 'gold', 'purple'][i % 4] })) : [] })
 const classSummary = computed(() => { const raw = dashboard.value?.classes || dashboard.value?.class_distribution || []; const items = Array.isArray(raw) ? raw.map((x: any, i: number) => ({ rank: i + 1, label: x.name_bn || x.class_name || x.label || `শ্রেণি ${i + 1}`, count: Number(x.count || x.total || 0), percent: Number(x.percent || 0) })).slice(0, 6) : []; const max = Math.max(...items.map((x: any) => x.count), 1); items.forEach((x: any) => { x.percent = x.percent || Math.round((x.count / max) * 100) }); return { items, total: items.reduce((n: number, x: any) => n + x.count, 0) } })

@@ -38,6 +38,9 @@ backend/storage/debugbar/*
 backend/.env
 backend/.env.backup
 backend/.env.production
+*.sqlite
+*.sqlite-journal
+backend/database/*.sqlite
 
 # IDE
 /.vscode

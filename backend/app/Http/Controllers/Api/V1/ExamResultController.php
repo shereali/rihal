@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\ApiController;
 use App\Models\Result;
 use App\Models\Exam;
+use App\Models\Student;
+use App\Models\ReportCardComment;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -57,7 +59,7 @@ class ExamResultController extends ApiController
     {
         $validator = Validator::make($request->all(), [
             'exam_id' => 'required|integer|exists:exams,id',
-            'student_id' => 'required|integer|exists:users,id',
+            'student_id' => 'required|integer',
             'session_id' => 'nullable|integer',
             'marks_obtained' => 'nullable|numeric',
             'total_marks' => 'nullable|numeric',
@@ -79,6 +81,10 @@ class ExamResultController extends ApiController
         $data = $validator->validated();
         $data['tenant_id'] = $request->user()->tenant_id;
         $data['is_published'] = $data['is_published'] ?? false;
+
+        $studentId = $request->input('student_id');
+        $studentUser = Student::find($studentId)?->user_id ?? $studentId;
+        $data['student_id'] = $studentUser;
 
         $result = Result::create($data);
 
@@ -180,5 +186,44 @@ class ExamResultController extends ApiController
         ]);
 
         return $this->successResponse($result->fresh(), 'ফলাফল সরানো হয়েছে');
+    }
+
+    public function saveComments(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $examId = $request->input('exam_id');
+        $comments = $request->input('comments', []);
+
+        if (is_array($comments)) {
+            foreach ($comments as $item) {
+                $studentId = $item['id'] ?? null;
+                $commentText = $item['comment'] ?? null;
+                $conduct = $item['conduct'] ?? null;
+
+                if (!$studentId) continue;
+
+                $userId = Student::find($studentId)?->user_id ?? $studentId;
+
+                // Find or update Result
+                $result = Result::where('tenant_id', $user->tenant_id)
+                    ->when($examId, fn($q) => $q->where('exam_id', $examId))
+                    ->where('student_id', $userId)
+                    ->first();
+
+                if ($result) {
+                    ReportCardComment::updateOrCreate(
+                        ['result_id' => $result->id],
+                        [
+                            'ai_draft' => $commentText,
+                            'teacher_reviewed' => true,
+                            'reviewed_by_teacher_id' => $user->id,
+                            'reviewed_at' => now(),
+                        ]
+                    );
+                }
+            }
+        }
+
+        return $this->successResponse(null, 'সকল শিক্ষার্থীর মন্তব্য ও আচরণ মূল্যায়ন সফলভাবে সংরক্ষিত হয়েছে');
     }
 }

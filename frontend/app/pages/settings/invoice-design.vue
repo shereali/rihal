@@ -56,14 +56,23 @@
       <!-- Live Invoice Preview -->
       <div class="card preview-card">
         <div class="card-header">
-          <h3>লাইভ রসিদ প্রিভিউ (Live Preview)</h3>
+          <div class="preview-header-wrap">
+            <h3>লাইভ রসিদ প্রিভিউ (Live Preview)</h3>
+            <span class="badge" :class="settings.paper_size === 'POS_THERMAL' ? 'badge-warning' : 'badge-emerald'">
+              {{ settings.paper_size === 'POS_THERMAL' ? 'থার্মাল স্লিপ' : settings.paper_size === 'A5_SINGLE' ? 'A5 ফরম্যাট' : 'A4 ডুয়াল' }}
+            </span>
+          </div>
         </div>
-        <div class="invoice-mockup" :class="{ watermark: settings.show_watermark }">
+        <div class="invoice-mockup" :class="[{ watermark: settings.show_watermark }, `size-${settings.paper_size.toLowerCase()}`]">
+          <div class="watermark-overlay" v-if="settings.show_watermark">
+            <span>{{ settings.madrasha_name }}</span>
+          </div>
+
           <div class="inv-header">
             <div class="inv-logo-box">
               <svg viewBox="0 0 100 100" fill="none" class="inv-logo">
-                <circle cx="50" cy="50" r="45" stroke="#145032" stroke-width="4" />
-                <path d="M30 70L50 30L70 70" stroke="#145032" stroke-width="4" />
+                <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4" />
+                <path d="M30 70L50 30L70 70" stroke="currentColor" stroke-width="4" />
               </svg>
             </div>
             <div class="inv-title">
@@ -112,6 +121,14 @@
         </div>
       </div>
     </div>
+
+    <!-- Floating Feedback Toast -->
+    <Transition name="fade">
+      <div v-if="toastMessage" class="feedback-toast" :class="toastType">
+        <Icon :name="toastType === 'success' ? 'check' : 'alertCircle'" />
+        <span>{{ toastMessage }}</span>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -121,6 +138,16 @@ import { useApiClient } from '~/utils/api'
 
 const api = useApiClient()
 const saving = ref(false)
+const toastMessage = ref('')
+const toastType = ref<'success' | 'error'>('success')
+
+function showToast(msg: string, type: 'success' | 'error' = 'success') {
+  toastMessage.value = msg
+  toastType.value = type
+  setTimeout(() => {
+    toastMessage.value = ''
+  }, 3500)
+}
 
 const settings = reactive({
   madrasha_name: 'মারকাযুল উলুম মাদ্রাসা গোপালগঞ্জ',
@@ -137,6 +164,10 @@ async function loadDesign() {
     if (saved) {
       Object.assign(settings, JSON.parse(saved))
     }
+    const res = await api.get('/settings/general').catch(() => null)
+    if (res?.data?.data?.invoice_design) {
+      Object.assign(settings, res.data.data.invoice_design)
+    }
   } catch (e) {
     console.error(e)
   }
@@ -147,9 +178,9 @@ async function saveInvoiceDesign() {
   try {
     localStorage.setItem('rihal_invoice_design', JSON.stringify(settings))
     await api.post('/settings/update', { invoice_design: settings }).catch(() => null)
-    alert('ইনভয়েস ডিজাইন সফলভাবে সংরক্ষিত হয়েছে!')
+    showToast('ইনভয়েস ডিজাইন সফলভাবে সংরক্ষিত হয়েছে!', 'success')
   } catch (e) {
-    alert('ইনভয়েস ডিজাইন সংরক্ষিত হয়েছে')
+    showToast('ইনভয়েস ডিজাইন লোকাল স্টোরেজে সংরক্ষিত হয়েছে।', 'success')
   } finally {
     saving.value = false
   }
@@ -159,7 +190,7 @@ onMounted(loadDesign)
 </script>
 
 <style scoped>
-.page-wrapper { max-width: 1240px; margin: 0 auto; padding: 1.75rem; }
+.page-wrapper { max-width: 1240px; margin: 0 auto; padding: 1.75rem; position: relative; }
 .page-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
 .back-link { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; font-weight: 600; color: var(--color-primary); text-decoration: none; margin-bottom: 0.35rem; }
 .back-link:hover { text-decoration: underline; }
@@ -170,29 +201,83 @@ onMounted(loadDesign)
 @media (max-width: 900px) { .designer-grid { grid-template-columns: 1fr; } }
 
 .card-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border-light); }
-.card-header h3 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+.preview-header-wrap { display: flex; justify-content: space-between; align-items: center; }
+.card-header h3 { font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--color-text); }
 .card-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
 
 /* Invoice Mockup */
-.preview-card { border-radius: 14px; }
-.invoice-mockup { background: #fff; border: 1.5px solid #145032; border-radius: 8px; padding: 1.5rem; margin: 1.25rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
-.inv-header { display: flex; align-items: center; gap: 0.85rem; border-bottom: 1.5px solid #145032; padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
-.inv-logo-box { width: 44px; height: 44px; }
-.inv-title h4 { margin: 0 0 0.15rem; font-size: 1.1rem; color: #145032; }
-.inv-title p { margin: 0 0 0.35rem; font-size: 0.74rem; color: #64748b; }
-.inv-badge { background: #145032; color: #fff; font-size: 0.72rem; padding: 0.15rem 0.6rem; border-radius: 10px; font-weight: 700; }
+.preview-card { border-radius: 14px; background: var(--color-bg-card); }
+.invoice-mockup {
+  background: var(--color-bg-card);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-primary);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1.25rem;
+  box-shadow: var(--elevation-2);
+  position: relative;
+  overflow: hidden;
+  transition: max-width 0.3s ease;
+}
 
-.inv-meta, .inv-student-info { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.5rem; }
+.invoice-mockup.size-pos_thermal {
+  max-width: 340px;
+  margin: 1.25rem auto;
+  font-size: 0.8rem;
+  padding: 1rem;
+}
+
+.watermark-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0.05;
+  transform: rotate(-30deg);
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.inv-header { display: flex; align-items: center; gap: 0.85rem; border-bottom: 1.5px solid var(--color-primary); padding-bottom: 0.75rem; margin-bottom: 0.75rem; color: var(--color-primary); }
+.inv-logo-box { width: 44px; height: 44px; flex-shrink: 0; }
+.inv-logo { width: 100%; height: 100%; }
+.inv-title h4 { margin: 0 0 0.15rem; font-size: 1.1rem; color: var(--color-primary); }
+.inv-title p { margin: 0 0 0.35rem; font-size: 0.74rem; color: var(--color-text-muted); }
+.inv-badge { background: var(--color-primary); color: var(--color-text-on-primary); font-size: 0.72rem; padding: 0.15rem 0.6rem; border-radius: 10px; font-weight: 700; }
+
+.inv-meta, .inv-student-info { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.5rem; color: var(--color-text-light); }
 
 .inv-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin: 0.75rem 0; }
-.inv-table th, .inv-table td { border: 1px solid #cbd5e1; padding: 0.4rem 0.5rem; }
-.inv-table thead th { background: #f8fafc; font-weight: 700; }
+.inv-table th, .inv-table td { border: 1px solid var(--color-border); padding: 0.45rem 0.6rem; color: var(--color-text); }
+.inv-table thead th { background: var(--color-bg-muted); font-weight: 700; }
 
 .inv-footer { margin-top: 1rem; }
-.footer-dua { font-size: 0.74rem; color: #64748b; text-align: center; font-style: italic; margin-bottom: 1.25rem; }
-.inv-signs { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; }
-.sig { border-top: 1px dashed #000; width: 80px; text-align: center; padding-top: 0.2rem; }
+.footer-dua { font-size: 0.74rem; color: var(--color-text-muted); text-align: center; font-style: italic; margin-bottom: 1.25rem; }
+.inv-signs { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--color-text); }
+.sig { border-top: 1px dashed var(--color-text-muted); width: 80px; text-align: center; padding-top: 0.2rem; }
 
-.btn { padding: 0.6rem 1.15rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease; text-decoration: none; }
-.btn-primary { background: linear-gradient(135deg, #145032 0%, #1a6b43 100%); color: #fff; box-shadow: 0 3px 10px rgba(20, 80, 50, 0.25); }
+.badge-emerald { background: var(--color-primary-50); color: var(--color-primary); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
+.badge-warning { background: var(--color-warning-bg); color: var(--color-warning); padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
+
+.feedback-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-dark);
+  color: #fff;
+  box-shadow: var(--elevation-3);
+  z-index: 1000;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.feedback-toast.error { background: var(--color-error); }
 </style>
