@@ -160,6 +160,35 @@ jobs:
             exit 1
           fi
 
+      - name: Direct Sync source code to VPS
+        env:
+          SSH_USER: ${{ secrets.VPS_USER }}
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          USER=$(echo "$SSH_USER" | tr -d '[:space:]')
+          HOST=$(echo "$SSH_HOST" | tr -d '[:space:]')
+          PORT=$(echo "${SSH_PORT:-22}" | tr -d '[:space:]')
+          echo "Packaging release files from checked-out commit: ${{ github.sha }}..."
+          tar -czf /tmp/attashil_release.tar.gz \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='frontend/node_modules' \
+            --exclude='frontend/.output' \
+            --exclude='frontend/.nuxt' \
+            --exclude='backend/vendor' \
+            --exclude='.env' \
+            .
+
+          echo "Uploading release archive to VPS..."
+          scp -i ~/.ssh/deploy_key -P "$PORT" -o StrictHostKeyChecking=accept-new /tmp/attashil_release.tar.gz "$USER@$HOST:/tmp/attashil_release.tar.gz"
+
+          echo "Extracting release into /var/www/attashil on VPS..."
+          ssh -i ~/.ssh/deploy_key -p "$PORT" -o StrictHostKeyChecking=accept-new "$USER@$HOST" \
+            "mkdir -p /var/www/attashil && tar -xzf /tmp/attashil_release.tar.gz -C /var/www/attashil && rm -f /tmp/attashil_release.tar.gz"
+
+          echo "Code synchronization complete!"
+
       - name: Start deploy (detached on server)
         env:
           SSH_USER: ${{ secrets.VPS_USER }}

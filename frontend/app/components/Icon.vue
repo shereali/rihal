@@ -151,6 +151,8 @@ const aliases: Record<string, string> = {
   donor: 'account',
   dashboard: 'chart',
   layers: 'book',
+  school: 'book',
+  document: 'assignment',
   
   // New Missing Icon Aliases
   'document-text': 'document',

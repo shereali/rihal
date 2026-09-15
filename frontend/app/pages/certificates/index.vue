@@ -808,7 +808,7 @@ const activeTab = ref('templates')
 const tabs = [
   { key: 'templates', label: 'টেমপলেট তালিকা', icon: 'book' },
   { key: 'issue', label: 'প্রকাশিত সনদ রেজিস্টার', icon: 'tag' },
-  { key: 'syllabus', label: 'পাঠ্যক্রম ও বিষয় তালিকা', icon: 'school' },
+  { key: 'syllabus', label: 'পাঠ্যক্রম ও বিষয় তালিকা', icon: 'assignment' },
 ]
 
 // State & Options

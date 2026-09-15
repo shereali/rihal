@@ -10,6 +10,7 @@ use App\Models\AcademicClass;
 use App\Models\AcademicSubject;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class CertificateController extends Controller
@@ -204,21 +205,54 @@ class CertificateController extends Controller
                 'remarks'        => 'nullable|string|max:300',
             ]);
 
-            $tenantSlug = $user?->tenant?->slug ?? 'RIHAL';
-            $seq = (IssuedCertificate::withTrashed()->max('id') ?? 0) + 1;
-            do {
-                $certNumber = 'CERT-' . strtoupper($tenantSlug) . '-' . date('Y') . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
-                $seq++;
-            } while (IssuedCertificate::withTrashed()->where('certificate_number', $certNumber)->exists());
+            // Auto-detect class_id from active enrollment if not explicitly supplied
+            if (empty($validated['class_id'])) {
+                $student = Student::find($validated['student_id']);
+                $targetId = $student?->user_id ?? $student?->id;
+                if ($targetId && Schema::hasTable('enrollments')) {
+                    $validated['class_id'] = DB::table('enrollments')
+                        ->where('tenant_id', $tenantId)
+                        ->where(function ($q) use ($student, $targetId) {
+                            $q->where('student_id', $student->id)
+                              ->orWhere('student_id', $targetId);
+                        })
+                        ->whereIn('status', ['active', 'enrolled', 'approved'])
+                        ->value('class_id');
+                }
+            }
 
-            $cert = IssuedCertificate::create(array_merge($validated, [
-                'tenant_id' => $tenantId,
-                'certificate_number' => $certNumber,
-            ]));
+            // Duplicate issuance check: prevent duplicate certificate for same student and template on the same date
+            $alreadyIssued = IssuedCertificate::where('tenant_id', $tenantId)
+                ->where('template_id', $validated['template_id'])
+                ->where('student_id', $validated['student_id'])
+                ->whereDate('issue_date', $validated['issue_date'])
+                ->exists();
+
+            if ($alreadyIssued) {
+                return response()->json([
+                    'status'  => 422,
+                    'message' => 'এই শিক্ষার্থীর জন্য এই তারিখে ইতিমধ্যে একই সার্টিফিকেট ইস্যু করা হয়েছে।',
+                    'errors'  => ['student_id' => ['ইতিমধ্যে এই তারিখে সার্টিফিকেটটি ইস্যু করা হয়েছে।']],
+                ], 422);
+            }
+
+            $cert = DB::transaction(function () use ($validated, $tenantId, $user) {
+                $tenantSlug = $user?->tenant?->slug ?? 'AT';
+                $seq = (IssuedCertificate::withTrashed()->where('tenant_id', $tenantId)->count()) + 1;
+                do {
+                    $certNumber = 'CERT-' . strtoupper(substr($tenantSlug, 0, 8)) . '-' . date('Y') . '-' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+                    $seq++;
+                } while (IssuedCertificate::withTrashed()->where('certificate_number', $certNumber)->exists());
+
+                return IssuedCertificate::create(array_merge($validated, [
+                    'tenant_id'          => $tenantId,
+                    'certificate_number' => $certNumber,
+                ]));
+            });
 
             return response()->json([
                 'status'  => 201,
-                'message' => 'সার্টিফিকেট সফলভাবে প্রকাশিত হয়েছে',
+                'message' => 'সার্টিফিকেট সফলভাবে প্রকাশিত হয়েছে (নম্বর: ' . $cert->certificate_number . ')',
                 'data'    => $cert->load(['templateRelation', 'studentRelation', 'classRelation', 'subjectRelation']),
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {

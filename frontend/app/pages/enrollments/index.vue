@@ -159,112 +159,120 @@
     </div>
 
     <!-- Enrollment Detail Modal -->
-    <div v-if="showDetailModal && selectedEnrollment" class="modal-overlay" @click.self="showDetailModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <Icon name="mdi:card-account-details-outline" class="modal-icon text-primary" />
-            <div>
-              <h3>ভর্তির আবেদন বিস্তারিত</h3>
-              <p class="modal-subtitle">আবেদন নম্বর #{{ selectedEnrollment.enrollment_number || selectedEnrollment.id }}</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDetailModal && selectedEnrollment" class="modal-overlay" @click.self="showDetailModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <Icon name="mdi:card-account-details-outline" class="modal-icon text-primary" />
+                <div>
+                  <h3>ভর্তির আবেদন বিস্তারিত</h3>
+                  <p class="modal-subtitle">আবেদন নম্বর #{{ selectedEnrollment.enrollment_number || selectedEnrollment.id }}</p>
+                </div>
+              </div>
+              <button class="modal-close-btn" @click="showDetailModal = false">
+                <Icon name="mdi:close" />
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <div class="applicant-profile-card">
+                <div class="user-avatar-initials large" :style="{ backgroundColor: getAvatarColor(selectedEnrollment.student?.name_bn || selectedEnrollment.name || 'S') }">
+                  {{ (selectedEnrollment.student?.name_bn || selectedEnrollment.name || 'S').charAt(0) }}
+                </div>
+                <div class="applicant-info">
+                  <h4 class="applicant-name">{{ selectedEnrollment.student?.name_bn || selectedEnrollment.student?.name_en || selectedEnrollment.name || 'অজ্ঞাত আবেদনকারী' }}</h4>
+                  <p class="applicant-meta">ইংরেজি নাম: {{ selectedEnrollment.student?.name_en || 'দেওয়া হয়নি' }}</p>
+                  <span class="status-pill mt-1" :class="getStatusBadgeClass(selectedEnrollment.status)">
+                    <span class="status-dot"></span> {{ getStatusLabel(selectedEnrollment.status) }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="details-grid">
+                <div class="detail-item">
+                  <span class="detail-label">ভর্তির শ্রেণি:</span>
+                  <span class="detail-value font-semibold">{{ selectedEnrollment.class?.name_bn || selectedEnrollment.class?.name_en || selectedEnrollment.className || 'নির্দিষ্ট নয়' }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">পিতার নাম:</span>
+                  <span class="detail-value">{{ selectedEnrollment.student?.father_name || selectedEnrollment.fatherName || '-' }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">মাতার নাম:</span>
+                  <span class="detail-value">{{ selectedEnrollment.student?.mother_name || '-' }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">অভিভাবকের ফোন:</span>
+                  <span class="detail-value">{{ selectedEnrollment.student?.user?.phone || selectedEnrollment.student?.father_phone || selectedEnrollment.student?.guardian_phone || selectedEnrollment.phone || '-' }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">আবেদনের তারিখ:</span>
+                  <span class="detail-value">{{ formatDate(selectedEnrollment.enrollment_date || selectedEnrollment.created_at || selectedEnrollment.date) }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">ঠিকানা:</span>
+                  <span class="detail-value">{{ selectedEnrollment.student?.permanent_address || selectedEnrollment.student?.present_address || '-' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn btn-secondary" @click="showDetailModal = false">
+                বন্ধ করুন
+              </button>
+              <template v-if="selectedEnrollment.status === 'pending'">
+                <button class="btn btn-danger-soft" @click="promptAction(selectedEnrollment, 'reject')">
+                  <Icon name="mdi:close-circle-outline" /> বাতিল করুন
+                </button>
+                <button class="btn btn-success" @click="promptAction(selectedEnrollment, 'approve')">
+                  <Icon name="mdi:check-circle-outline" /> অনুমোদন করুন
+                </button>
+              </template>
             </div>
           </div>
-          <button class="modal-close-btn" @click="showDetailModal = false">
-            <Icon name="mdi:close" />
-          </button>
         </div>
-
-        <div class="modal-body">
-          <div class="applicant-profile-card">
-            <div class="user-avatar-initials large" :style="{ backgroundColor: getAvatarColor(selectedEnrollment.student?.name_bn || selectedEnrollment.name || 'S') }">
-              {{ (selectedEnrollment.student?.name_bn || selectedEnrollment.name || 'S').charAt(0) }}
-            </div>
-            <div class="applicant-info">
-              <h4 class="applicant-name">{{ selectedEnrollment.student?.name_bn || selectedEnrollment.student?.name_en || selectedEnrollment.name || 'অজ্ঞাত আবেদনকারী' }}</h4>
-              <p class="applicant-meta">ইংরেজি নাম: {{ selectedEnrollment.student?.name_en || 'দেওয়া হয়নি' }}</p>
-              <span class="status-pill mt-1" :class="getStatusBadgeClass(selectedEnrollment.status)">
-                <span class="status-dot"></span> {{ getStatusLabel(selectedEnrollment.status) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="details-grid">
-            <div class="detail-item">
-              <span class="detail-label">ভর্তির শ্রেণি:</span>
-              <span class="detail-value font-semibold">{{ selectedEnrollment.class?.name_bn || selectedEnrollment.class?.name_en || selectedEnrollment.className || 'নির্দিষ্ট নয়' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">পিতার নাম:</span>
-              <span class="detail-value">{{ selectedEnrollment.student?.father_name || selectedEnrollment.fatherName || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">মাতার নাম:</span>
-              <span class="detail-value">{{ selectedEnrollment.student?.mother_name || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">অভিভাবকের ফোন:</span>
-              <span class="detail-value">{{ selectedEnrollment.student?.user?.phone || selectedEnrollment.student?.father_phone || selectedEnrollment.student?.guardian_phone || selectedEnrollment.phone || '-' }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">আবেদনের তারিখ:</span>
-              <span class="detail-value">{{ formatDate(selectedEnrollment.enrollment_date || selectedEnrollment.created_at || selectedEnrollment.date) }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">ঠিকানা:</span>
-              <span class="detail-value">{{ selectedEnrollment.student?.permanent_address || selectedEnrollment.student?.present_address || '-' }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn btn-secondary" @click="showDetailModal = false">
-            বন্ধ করুন
-          </button>
-          <template v-if="selectedEnrollment.status === 'pending'">
-            <button class="btn btn-danger-soft" @click="promptAction(selectedEnrollment, 'reject')">
-              <Icon name="mdi:close-circle-outline" /> বাতিল করুন
-            </button>
-            <button class="btn btn-success" @click="promptAction(selectedEnrollment, 'approve')">
-              <Icon name="mdi:check-circle-outline" /> অনুমোদন করুন
-            </button>
-          </template>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Confirm Action Modal -->
-    <div v-if="showConfirmModal && actionTarget" class="modal-overlay" @click.self="showConfirmModal = false">
-      <div class="modal-card small-modal">
-        <div class="modal-header">
-          <h3>{{ pendingActionType === 'approve' ? 'আবেদন অনুমোদন নিশ্চিতকরণ' : 'আবেদন বাতিল নিশ্চিতকরণ' }}</h3>
-          <button class="modal-close-btn" @click="showConfirmModal = false">
-            <Icon name="mdi:close" />
-          </button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showConfirmModal && actionTarget" class="modal-overlay" @click.self="showConfirmModal = false">
+          <div class="modal-card small-modal">
+            <div class="modal-header">
+              <h3>{{ pendingActionType === 'approve' ? 'আবেদন অনুমোদন নিশ্চিতকরণ' : 'আবেদন বাতিল নিশ্চিতকরণ' }}</h3>
+              <button class="modal-close-btn" @click="showConfirmModal = false">
+                <Icon name="mdi:close" />
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>
+                আপনি কি নিশ্চিত যে <strong>{{ actionTarget.student?.name_bn || actionTarget.name || 'এই আবেদনকারী' }}</strong>-এর ভর্তির আবেদন 
+                <span :class="pendingActionType === 'approve' ? 'text-success font-semibold' : 'text-danger font-semibold'">
+                  {{ pendingActionType === 'approve' ? 'অনুমোদন' : 'বাতিল' }}
+                </span> 
+                করতে চান?
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" @click="showConfirmModal = false" :disabled="loadingAction !== null">
+                বাতিল করুন
+              </button>
+              <button 
+                :class="pendingActionType === 'approve' ? 'btn btn-primary' : 'btn btn-danger'"
+                :disabled="loadingAction !== null"
+                @click="executeConfirmedAction"
+              >
+                <Icon v-if="loadingAction !== null" name="mdi:loading" class="animate-spin mr-1" />
+                {{ pendingActionType === 'approve' ? 'হ্যাঁ, অনুমোদন করুন' : 'হ্যাঁ, বাতিল করুন' }}
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <p>
-            আপনি কি নিশ্চিত যে <strong>{{ actionTarget.student?.name_bn || actionTarget.name || 'এই আবেদনকারী' }}</strong>-এর ভর্তির আবেদন 
-            <span :class="pendingActionType === 'approve' ? 'text-success font-semibold' : 'text-danger font-semibold'">
-              {{ pendingActionType === 'approve' ? 'অনুমোদন' : 'বাতিল' }}
-            </span> 
-            করতে চান?
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" @click="showConfirmModal = false" :disabled="loadingAction !== null">
-            বাতিল করুন
-          </button>
-          <button 
-            :class="pendingActionType === 'approve' ? 'btn btn-primary' : 'btn btn-danger'"
-            :disabled="loadingAction !== null"
-            @click="executeConfirmedAction"
-          >
-            <Icon v-if="loadingAction !== null" name="mdi:loading" class="animate-spin mr-1" />
-            {{ pendingActionType === 'approve' ? 'হ্যাঁ, অনুমোদন করুন' : 'হ্যাঁ, বাতিল করুন' }}
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

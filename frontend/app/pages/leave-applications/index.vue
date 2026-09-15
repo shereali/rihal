@@ -236,7 +236,9 @@
     </div>
 
     <!-- Create / Edit Modal -->
-    <div v-if="showCreate" class="modal-overlay" @click.self="closeCreate">
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showCreate" class="modal-overlay" @click.self="closeCreate">
       <div class="modal-card">
         <div class="modal-header">
           <div class="modal-title-group">
@@ -341,60 +343,70 @@
         </form>
       </div>
     </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Approve Confirmation Modal -->
-    <div v-if="showApproveModal" class="modal-overlay" @click.self="showApproveModal = false">
-      <div class="modal-card modal-sm animate-fade-in">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>ছুটির আবেদন অনুমোদন</h3>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showApproveModal" class="modal-overlay" @click.self="showApproveModal = false">
+          <div class="modal-card modal-sm animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>ছুটির আবেদন অনুমোদন</h3>
+              </div>
+              <button class="modal-close-btn" @click="showApproveModal = false">×</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+              <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
+                আপনি কি নিশ্চিত যে <strong>"{{ actionTarget?.user_name_bn || 'কর্মকর্তার' }}"</strong> ছুটির আবেদনটি অনুমোদন করতে চান?
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-ghost" @click="showApproveModal = false" :disabled="actionLoading">
+                বাতিল
+              </button>
+              <button type="button" class="btn btn-primary" @click="executeApprove" :disabled="actionLoading">
+                <span v-if="actionLoading">অনুমোদন হচ্ছে...</span>
+                <span v-else>অনুমোদন নিশ্চিত করুন</span>
+              </button>
+            </div>
           </div>
-          <button class="modal-close-btn" @click="showApproveModal = false">×</button>
         </div>
-        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
-          <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
-            আপনি কি নিশ্চিত যে <strong>"{{ actionTarget?.user_name_bn || 'কর্মকর্তার' }}"</strong> ছুটির আবেদনটি অনুমোদন করতে চান?
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" @click="showApproveModal = false" :disabled="actionLoading">
-            বাতিল
-          </button>
-          <button type="button" class="btn btn-primary" @click="executeApprove" :disabled="actionLoading">
-            <span v-if="actionLoading">অনুমোদন হচ্ছে...</span>
-            <span v-else>অনুমোদন নিশ্চিত করুন</span>
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Reject Confirmation Modal -->
-    <div v-if="showRejectModal" class="modal-overlay" @click.self="showRejectModal = false">
-      <div class="modal-card modal-sm animate-fade-in">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>ছুটির আবেদন প্রত্যাখ্যান</h3>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showRejectModal" class="modal-overlay" @click.self="showRejectModal = false">
+          <div class="modal-card modal-sm animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>ছুটির আবেদন প্রত্যাখ্যান</h3>
+              </div>
+              <button class="modal-close-btn" @click="showRejectModal = false">×</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+              <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">
+                আপনি কি <strong>"{{ actionTarget?.user_name_bn || 'কর্মকর্তার' }}"</strong> ছুটির আবেদন প্রত্যাখ্যান করতে চান?
+              </p>
+              <label class="form-label" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; display: block;">প্রত্যাখ্যানের কারণ (ঐচ্ছিক):</label>
+              <input v-model="rejectionReason" class="form-input" placeholder="যেমন: পর্যাপ্ত বিকল্প শিক্ষক না থাকা..." style="width: 100%;" />
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-ghost" @click="showRejectModal = false" :disabled="actionLoading">
+                বাতিল
+              </button>
+              <button type="button" class="btn btn-danger" @click="executeReject" :disabled="actionLoading" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
+                <span v-if="actionLoading">প্রত্যাখ্যান হচ্ছে...</span>
+                <span v-else>প্রত্যাখ্যান নিশ্চিত করুন</span>
+              </button>
+            </div>
           </div>
-          <button class="modal-close-btn" @click="showRejectModal = false">×</button>
         </div>
-        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
-          <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1rem;">
-            আপনি কি <strong>"{{ actionTarget?.user_name_bn || 'কর্মকর্তার' }}"</strong> ছুটির আবেদন প্রত্যাখ্যান করতে চান?
-          </p>
-          <label class="form-label" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; display: block;">প্রত্যাখ্যানের কারণ (ঐচ্ছিক):</label>
-          <input v-model="rejectionReason" class="form-input" placeholder="যেমন: পর্যাপ্ত বিকল্প শিক্ষক না থাকা..." style="width: 100%;" />
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" @click="showRejectModal = false" :disabled="actionLoading">
-            বাতিল
-          </button>
-          <button type="button" class="btn btn-danger" @click="executeReject" :disabled="actionLoading" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
-            <span v-if="actionLoading">প্রত্যাখ্যান হচ্ছে...</span>
-            <span v-else>প্রত্যাখ্যান নিশ্চিত করুন</span>
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Toast Notification -->
     <div v-if="toastMessage" class="toast-notification animate-fade-in" style="position: fixed; bottom: 1.5rem; right: 1.5rem; background: #10b981; color: white; padding: 0.75rem 1.25rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); z-index: 9999; font-weight: 500;">

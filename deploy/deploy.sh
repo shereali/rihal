@@ -19,11 +19,13 @@ cd "$DEPLOY_DIR"
 # Configure git safe directory to avoid dubious ownership block
 git config --global --add safe.directory "$DEPLOY_DIR" || true
 
-# Pull latest commits from master
+# If git credentials exist, attempt pull, otherwise source was synced by CI/CD runner
 git fetch origin master >> "$LOG_FILE" 2>&1 || true
 git reset --hard origin/master >> "$LOG_FILE" 2>&1 || true
 
-if docker compose -f docker-compose.prod.yml up -d --build >> "$LOG_FILE" 2>&1; then
+echo "Rebuilding and starting production containers..." >> "$LOG_FILE"
+if docker compose -f docker-compose.prod.yml build --no-cache frontend >> "$LOG_FILE" 2>&1 && \
+   docker compose -f docker-compose.prod.yml up -d >> "$LOG_FILE" 2>&1; then
     # Clear cached optimization and run migrations
     docker compose -f docker-compose.prod.yml exec -T backend php artisan optimize:clear >> "$LOG_FILE" 2>&1 || true
     docker compose -f docker-compose.prod.yml exec -T backend php artisan migrate --force >> "$LOG_FILE" 2>&1 || true
