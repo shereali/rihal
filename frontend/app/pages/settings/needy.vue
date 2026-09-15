@@ -64,50 +64,55 @@
     </div>
 
     <!-- Modal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>হতদরিদ্র শিক্ষার্থী সহায়তা বরাদ্দ</h3>
-            <p>শিক্ষার্থী নির্বাচন করে যাকাত/লিল্লাহ তহবিল থেকে সহায়তা বরাদ্দ দিন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">কল্যাণ তহবিল</span>
+                <h3>হতদরিদ্র শিক্ষার্থী সহায়তা বরাদ্দ</h3>
+                <p class="modal-subtitle">শিক্ষার্থী নির্বাচন করে যাকাত/লিল্লাহ তহবিল থেকে সহায়তা বরাদ্দ দিন</p>
+              </div>
+              <button class="modal-close" @click="showModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveNeedy" class="modal-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">শিক্ষার্থীর নাম <span class="required-star">*</span></label>
+                  <input v-model="form.name" class="form-control" placeholder="মুহাম্মদ আনাস" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শ্রেণি / জামাত <span class="required-star">*</span></label>
+                  <input v-model="form.class" class="form-control" placeholder="মিজান জামাত" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">সহায়তার ধরন <span class="required-star">*</span></label>
+                  <select v-model="form.support_type" class="form-control form-select" required>
+                    <option value="১০০% বেতন ও বোর্ডিং মওকুফ">১০০% বেতন ও বোর্ডিং মওকুফ (পূর্ণ ফ্রি)</option>
+                    <option value="৫০% হাফ-ফ্রি স্কলারশিপ">৫০% হাফ-ফ্রি স্কলারশিপ</option>
+                    <option value="বিনামূল্যে কিতাব বিতরণ">বিনামূল্যে কিতাব বিতরণ</option>
+                    <option value="পোশাক ও চিকিৎসা অনুদান">পোশাক ও চিকিৎসা অনুদান</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">তহবিলের উৎস <span class="required-star">*</span></label>
+                  <select v-model="form.fund_source" class="form-control form-select" required>
+                    <option value="যাকাত ও সাদকাহ ফান্ড">যাকাত ও সাদকাহ ফান্ড</option>
+                    <option value="লিল্লাহ বোর্ডিং তহবিল">লিল্লাহ বোর্ডিং তহবিল</option>
+                    <option value="এতিমখানা স্পন্সর ফান্ড">এতিমখানা স্পন্সর ফান্ড</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary">সহায়তা বরাদ্দ সংরক্ষণ করুন</button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showModal = false">×</button>
         </div>
-        <form @submit.prevent="saveNeedy" class="modal-form">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">শিক্ষার্থীর নাম *</label>
-              <input v-model="form.name" class="form-input" placeholder="মুহাম্মদ আনাস" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">শ্রেণি / জামাত *</label>
-              <input v-model="form.class" class="form-input" placeholder="মিজান জামাত" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">সহায়তার ধরন *</label>
-              <select v-model="form.support_type" class="form-select" required>
-                <option value="১০০% বেতন ও বোর্ডিং মওকুফ">১০০% বেতন ও বোর্ডিং মওকুফ (পূর্ণ ফ্রি)</option>
-                <option value="৫০% হাফ-ফ্রি স্কলারশিপ">৫০% হাফ-ফ্রি স্কলারশিপ</option>
-                <option value="বিনামূল্যে কিতাব বিতরণ">বিনামূল্যে কিতাব বিতরণ</option>
-                <option value="পোশাক ও চিকিৎসা অনুদান">পোশাক ও চিকিৎসা অনুদান</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">তহবিলের উৎস *</label>
-              <select v-model="form.fund_source" class="form-select" required>
-                <option value="যাকাত ও সাদকাহ ফান্ড">যাকাত ও সাদকাহ ফান্ড</option>
-                <option value="লিল্লাহ বোর্ডিং তহবিল">লিল্লাহ বোর্ডিং তহবিল</option>
-                <option value="এতিমখানা স্পন্সর ফান্ড">এতিমখানা স্পন্সর ফান্ড</option>
-              </select>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary">সহায়তা বরাদ্দ সংরক্ষণ করুন</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

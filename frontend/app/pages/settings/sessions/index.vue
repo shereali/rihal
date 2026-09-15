@@ -64,49 +64,57 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h2>{{ isEditing ? 'সেশন সম্পাদনা' : 'নতুন সেশন তৈরি' }}</h2>
-          <button class="close-btn" @click="showForm = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">একাডেমিক সেটিংস</span>
+                <h2>{{ isEditing ? 'সেশন সম্পাদনা' : 'নতুন সেশন তৈরি' }}</h2>
+                <p class="modal-subtitle">শিক্ষাবর্ষের নাম, সময়সীমা ও অবস্থা নির্ধারণ করুন</p>
+              </div>
+              <button class="modal-close" @click="showForm = false">×</button>
+            </div>
+            <form @submit.prevent="saveSession" class="modal-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">সেশনের নাম (ইংরেজি) <span class="required-star">*</span></label>
+                  <input v-model="form.session_name" class="form-control" placeholder="2024-2025" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">সেশনের নাম (বাংলা)</label>
+                  <input v-model="form.session_bn" class="form-control" placeholder="২০২৪-২০২৫ শিক্ষাবর্ষ" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শুরুর তারিখ <span class="required-star">*</span></label>
+                  <input v-model="form.start_date" type="date" class="form-control" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শেষ তারিখ <span class="required-star">*</span></label>
+                  <input v-model="form.end_date" type="date" class="form-control" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অবস্থা</label>
+                  <select v-model="form.status" class="form-control form-select">
+                    <option value="active">সক্রিয়</option>
+                    <option value="inactive">নিষ্ক্রিয়</option>
+                    <option value="upcoming">আগামী</option>
+                    <option value="completed">সমাপ্ত</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (isEditing ? 'আপডেট করুন' : 'তৈরি করুন') }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form @submit.prevent="saveSession" class="modal-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">সেশনের নাম (ইংরেজি) <span class="required-star">*</span></label>
-              <input v-model="form.session_name" class="form-control" placeholder="2024-2025" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">সেশনের নাম (বাংলা)</label>
-              <input v-model="form.session_bn" class="form-control" placeholder="২০২৪-২০২৫ শিক্ষাবর্ষ" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">শুরুর তারিখ <span class="required-star">*</span></label>
-              <input v-model="form.start_date" type="date" class="form-control" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">শেষ তারিখ <span class="required-star">*</span></label>
-              <input v-model="form.end_date" type="date" class="form-control" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">অবস্থা</label>
-              <select v-model="form.status" class="form-control form-select">
-                <option value="active">সক্রিয়</option>
-                <option value="inactive">নিষ্ক্রিয়</option>
-                <option value="upcoming">আগামী</option>
-                <option value="completed">সমাপ্ত</option>
-              </select>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (isEditing ? 'আপডেট করুন' : 'তৈরি করুন') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

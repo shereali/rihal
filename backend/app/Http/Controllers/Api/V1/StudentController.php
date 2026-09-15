@@ -134,13 +134,24 @@ class StudentController extends ApiController
                 }
             }
 
+            $admissionNumber = $data['admission_number'] ?? null;
+            if (!$admissionNumber) {
+                $year = date('Y');
+                $seq = Student::withTrashed()->where('tenant_id', $tenantId)->whereYear('created_at', $year)->count() + 1;
+                do {
+                    $candidate = "ADM-{$year}-" . str_pad($seq, 4, '0', STR_PAD_LEFT);
+                    $seq++;
+                } while (Student::withTrashed()->where('tenant_id', $tenantId)->where('admission_number', $candidate)->exists());
+                $admissionNumber = $candidate;
+            }
+
             $studentData = [
                 'tenant_id' => $tenantId,
                 'user_id' => $userId,
                 'name_bn' => $nameBn ?: 'শিক্ষার্থী',
                 'name_en' => $nameEn,
                 'email' => $data['email'] ?? null,
-                'admission_number' => $data['admission_number'] ?? ('ADM-' . date('Y') . '-' . rand(1000, 9999)),
+                'admission_number' => $admissionNumber,
                 'date_of_birth' => $data['date_of_birth'] ?? null,
                 'gender' => $data['gender'] ?? null,
                 'blood_group' => $data['blood_group'] ?? null,

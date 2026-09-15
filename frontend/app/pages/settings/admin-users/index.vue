@@ -60,65 +60,73 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h2>{{ isEditing ? 'ব্যবহারকারী সম্পাদনা' : 'নতুন ব্যবহারকারী তৈরি' }}</h2>
-          <button class="close-btn" @click="showForm = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">প্রশাসনিক সেটিংস</span>
+                <h2>{{ isEditing ? 'ব্যবহারকারী সম্পাদনা' : 'নতুন ব্যবহারকারী তৈরি' }}</h2>
+                <p class="modal-subtitle">ব্যবহারকারীর পরিচয়, দায়িত্ব এবং অ্যাক্সেস নির্ধারণ করুন</p>
+              </div>
+              <button class="modal-close" @click="showForm = false">×</button>
+            </div>
+            <form @submit.prevent="saveUser" class="modal-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">নাম (বাংলা)</label>
+                  <input v-model="form.name_bn" class="form-control" placeholder="উপাধি নাম" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">নাম (ইংরেজি) <span class="required-star">*</span></label>
+                  <input v-model="form.name" class="form-control" placeholder="Full Name" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ইমেইল <span class="required-star">*</span></label>
+                  <input v-model="form.email" type="email" class="form-control" placeholder="email@example.com" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মোবাইল</label>
+                  <input v-model="form.phone" class="form-control" placeholder="01৭১২৩৪৫৬৭৮" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ভূমিকা <span class="required-star">*</span></label>
+                  <select v-model="form.role" class="form-control form-select" required>
+                    <option value="">ভূমিকা নির্বাচন করুন</option>
+                    <option value="superadmin">সুপার অ্যাডমিন</option>
+                    <option value="admin">অ্যাডমিন</option>
+                    <option value="manager">ম্যানেজার</option>
+                    <option value="accountant">হিসাবরক্ষক</option>
+                    <option value="teacher">শিক্ষক</option>
+                    <option value="guardian">সংরক্ষক</option>
+                    <option value="student">ছাত্র</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">পাসওয়ার্ড <span v-if="!isEditing" class="required-star">*</span></label>
+                  <input v-model="form.password" type="password" class="form-control" placeholder="ন্যূনতম ৬ অক্ষর" :required="!isEditing" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অবস্থা</label>
+                  <select v-model="form.status" class="form-control form-select">
+                    <option value="active">সক্রিয়</option>
+                    <option value="inactive">নিষ্ক্রিয়</option>
+                    <option value="invited">নিমন্ত্রণ</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (isEditing ? 'আপডেট করুন' : 'তৈরি করুন') }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form @submit.prevent="saveUser" class="modal-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">নাম (বাংলা)</label>
-              <input v-model="form.name_bn" class="form-control" placeholder="উপাধি নাম" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">নাম (ইংরেজি) <span class="required-star">*</span></label>
-              <input v-model="form.name" class="form-control" placeholder="Full Name" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ইমেইল <span class="required-star">*</span></label>
-              <input v-model="form.email" type="email" class="form-control" placeholder="email@example.com" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">মোবাইল</label>
-              <input v-model="form.phone" class="form-control" placeholder="01৭১২৩৪৫৬৭৮" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ভূমিকা <span class="required-star">*</span></label>
-              <select v-model="form.role" class="form-control form-select" required>
-                <option value="">ভূমিকা নির্বাচন করুন</option>
-                <option value="superadmin">সুপার অ্যাডমিন</option>
-                <option value="admin">অ্যাডমিন</option>
-                <option value="manager">ম্যানেজার</option>
-                <option value="accountant">হিসাবরক্ষক</option>
-                <option value="teacher">শিক্ষক</option>
-                <option value="guardian">সংরক্ষক</option>
-                <option value="student">ছাত্র</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">পাসওয়ার্ড <span v-if="!isEditing" class="required-star">*</span></label>
-              <input v-model="form.password" type="password" class="form-control" placeholder="ন্যূনতম ৬ অক্ষর" :required="!isEditing" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">অবস্থা</label>
-              <select v-model="form.status" class="form-control form-select">
-                <option value="active">সক্রিয়</option>
-                <option value="inactive">নিষ্ক্রিয়</option>
-                <option value="invited">নিমন্ত্রণ</option>
-              </select>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (isEditing ? 'আপডেট করুন' : 'তৈরি করুন') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

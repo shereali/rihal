@@ -66,43 +66,51 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h2>{{ isEditing ? 'শ্রেণি সম্পাদনা' : 'নতুন শ্রেণি তৈরি' }}</h2>
-          <button class="close-btn" @click="showForm = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">একাডেমিক সেটিংস</span>
+                <h2>{{ isEditing ? 'শ্রেণি সম্পাদনা' : 'নতুন শ্রেণি তৈরি' }}</h2>
+                <p class="modal-subtitle">শ্রেণির নাম, বাংলা নাম ও ক্রমিক নির্ধারণ করুন</p>
+              </div>
+              <button class="modal-close" @click="showForm = false">×</button>
+            </div>
+            <form @submit.prevent="saveClass" class="modal-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">শ্রেণির নাম (ইংরেজি) <span class="required-star">*</span></label>
+                  <input v-model="form.class_name" class="form-control" placeholder="Class 9" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শ্রেণির নাম (বাংলা)</label>
+                  <input v-model="form.class_bn" class="form-control" placeholder="নবম শ্রেণি" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শ্রেণির ক্রম</label>
+                  <input v-model.number="form.class_order" type="number" class="form-control" min="0" placeholder="1" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অবস্থা</label>
+                  <select v-model="form.status" class="form-control form-select">
+                    <option value="active">সক্রিয়</option>
+                    <option value="inactive">নিষ্ক্রিয়</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (isEditing ? 'আপডেট করুন' : 'তৈরি করুন') }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form @submit.prevent="saveClass" class="modal-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">শ্রেণির নাম (ইংরেজি) <span class="required-star">*</span></label>
-              <input v-model="form.class_name" class="form-control" placeholder="Class 9" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">শ্রেণির নাম (বাংলা)</label>
-              <input v-model="form.class_bn" class="form-control" placeholder="নবম শ্রেণি" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">শ্রেণির ক্রম</label>
-              <input v-model.number="form.class_order" type="number" class="form-control" min="0" placeholder="1" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">অবস্থা</label>
-              <select v-model="form.status" class="form-control form-select">
-                <option value="active">সক্রিয়</option>
-                <option value="inactive">নিষ্ক্রিয়</option>
-              </select>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (isEditing ? 'আপডেট করুন' : 'তৈরি করুন') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

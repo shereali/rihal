@@ -88,60 +88,68 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h2>{{ isEditing ? 'বরাদ্দ সম্পাদনা' : 'নতুন বরাদ্দ তৈরি' }}</h2>
-          <button class="close-btn" @click="showForm = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">একাডেমিক সেটিংস</span>
+                <h2>{{ isEditing ? 'বরাদ্দ সম্পাদনা' : 'নতুন বরাদ্দ তৈরি' }}</h2>
+                <p class="modal-subtitle">শ্রেণি ও বিভাগ অনুযায়ী শিক্ষক ও বিষয় দায়িত্ব নির্ধারণ করুন</p>
+              </div>
+              <button class="modal-close" @click="showForm = false">×</button>
+            </div>
+            <form @submit.prevent="saveAssignment" class="modal-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">শিক্ষক <span class="required-star">*</span></label>
+                  <select v-model="form.teacher_id" class="form-control form-select" required>
+                    <option value="">শিক্ষক নির্বাচন করুন</option>
+                    <option v-for="t in teacherOptions" :key="t.id" :value="t.id">{{ t.name_bn || t.name }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বিষয় <span class="required-star">*</span></label>
+                  <select v-model="form.subject_id" class="form-control form-select" required>
+                    <option value="">বিষয় নির্বাচন করুন</option>
+                    <option v-for="s in subjectOptions" :key="s.id" :value="s.id">{{ s.subject_bn || s.subject_name }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শ্রেণি <span class="required-star">*</span></label>
+                  <select v-model="form.class_id" class="form-control form-select" required>
+                    <option value="">শ্রেণি নির্বাচন করুন</option>
+                    <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.class_name_en || c.class_name }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বিভাগ</label>
+                  <select v-model="form.section_id" class="form-control form-select">
+                    <option value="">সব বিভাগ</option>
+                    <option v-for="sec in sectionOptions" :key="sec.id" :value="sec.id">{{ sec.section_bn || sec.section_name }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অবস্থা</label>
+                  <select v-model="form.status" class="form-control form-select">
+                    <option value="active">সক্রিয়</option>
+                    <option value="inactive">নিষ্ক্রিয়</option>
+                    <option value="pending">মুলতুবি</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (isEditing ? 'আপডেট করুন' : 'তৈরি করুন') }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form @submit.prevent="saveAssignment" class="modal-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">শিক্ষক <span class="required-star">*</span></label>
-              <select v-model="form.teacher_id" class="form-control form-select" required>
-                <option value="">শিক্ষক নির্বাচন করুন</option>
-                <option v-for="t in teacherOptions" :key="t.id" :value="t.id">{{ t.name_bn || t.name }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">বিষয় <span class="required-star">*</span></label>
-              <select v-model="form.subject_id" class="form-control form-select" required>
-                <option value="">বিষয় নির্বাচন করুন</option>
-                <option v-for="s in subjectOptions" :key="s.id" :value="s.id">{{ s.subject_bn || s.subject_name }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">শ্রেণি <span class="required-star">*</span></label>
-              <select v-model="form.class_id" class="form-control form-select" required>
-                <option value="">শ্রেণি নির্বাচন করুন</option>
-                <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.class_name_en || c.class_name }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">বিভাগ</label>
-              <select v-model="form.section_id" class="form-control form-select">
-                <option value="">সব বিভাগ</option>
-                <option v-for="sec in sectionOptions" :key="sec.id" :value="sec.id">{{ sec.section_bn || sec.section_name }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">অবস্থা</label>
-              <select v-model="form.status" class="form-control form-select">
-                <option value="active">সক্রিয়</option>
-                <option value="inactive">নিষ্ক্রিয়</option>
-                <option value="pending">মুনাফা</option>
-              </select>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (isEditing ? 'আপডেট করুন' : 'তৈরি করুন') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

@@ -79,50 +79,58 @@
     </div>
 
     <!-- Create/Edit Modal -->
-    <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h2>{{ isEditing ? 'বিভাগ সম্পাদনা' : 'নতুন বিভাগ তৈরি' }}</h2>
-          <button class="close-btn" @click="showForm = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">একাডেমিক সেটিংস</span>
+                <h2>{{ isEditing ? 'বিভাগ সম্পাদনা' : 'নতুন বিভাগ তৈরি' }}</h2>
+                <p class="modal-subtitle">শ্রেণিভিত্তিক বিভাগ ও ধারণ ক্ষমতা নির্ধারণ করুন</p>
+              </div>
+              <button class="modal-close" @click="showForm = false">×</button>
+            </div>
+            <form @submit.prevent="saveSection" class="modal-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">শ্রেণি <span class="required-star">*</span></label>
+                  <select v-model="form.class_id" class="form-control form-select" required>
+                    <option value="">শ্রেণি নির্বাচন করুন</option>
+                    <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.class_name_en || c.class_name }}</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বিভাগের নাম (ইংরেজি) <span class="required-star">*</span></label>
+                  <input v-model="form.section_name" class="form-control" placeholder="Section A" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বিভাগের নাম (বাংলা)</label>
+                  <input v-model="form.section_bn" class="form-control" placeholder="খণ্ড ক" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ধারণ ক্ষমতা</label>
+                  <input v-model.number="form.capacity" type="number" class="form-control" min="0" placeholder="40" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অবস্থা</label>
+                  <select v-model="form.status" class="form-control form-select">
+                    <option value="active">সক্রিয়</option>
+                    <option value="inactive">নিষ্ক্রিয়</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (isEditing ? 'আপডেট করুন' : 'তৈরি করুন') }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form @submit.prevent="saveSection" class="modal-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">শ্রেণি <span class="required-star">*</span></label>
-              <select v-model="form.class_id" class="form-control form-select" required>
-                <option value="">শ্রেণি নির্বাচন করুন</option>
-                <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.class_name_en || c.class_name }}</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">বিভাগের নাম (ইংরেজি) <span class="required-star">*</span></label>
-              <input v-model="form.section_name" class="form-control" placeholder="Section A" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">বিভাগের নাম (বাংলা)</label>
-              <input v-model="form.section_bn" class="form-control" placeholder="খণ্ড ক" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ধারণ ক্ষমতা</label>
-              <input v-model.number="form.capacity" type="number" class="form-control" min="0" placeholder="40" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">অবস্থা</label>
-              <select v-model="form.status" class="form-control form-select">
-                <option value="active">সক্রিয়</option>
-                <option value="inactive">নিষ্ক্রিয়</option>
-              </select>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (isEditing ? 'আপডেট করুন' : 'তৈরি করুন') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

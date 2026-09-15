@@ -120,57 +120,62 @@
     </div>
 
     <!-- Register Modal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>নতুন ফারেগীন নিবন্ধন</h3>
-            <p>ডিগ্রি সম্পন্নকারী শিক্ষার্থীর যোগাযোগের তথ্য ও বর্তমান অবস্থা যুক্ত করুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">গ্রাজুয়েট ব্যবস্থাপনা</span>
+                <h3>নতুন ফারেগীন নিবন্ধন</h3>
+                <p class="modal-subtitle">ডিগ্রি সম্পন্নকারী শিক্ষার্থীর যোগাযোগের তথ্য ও বর্তমান অবস্থা যুক্ত করুন</p>
+              </div>
+              <button class="modal-close" @click="showModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveAlumni" class="modal-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">শিক্ষার্থীর নাম <span class="required-star">*</span></label>
+                  <input v-model="form.name" class="form-control" placeholder="মুহাম্মদ আবদুল্লাহ" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মোবাইল নম্বর <span class="required-star">*</span></label>
+                  <input v-model="form.phone" class="form-control" placeholder="০১৭১১..." required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">পাসের সন / শিক্ষাবর্ষ <span class="required-star">*</span></label>
+                  <select v-model="form.batch" class="form-control form-select" required>
+                    <option value="2025-2026">২০২৫-২০২৬ ব্যাচ</option>
+                    <option value="2024-2025">২০২৪-২০২৫ ব্যাচ</option>
+                    <option value="2023-2024">২০২৩-২০২৪ ব্যাচ</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বর্তমান অবস্থা <span class="required-star">*</span></label>
+                  <select v-model="form.status" class="form-control form-select" required>
+                    <option value="employed">কর্মরত (খিদমতে নিয়োজিত)</option>
+                    <option value="jobless">কর্মসন্ধানী (বেকার)</option>
+                    <option value="higher_study">উচ্চ শিক্ষায় অধ্যয়নরত</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">কর্মস্থল / মাদ্রাসার নাম</label>
+                  <input v-model="form.workplace" class="form-control" placeholder="যেমন: জামিয়া ইসলামিয়া ঢাকা" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বর্তমান পদবী</label>
+                  <input v-model="form.designation" class="form-control" placeholder="যেমন: ইমাম ও খতীব / উস্তাদ" />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary">নিবন্ধন সম্পন্ন করুন</button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showModal = false">×</button>
         </div>
-        <form @submit.prevent="saveAlumni" class="modal-form">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">শিক্ষার্থীর নাম *</label>
-              <input v-model="form.name" class="form-input" placeholder="মুহাম্মদ আবদুল্লাহ" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">মোবাইল নম্বর *</label>
-              <input v-model="form.phone" class="form-input" placeholder="০১৭১১..." required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">পাসের সন / শিক্ষাবর্ষ *</label>
-              <select v-model="form.batch" class="form-select" required>
-                <option value="2025-2026">২০২৫-২০২৬ ব্যাচ</option>
-                <option value="2024-2025">২০২৪-২০২৫ ব্যাচ</option>
-                <option value="2023-2024">২০২৩-২০২৪ ব্যাচ</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">বর্তমান অবস্থা *</label>
-              <select v-model="form.status" class="form-select" required>
-                <option value="employed">কর্মরত (খিদমতে নিয়োজিত)</option>
-                <option value="jobless">কর্মসন্ধানী (বেকার)</option>
-                <option value="higher_study">উচ্চ শিক্ষায় অধ্যয়নরত</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">কর্মস্থল / মাদ্রাসার নাম</label>
-              <input v-model="form.workplace" class="form-input" placeholder="যেমন: জামিয়া ইসলামিয়া ঢাকা" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">বর্তমান পদবী</label>
-              <input v-model="form.designation" class="form-input" placeholder="যেমন: ইমাম ও খতীব / উস্তাদ" />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary">নিবন্ধন সম্পন্ন করুন</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
