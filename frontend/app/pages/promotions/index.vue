@@ -35,50 +35,60 @@
       </div>
     </div>
 
-    <!-- Page Header Row -->
-    <div class="page-header-row no-print">
-      <div class="header-title-block">
-        <span class="eyebrow">একাডেমিক ব্যবস্থাপনা</span>
-        <h1>শিক্ষার্থী শ্রেণি প্রমোশন ও বহিখাতা</h1>
-        <p class="page-subtitle">নতুন শিক্ষাবর্ষে উত্তীর্ণ শিক্ষার্থীদের শ্রেণি পরিবর্তন, বাল্ক প্রমোশন ও রেকর্ড পরিচালনা</p>
-      </div>
-      <div class="header-actions">
-        <button class="btn btn-outline" @click="printPromotions" title="প্রমোশন তালিকা প্রিন্ট করুন">
-          <Icon name="printer" /> প্রিন্ট তালিকা
-        </button>
-        <button class="btn btn-success" @click="openBulkModal" title="একসাথে পুরো শ্রেণির শিক্ষার্থীদের প্রমোশন করুন">
-          <Icon name="users" /> বাল্ক প্রমোশন
-        </button>
-        <button class="btn btn-primary" @click="openCreateModal" title="একক শিক্ষার্থী প্রমোশন">
-          <Icon name="plus" /> নতুন প্রমোশন
-        </button>
+    <!-- Premium Hero Header Banner -->
+    <div class="hero-banner no-print">
+      <div class="hero-inner">
+        <div class="hero-text-block">
+          <div class="hero-badge">
+            <span class="sparkle">✨</span>
+            <span>একাডেমিক শিক্ষার্থী উত্তরণ প্ল্যাটফর্ম</span>
+          </div>
+          <h1 class="hero-title">শিক্ষার্থী শ্রেণি প্রমোশন ও বহিখাতা</h1>
+          <p class="hero-desc">
+            উত্তীর্ণ শিক্ষার্থীদের পরবর্তী শ্রেণিতে পদোন্নতি, স্বয়ংক্রিয় রোল ও বাল্ক প্রমোশন কার্যক্রম সহজে সম্পন্ন করুন
+          </p>
+        </div>
+        <div class="hero-action-buttons">
+          <button class="btn-hero-primary" @click="openCreateModal" title="একক শিক্ষার্থী প্রমোশন">
+            <Icon name="plus" />
+            <span>নতুন প্রমোশন</span>
+          </button>
+          <button class="btn-hero-secondary" @click="openBulkModal" title="একসাথে পুরো শ্রেণির শিক্ষার্থীদের প্রমোশন করুন">
+            <Icon name="users" />
+            <span>বাল্ক শ্রেণি প্রমোশন</span>
+          </button>
+          <button class="btn-hero-glass" @click="printPromotions" title="প্রমোশন বহিখাতা প্রিন্ট">
+            <Icon name="printer" />
+            <span>তালিকা প্রিন্ট</span>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Metric Summary Statistics Row -->
     <div class="stats-grid no-print">
-      <div class="stat-card">
+      <div class="stat-card stat-card-green">
         <div class="stat-icon-wrap green"><Icon name="users" /></div>
         <div class="stat-content">
           <span class="stat-value">{{ (promotions.total || 0).toLocaleString('bn-BD') }} জন</span>
           <span class="stat-label">মোট নিবন্ধিত প্রমোশন</span>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-card-blue">
         <div class="stat-icon-wrap blue"><Icon name="checkCircle" /></div>
         <div class="stat-content">
           <span class="stat-value">{{ approvedCount.toLocaleString('bn-BD') }} জন</span>
           <span class="stat-label">অনুমোদিত প্রমোশন</span>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-card-amber">
         <div class="stat-icon-wrap amber"><Icon name="clock" /></div>
         <div class="stat-content">
           <span class="stat-value">{{ pendingCount.toLocaleString('bn-BD') }} জন</span>
           <span class="stat-label">অপেক্ষমান অনুমোদন</span>
         </div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card stat-card-purple">
         <div class="stat-icon-wrap purple"><Icon name="building" /></div>
         <div class="stat-content">
           <span class="stat-value">{{ classWiseData.length.toLocaleString('bn-BD') }} টি</span>
@@ -130,16 +140,43 @@
           </button>
         </div>
 
-        <div class="filter-selects-group">
-          <div class="select-wrapper">
-            <select v-model="statusFilter" class="form-select" @change="fetchPromotions(1)">
-              <option value="">সব অবস্থা</option>
-              <option value="approved">অনুমোদিত (Approved)</option>
-              <option value="pending">মুলতুবি (Pending)</option>
-              <option value="rejected">প্রত্যাখ্যান (Rejected)</option>
-            </select>
-          </div>
+        <!-- Quick Status Filter Chips -->
+        <div class="quick-status-chips">
+          <button
+            type="button"
+            class="chip-filter"
+            :class="{ active: statusFilter === '' }"
+            @click="setStatusFilter('')"
+          >
+            সব অবস্থা
+          </button>
+          <button
+            type="button"
+            class="chip-filter chip-approved"
+            :class="{ active: statusFilter === 'approved' }"
+            @click="setStatusFilter('approved')"
+          >
+            <span class="chip-dot"></span> অনুমোদিত
+          </button>
+          <button
+            type="button"
+            class="chip-filter chip-pending"
+            :class="{ active: statusFilter === 'pending' }"
+            @click="setStatusFilter('pending')"
+          >
+            <span class="chip-dot"></span> মুলতুবি
+          </button>
+          <button
+            type="button"
+            class="chip-filter chip-rejected"
+            :class="{ active: statusFilter === 'rejected' }"
+            @click="setStatusFilter('rejected')"
+          >
+            <span class="chip-dot"></span> প্রত্যাখ্যান
+          </button>
+        </div>
 
+        <div class="filter-selects-group">
           <div class="select-wrapper">
             <select v-model="classFilter" class="form-select" @change="fetchPromotions(1)">
               <option value="">সকল পূর্ববর্তী শ্রেণি</option>
@@ -945,6 +982,11 @@ function filterByThisClass(classId: number) {
   fetchPromotions(1)
 }
 
+function setStatusFilter(status: string) {
+  statusFilter.value = status
+  fetchPromotions(1)
+}
+
 function debounceSearch() {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => fetchPromotions(1), 300)
@@ -1315,73 +1357,203 @@ onMounted(() => {
   }
 }
 
-/* Page Header */
+/* Page Wrapper */
 .page-wrapper {
   max-width: 1380px;
   margin: 0 auto;
   padding: 1.5rem;
 }
 
-.page-header-row {
+/* Premium Hero Header Banner */
+.hero-banner {
+  background: linear-gradient(135deg, #09331d 0%, #0e4c2b 50%, #17653a 100%);
+  border-radius: var(--radius-xl, 16px);
+  padding: 2rem 2.25rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 12px 36px rgba(14, 76, 43, 0.22), 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 380px;
+    height: 380px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, transparent 70%);
+    pointer-events: none;
+  }
+}
+
+.hero-inner {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.header-title-block h1 {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--color-text);
-  margin: 0.2rem 0 0.35rem;
-}
-
-.eyebrow {
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.page-subtitle {
-  color: var(--color-text-light);
-  font-size: 0.88rem;
-  margin: 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.6rem;
   align-items: center;
   flex-wrap: wrap;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-text-block {
+  max-width: 700px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #d1fae5;
+  margin-bottom: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.45rem;
+  font-family: var(--font-bn);
+  line-height: 1.25;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.hero-desc {
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  font-family: var(--font-bn);
+  line-height: 1.5;
+}
+
+.hero-action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  color: #064e3b;
+  font-weight: 700;
+  font-family: var(--font-bn);
+  font-size: 0.9rem;
+  padding: 0.7rem 1.35rem;
+  border-radius: var(--radius-md, 10px);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    background: #f0fdf4;
+  }
+}
+
+.btn-hero-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-weight: 700;
+  font-family: var(--font-bn);
+  font-size: 0.9rem;
+  padding: 0.7rem 1.35rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+.btn-hero-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  font-family: var(--font-bn);
+  font-size: 0.88rem;
+  padding: 0.7rem 1.15rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+  }
 }
 
 /* Stats Cards Grid */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
   margin-bottom: 1.5rem;
 }
 
 .stat-card {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-lg);
-  padding: 1.15rem 1.25rem;
+  background: var(--color-bg-card, #ffffff);
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.25rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  box-shadow: var(--elevation-1);
+  gap: 1.1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  &.stat-card-green::before { background: linear-gradient(90deg, #10b981, #059669); }
+  &.stat-card-blue::before { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+  &.stat-card-amber::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+  &.stat-card-purple::before { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
 }
 
 .stat-icon-wrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1399,17 +1571,18 @@ onMounted(() => {
 }
 
 .stat-value {
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-weight: 800;
-  color: var(--color-text);
+  color: var(--color-text, #1e293b);
   font-family: var(--font-bn);
   line-height: 1.2;
 }
 
 .stat-label {
   font-size: 0.78rem;
-  color: var(--color-text-light);
-  margin-top: 0.15rem;
+  color: var(--color-text-light, #64748b);
+  margin-top: 0.2rem;
+  font-family: var(--font-bn);
 }
 
 /* Main View Tabs */
@@ -1517,6 +1690,63 @@ onMounted(() => {
     border: none;
     color: var(--color-text-muted);
     cursor: pointer;
+  }
+}
+
+.quick-status-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.chip-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  background: var(--color-bg, #f8fafc);
+  color: var(--color-text-light, #64748b);
+  font-family: var(--font-bn);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  .chip-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  &:hover {
+    background: var(--color-bg-muted, #f1f5f9);
+    color: var(--color-text, #1e293b);
+  }
+
+  &.active {
+    background: var(--color-primary, #145032);
+    color: #ffffff;
+    border-color: var(--color-primary, #145032);
+    box-shadow: 0 2px 6px rgba(20, 80, 50, 0.25);
+  }
+
+  &.chip-approved.active {
+    background: #059669;
+    border-color: #059669;
+  }
+
+  &.chip-pending.active {
+    background: #d97706;
+    border-color: #d97706;
+  }
+
+  &.chip-rejected.active {
+    background: #dc2626;
+    border-color: #dc2626;
   }
 }
 

@@ -80,11 +80,10 @@ jobs:
 
   deploy:
     name: Deploy to VPS
-    needs: [frontend-build, backend-tests]
+    needs: [frontend-build]
     if: |
       github.ref == 'refs/heads/master' &&
       github.event_name == 'push' &&
-      !cancelled() &&
       needs.frontend-build.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 25

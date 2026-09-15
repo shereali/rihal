@@ -15,75 +15,85 @@
         <Icon name="tag" /> সনদ রেজিস্টার ও টেমপলেট
       </NuxtLink>
       <NuxtLink to="/certificates/sonad" class="subnav-pill">
-        <Icon name="school" /> সনদপত্র মুদ্রণ (Sanad)
+        <Icon name="printer" /> সনদপত্র মুদ্রণ (Sanad)
       </NuxtLink>
       <NuxtLink to="/certificates/transfer" class="subnav-pill">
-        <Icon name="document" /> ছাড়পত্র মুদ্রণ (Transfer Certificate)
+        <Icon name="assignment" /> ছাড়পত্র মুদ্রণ (Transfer Certificate)
       </NuxtLink>
     </div>
 
-    <!-- Page Header -->
-    <div class="page-header-row no-print">
-      <div class="header-title-block">
-        <span class="eyebrow">সার্টিফিকেশন ও পাঠ্যক্রম</span>
-        <h1>সার্টিফিকেট ও পাঠ্যক্রম ব্যবস্থাপনা</h1>
-        <p class="page-subtitle">সার্টিফিকেট টেমপলেট তৈরি, শিক্ষার্থী সনদপত্র প্রদান, পাঠ্যক্রম ও বিষয় পরিচালনা করুন</p>
-      </div>
-      <div class="header-actions">
-        <button class="btn btn-outline" @click="openIssueModal">
-          <Icon name="tag" /> সনদ প্রকাশ করুন
-        </button>
-        <button class="btn btn-primary" @click="openCreateTemplate">
-          <Icon name="plus" /> নতুন টেমপলেট
-        </button>
-        <NuxtLink to="/certificates/sonad" class="btn btn-secondary">
-          <Icon name="printer" /> সনদপত্র প্রিন্ট (Sanad)
-        </NuxtLink>
+    <!-- Premium Hero Header Banner -->
+    <div class="hero-banner no-print">
+      <div class="hero-inner">
+        <div class="hero-text-block">
+          <div class="hero-badge">
+            <span class="sparkle">🎓</span>
+            <span>সনদপত্র, প্রত্যয়ন ও পাঠ্যক্রম রেজিস্টার</span>
+          </div>
+          <h1 class="hero-title">সার্টিফিকেট ও সনদপত্র ব্যবস্থাপনা</h1>
+          <p class="hero-desc">
+            কাস্টম সনদ টেমপলেট ডিজাইন, শিক্ষার্থীকে সার্টিফিকেট ইস্যু এবং প্রিন্ট প্রস্তুত সনদপত্র সংগ্রহ পরিচালনা করুন
+          </p>
+        </div>
+        <div class="hero-action-buttons">
+          <button class="btn-hero-primary" @click="openCreateTemplate" title="নতুন সার্টিফিকেট টেমপলেট তৈরি">
+            <Icon name="plus" />
+            <span>নতুন টেমপলেট</span>
+          </button>
+          <button class="btn-hero-secondary" @click="openIssueModal" title="শিক্ষার্থীকে সনদপত্র প্রদান করুন">
+            <Icon name="tag" />
+            <span>সনদ ইস্যু করুন</span>
+          </button>
+          <NuxtLink to="/certificates/sonad" class="btn-hero-glass" title="সনদপত্র মুদ্রণ পাতা">
+            <Icon name="printer" />
+            <span>সনদপত্র প্রিন্ট</span>
+          </NuxtLink>
+        </div>
       </div>
     </div>
 
     <!-- Metric KPI Stats Bar -->
     <div class="stats-overview-grid no-print">
-      <div class="stat-card">
+      <div class="stat-card stat-card-green">
         <div class="stat-icon-wrapper primary">
           <Icon name="book" />
         </div>
         <div class="stat-content">
           <span class="stat-label">মোট টেমপলেট</span>
-          <h3 class="stat-value">{{ templates.total || 0 }}</h3>
+          <h3 class="stat-value">{{ (templates.total || 0).toLocaleString('bn-BD') }}</h3>
           <span class="stat-sub">অনুমোদিত ফরম্যাট</span>
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card stat-card-blue">
         <div class="stat-icon-wrapper success">
           <Icon name="tag" />
         </div>
         <div class="stat-content">
           <span class="stat-label">মোট সনদ প্রকাশনা</span>
-          <h3 class="stat-value">{{ issuedCerts.total || 0 }}</h3>
+          <h3 class="stat-value">{{ (issuedCerts.total || 0).toLocaleString('bn-BD') }}</h3>
           <span class="stat-sub">শিক্ষার্থীদের প্রদত্ত</span>
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card stat-card-amber">
         <div class="stat-icon-wrapper info">
-          <Icon name="school" />
+          <Icon name="book" />
         </div>
         <div class="stat-content">
           <span class="stat-label">পাঠ্যক্রম ও বিষয়</span>
-          <h3 class="stat-value">{{ subjects.length || 0 }}</h3>
+          <h3 class="stat-value">{{ (subjects.length || 0).toLocaleString('bn-BD') }}</h3>
           <span class="stat-sub">নিবন্ধিত বিষয় তালিকা</span>
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card stat-card-purple">
         <div class="stat-icon-wrapper warning">
           <Icon name="checkCircle" />
         </div>
         <div class="stat-content">
           <span class="stat-label">সক্রিয় টেমপলেট</span>
-          <h3 class="stat-value">{{ activeTemplatesCount }}</h3>
+          <h3 class="stat-value">{{ activeTemplatesCount.toLocaleString('bn-BD') }}</h3>
           <span class="stat-sub">ব্যবহারযোগ্য টেমপলেট</span>
         </div>
       </div>
@@ -1377,68 +1387,190 @@ onMounted(() => {
   }
 }
 
-/* Page Header */
-.page-header-row {
+/* Premium Hero Header Banner */
+.hero-banner {
+  background: linear-gradient(135deg, #09331d 0%, #0e4c2b 50%, #17653a 100%);
+  border-radius: var(--radius-xl, 16px);
+  padding: 2rem 2.25rem;
+  margin-bottom: 1.75rem;
+  box-shadow: 0 12px 36px rgba(14, 76, 43, 0.22), 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 380px;
+    height: 380px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, transparent 70%);
+    pointer-events: none;
+  }
+}
+
+.hero-inner {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.header-title-block {
-  .eyebrow {
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--color-primary, #145032);
-    letter-spacing: 0.05em;
-  }
-  h1 {
-    font-size: 1.6rem;
-    font-weight: 800;
-    margin: 0.2rem 0;
-    color: var(--color-text, #1e293b);
-    font-family: var(--font-bn);
-  }
-  .page-subtitle {
-    color: var(--color-text-light, #64748b);
-    font-size: 0.9rem;
-    margin: 0;
-    font-family: var(--font-bn);
-  }
-}
-
-.header-actions {
-  display: flex;
   align-items: center;
-  gap: 0.75rem;
   flex-wrap: wrap;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-text-block {
+  max-width: 700px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #d1fae5;
+  margin-bottom: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hero-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.45rem;
+  font-family: var(--font-bn);
+  line-height: 1.25;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.hero-desc {
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  font-family: var(--font-bn);
+  line-height: 1.5;
+}
+
+.hero-action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  color: #064e3b;
+  font-weight: 700;
+  font-family: var(--font-bn);
+  font-size: 0.9rem;
+  padding: 0.7rem 1.35rem;
+  border-radius: var(--radius-md, 10px);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    background: #f0fdf4;
+  }
+}
+
+.btn-hero-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-weight: 700;
+  font-family: var(--font-bn);
+  font-size: 0.9rem;
+  padding: 0.7rem 1.35rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+.btn-hero-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+  font-family: var(--font-bn);
+  font-size: 0.88rem;
+  padding: 0.7rem 1.15rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+  }
 }
 
 /* KPI Summary Cards */
 .stats-overview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
   margin-bottom: 1.5rem;
 }
 
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.1rem;
   background: var(--color-bg-card, #ffffff);
   border: 1px solid var(--color-border-light, #e2e8f0);
   border-radius: var(--radius-lg, 12px);
-  padding: 1rem 1.25rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  &.stat-card-green::before { background: linear-gradient(90deg, #10b981, #059669); }
+  &.stat-card-blue::before { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+  &.stat-card-amber::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+  &.stat-card-purple::before { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   }
 
   .stat-icon-wrapper {
