@@ -358,351 +358,363 @@
     </div>
 
     <!-- Modal 1: Smart Class Bulk Promotion Modal -->
-    <div v-if="showBulk" class="modal-overlay" @click.self="closeBulkModal">
-      <div class="modal-card modal-lg">
-        <div class="modal-header">
-          <div class="modal-title-with-icon">
-            <div class="icon-bubble green"><Icon name="users" /></div>
-            <div>
-              <h3>স্মার্ট শ্রেণি বাল্ক প্রমোশন (Bulk Class Promotion)</h3>
-              <p class="modal-subtitle">একটি নির্দিষ্ট শ্রেণির সকল উত্তীর্ণ শিক্ষার্থীকে একসাথে পরবর্তী শ্রেণিতে উন্নীত করুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showBulk" class="modal-overlay" @click.self="closeBulkModal">
+          <div class="modal-card modal-lg">
+            <div class="modal-header">
+              <div class="modal-title-with-icon">
+                <div class="icon-bubble green"><Icon name="users" /></div>
+                <div>
+                  <h3>স্মার্ট শ্রেণি বাল্ক প্রমোশন (Bulk Class Promotion)</h3>
+                  <p class="modal-subtitle">একটি নির্দিষ্ট শ্রেণির সকল উত্তীর্ণ শিক্ষার্থীকে একসাথে পরবর্তী শ্রেণিতে উন্নীত করুন</p>
+                </div>
+              </div>
+              <button class="modal-close" type="button" @click="closeBulkModal" title="বন্ধ করুন">
+                <Icon name="close" />
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <form @submit.prevent="submitBulkPromote">
+                <!-- Source & Target Class Selection -->
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">
+                      যে শ্রেণি থেকে প্রমোশন হবে (পূর্ববর্তী শ্রেণি) <span class="required">*</span>
+                    </label>
+                    <select
+                      v-model="bulkForm.from_class_id"
+                      class="form-select"
+                      @change="onBulkFromClassChange"
+                      required
+                    >
+                      <option value="">শ্রেণি নির্বাচন করুন</option>
+                      <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
+                    </select>
+                    <span class="form-hint">শ্রেণি সিলেক্ট করলে শিক্ষার্থীদের তালিকা নিচে লোড হবে</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">
+                      যে শ্রেণিতে উন্নীত হবে (পরবর্তী শ্রেণি) <span class="required">*</span>
+                    </label>
+                    <select v-model="bulkForm.to_class_id" class="form-select" required>
+                      <option value="">উত্তীর্ণ শ্রেণি নির্বাচন করুন</option>
+                      <option
+                        v-for="c in classOptions"
+                        :key="c.id"
+                        :value="c.id"
+                        :disabled="c.id === Number(bulkForm.from_class_id)"
+                      >
+                        {{ c.name }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Visual Class Promotion Flow Banner -->
+                <div v-if="bulkForm.from_class_id && bulkForm.to_class_id" class="promotion-preview-flow">
+                  <div class="flow-step from">
+                    <span class="flow-label">পূর্ববর্তী শ্রেণি</span>
+                    <strong>{{ getClassNameById(bulkForm.from_class_id) }}</strong>
+                  </div>
+                  <div class="flow-arrow">
+                    <Icon name="arrowRight" />
+                  </div>
+                  <div class="flow-step to">
+                    <span class="flow-label">উত্তীর্ণ পরবর্তী শ্রেণি</span>
+                    <strong>{{ getClassNameById(bulkForm.to_class_id) }}</strong>
+                  </div>
+                </div>
+
+                <!-- Session & Date Row -->
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">নতুন শিক্ষাবর্ষ (Academic Session) <span class="required">*</span></label>
+                    <input
+                      v-model="bulkForm.academic_year"
+                      type="text"
+                      class="form-control"
+                      placeholder="যেমন: ২০২৬-২০২৭"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">প্রমোশনের তারিখ <span class="required">*</span></label>
+                    <input v-model="bulkForm.promotion_date" type="date" class="form-control" required />
+                  </div>
+                </div>
+
+                <!-- Student Checklist Area -->
+                <div class="bulk-students-panel">
+                  <div class="panel-header-bar">
+                    <div class="panel-title">
+                      <strong>শিক্ষার্থীদের তালিকা ও নির্বাচন</strong>
+                      <span class="badge-count" v-if="bulkClassStudents.length">
+                        মোট {{ bulkClassStudents.length }} জন
+                      </span>
+                    </div>
+                    <div class="panel-actions" v-if="bulkClassStudents.length">
+                      <button type="button" class="btn btn-xs btn-outline" @click="selectAllBulkStudents">
+                        সবাইকে নির্বাচন ({{ bulkClassStudents.length }})
+                      </button>
+                      <button type="button" class="btn btn-xs btn-outline" @click="deselectAllBulkStudents">
+                        নির্বাচন বাতিল
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Loading students for class -->
+                  <div v-if="loadingBulkStudents" class="bulk-loading">
+                    <div class="spinner-sm"></div>
+                    <span>শিক্ষার্থীদের তালিকা লোড হচ্ছে...</span>
+                  </div>
+
+                  <!-- No class chosen yet -->
+                  <div v-else-if="!bulkForm.from_class_id" class="bulk-placeholder">
+                    <Icon name="users" size="32" />
+                    <p>উপরের ড্রপডাউন থেকে পূর্ববর্তী শ্রেণি সিলেক্ট করুন</p>
+                  </div>
+
+                  <!-- Empty students for chosen class -->
+                  <div v-else-if="bulkClassStudents.length === 0" class="bulk-placeholder">
+                    <p>এই শ্রেণিতে কোনো সক্রিয় শিক্ষার্থী পাওয়া যায়নি।</p>
+                  </div>
+
+                  <!-- Interactive Students Checklist Table -->
+                  <div v-else class="bulk-table-wrap">
+                    <table class="bulk-checklist-table">
+                      <thead>
+                        <tr>
+                          <th style="width: 40px; text-align: center;">
+                            <input
+                              type="checkbox"
+                              :checked="isAllSelected"
+                              @change="toggleSelectAll"
+                              title="সবাইকে সিলেক্ট করুন"
+                            />
+                          </th>
+                          <th style="width: 70px;">রোল</th>
+                          <th>শিক্ষার্থীর পূর্ণ নাম</th>
+                          <th>দাখেলা / ভর্তি নম্বর</th>
+                          <th>পিতার নাম</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          v-for="st in bulkClassStudents"
+                          :key="st.id"
+                          :class="{ selected: selectedStudentIds.includes(st.id) }"
+                          @click="toggleStudentSelection(st.id)"
+                        >
+                          <td style="text-align: center;" @click.stop>
+                            <input
+                              type="checkbox"
+                              :value="st.id"
+                              v-model="selectedStudentIds"
+                            />
+                          </td>
+                          <td><span class="roll-pill">{{ st.roll_no || '—' }}</span></td>
+                          <td><strong>{{ st.name }}</strong></td>
+                          <td><code class="mono-sub">{{ st.admission_no || st.id }}</code></td>
+                          <td class="text-muted">{{ st.father_name || '—' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- Selection Counter Bar -->
+                  <div class="bulk-selection-summary" v-if="bulkClassStudents.length">
+                    <span>
+                      নির্বাচিত শিক্ষার্থী: 
+                      <strong class="count-highlight">{{ selectedStudentIds.length.toLocaleString('bn-BD') }}</strong> 
+                      জন (মোট {{ bulkClassStudents.length.toLocaleString('bn-BD') }} জনের মধ্যে)
+                    </span>
+                    <span class="form-hint">যাদের প্রমোশন হবে না তাদের আনচেক (Uncheck) করুন</span>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn btn-outline" @click="closeBulkModal" :disabled="bulkSaving">বাতিল</button>
+              <button
+                class="btn btn-success"
+                @click="submitBulkPromote"
+                :disabled="bulkSaving || selectedStudentIds.length === 0 || !bulkForm.to_class_id"
+              >
+                <Icon name="loader" v-if="bulkSaving" />
+                <Icon name="check" v-else />
+                {{ bulkSaving ? 'প্রমোশন সম্পন্ন হচ্ছে...' : `বাল্ক প্রমোশন সম্পাদন করুন (${selectedStudentIds.length} জন)` }}
+              </button>
             </div>
           </div>
-          <button class="modal-close" @click="closeBulkModal">
-            <Icon name="close" />
-          </button>
         </div>
-
-        <div class="modal-body">
-          <form @submit.prevent="submitBulkPromote">
-            <!-- Source & Target Class Selection -->
-            <div class="form-row-2">
-              <div class="form-group">
-                <label class="form-label">
-                  যে শ্রেণি থেকে প্রমোশন হবে (পূর্ববর্তী শ্রেণি) <span class="required">*</span>
-                </label>
-                <select
-                  v-model="bulkForm.from_class_id"
-                  class="form-select"
-                  @change="onBulkFromClassChange"
-                  required
-                >
-                  <option value="">শ্রেণি নির্বাচন করুন</option>
-                  <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-                </select>
-                <span class="form-hint">শ্রেণি সিলেক্ট করলে শিক্ষার্থীদের তালিকা নিচে লোড হবে</span>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  যে শ্রেণিতে উন্নীত হবে (পরবর্তী শ্রেণি) <span class="required">*</span>
-                </label>
-                <select v-model="bulkForm.to_class_id" class="form-select" required>
-                  <option value="">উত্তীর্ণ শ্রেণি নির্বাচন করুন</option>
-                  <option
-                    v-for="c in classOptions"
-                    :key="c.id"
-                    :value="c.id"
-                    :disabled="c.id === Number(bulkForm.from_class_id)"
-                  >
-                    {{ c.name }}
-                  </option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Visual Class Promotion Flow Banner -->
-            <div v-if="bulkForm.from_class_id && bulkForm.to_class_id" class="promotion-preview-flow">
-              <div class="flow-step from">
-                <span class="flow-label">পূর্ববর্তী শ্রেণি</span>
-                <strong>{{ getClassNameById(bulkForm.from_class_id) }}</strong>
-              </div>
-              <div class="flow-arrow">
-                <Icon name="arrowRight" />
-              </div>
-              <div class="flow-step to">
-                <span class="flow-label">উত্তীর্ণ পরবর্তী শ্রেণি</span>
-                <strong>{{ getClassNameById(bulkForm.to_class_id) }}</strong>
-              </div>
-            </div>
-
-            <!-- Session & Date Row -->
-            <div class="form-row-2">
-              <div class="form-group">
-                <label class="form-label">নতুন শিক্ষাবর্ষ (Academic Session) <span class="required">*</span></label>
-                <input
-                  v-model="bulkForm.academic_year"
-                  type="text"
-                  class="form-control"
-                  placeholder="যেমন: ২০২৬-২০২৭"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label">প্রমোশনের তারিখ <span class="required">*</span></label>
-                <input v-model="bulkForm.promotion_date" type="date" class="form-control" required />
-              </div>
-            </div>
-
-            <!-- Student Checklist Area -->
-            <div class="bulk-students-panel">
-              <div class="panel-header-bar">
-                <div class="panel-title">
-                  <strong>শিক্ষার্থীদের তালিকা ও নির্বাচন</strong>
-                  <span class="badge-count" v-if="bulkClassStudents.length">
-                    মোট {{ bulkClassStudents.length }} জন
-                  </span>
-                </div>
-                <div class="panel-actions" v-if="bulkClassStudents.length">
-                  <button type="button" class="btn btn-xs btn-outline" @click="selectAllBulkStudents">
-                    সবাইকে নির্বাচন ({{ bulkClassStudents.length }})
-                  </button>
-                  <button type="button" class="btn btn-xs btn-outline" @click="deselectAllBulkStudents">
-                    নির্বাচন বাতিল
-                  </button>
-                </div>
-              </div>
-
-              <!-- Loading students for class -->
-              <div v-if="loadingBulkStudents" class="bulk-loading">
-                <div class="spinner-sm"></div>
-                <span>শিক্ষার্থীদের তালিকা লোড হচ্ছে...</span>
-              </div>
-
-              <!-- No class chosen yet -->
-              <div v-else-if="!bulkForm.from_class_id" class="bulk-placeholder">
-                <Icon name="users" size="32" />
-                <p>উপরের ড্রপডাউন থেকে পূর্ববর্তী শ্রেণি সিলেক্ট করুন</p>
-              </div>
-
-              <!-- Empty students for chosen class -->
-              <div v-else-if="bulkClassStudents.length === 0" class="bulk-placeholder">
-                <p>এই শ্রেণিতে কোনো সক্রিয় শিক্ষার্থী পাওয়া যায়নি।</p>
-              </div>
-
-              <!-- Interactive Students Checklist Table -->
-              <div v-else class="bulk-table-wrap">
-                <table class="bulk-checklist-table">
-                  <thead>
-                    <tr>
-                      <th style="width: 40px; text-align: center;">
-                        <input
-                          type="checkbox"
-                          :checked="isAllSelected"
-                          @change="toggleSelectAll"
-                          title="সবাইকে সিলেক্ট করুন"
-                        />
-                      </th>
-                      <th style="width: 70px;">রোল</th>
-                      <th>শিক্ষার্থীর পূর্ণ নাম</th>
-                      <th>দাখেলা / ভর্তি নম্বর</th>
-                      <th>পিতার নাম</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="st in bulkClassStudents"
-                      :key="st.id"
-                      :class="{ selected: selectedStudentIds.includes(st.id) }"
-                      @click="toggleStudentSelection(st.id)"
-                    >
-                      <td style="text-align: center;" @click.stop>
-                        <input
-                          type="checkbox"
-                          :value="st.id"
-                          v-model="selectedStudentIds"
-                        />
-                      </td>
-                      <td><span class="roll-pill">{{ st.roll_no || '—' }}</span></td>
-                      <td><strong>{{ st.name }}</strong></td>
-                      <td><code class="mono-sub">{{ st.admission_no || st.id }}</code></td>
-                      <td class="text-muted">{{ st.father_name || '—' }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Selection Counter Bar -->
-              <div class="bulk-selection-summary" v-if="bulkClassStudents.length">
-                <span>
-                  নির্বাচিত শিক্ষার্থী: 
-                  <strong class="count-highlight">{{ selectedStudentIds.length.toLocaleString('bn-BD') }}</strong> 
-                  জন (মোট {{ bulkClassStudents.length.toLocaleString('bn-BD') }} জনের মধ্যে)
-                </span>
-                <span class="form-hint">যাদের প্রমোশন হবে না তাদের আনচেক (Uncheck) করুন</span>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn btn-outline" @click="closeBulkModal" :disabled="bulkSaving">বাতিল</button>
-          <button
-            class="btn btn-success"
-            @click="submitBulkPromote"
-            :disabled="bulkSaving || selectedStudentIds.length === 0 || !bulkForm.to_class_id"
-          >
-            <Icon name="loader" v-if="bulkSaving" />
-            <Icon name="check" v-else />
-            {{ bulkSaving ? 'প্রমোশন সম্পন্ন হচ্ছে...' : `বাল্ক প্রমোশন সম্পাদন করুন (${selectedStudentIds.length} জন)` }}
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Modal 2: Single Create / Edit Promotion Modal -->
-    <div v-if="showCreate" class="modal-overlay" @click.self="closeCreateModal">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-with-icon">
-            <div class="icon-bubble green"><Icon name="user" /></div>
-            <div>
-              <h3>{{ editingPromotion ? 'প্রমোশন রেকর্ড সম্পাদনা' : 'একক শিক্ষার্থী প্রমোশন' }}</h3>
-              <p class="modal-subtitle">{{ editingPromotion ? 'বিদ্যমান প্রমোশন রেকর্ডের তথ্য পরিবর্তন করুন' : 'নির্দিষ্ট একজন শিক্ষার্থীকে পরবর্তী শ্রেণিতে উন্নীত করুন' }}</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showCreate" class="modal-overlay" @click.self="closeCreateModal">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-with-icon">
+                <div class="icon-bubble green"><Icon name="user" /></div>
+                <div>
+                  <h3>{{ editingPromotion ? 'প্রমোশন রেকর্ড সম্পাদনা' : 'একক শিক্ষার্থী প্রমোশন' }}</h3>
+                  <p class="modal-subtitle">{{ editingPromotion ? 'বিদ্যমান প্রমোশন রেকর্ডের তথ্য পরিবর্তন করুন' : 'নির্দিষ্ট একজন শিক্ষার্থীকে পরবর্তী শ্রেণিতে উন্নীত করুন' }}</p>
+                </div>
+              </div>
+              <button class="modal-close" type="button" @click="closeCreateModal" title="বন্ধ করুন">
+                <Icon name="close" />
+              </button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="saveSinglePromotion">
+                <div class="form-group">
+                  <label class="form-label">শিক্ষার্থী নির্বাচন করুন <span class="required">*</span></label>
+                  <select
+                    v-model="form.student_id"
+                    class="form-select"
+                    @change="onSingleStudentSelect"
+                    required
+                  >
+                    <option value="">তালিকায় থাকা শিক্ষার্থী নির্বাচন করুন</option>
+                    <option v-for="s in studentOptions" :key="s.id" :value="s.id">
+                      {{ s.name }} (রোল: {{ s.roll_no }}) — {{ s.class?.name || s.class?.name_bn || '—' }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">পূর্ববর্তী শ্রেণি <span class="required">*</span></label>
+                    <select v-model="form.from_class_id" class="form-select" required>
+                      <option value="">শ্রেণি নির্বাচন করুন</option>
+                      <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">উত্তীর্ণ পরবর্তী শ্রেণি <span class="required">*</span></label>
+                    <select v-model="form.to_class_id" class="form-select" required>
+                      <option value="">শ্রেণি নির্বাচন করুন</option>
+                      <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Visual Class Promotion Flow Banner -->
+                <div v-if="form.from_class_id && form.to_class_id" class="promotion-preview-flow">
+                  <div class="flow-step from">
+                    <span class="flow-label">পূর্ববর্তী শ্রেণি</span>
+                    <strong>{{ getClassNameById(form.from_class_id) }}</strong>
+                  </div>
+                  <div class="flow-arrow">
+                    <Icon name="arrowRight" />
+                  </div>
+                  <div class="flow-step to">
+                    <span class="flow-label">উত্তীর্ণ পরবর্তী শ্রেণি</span>
+                    <strong>{{ getClassNameById(form.to_class_id) }}</strong>
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">নতুন শিক্ষাবর্ষ <span class="required">*</span></label>
+                    <input
+                      v-model="form.academic_year"
+                      type="text"
+                      class="form-control"
+                      placeholder="যেমন: ২০২৬-২০২৭"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">প্রমোশনের তারিখ <span class="required">*</span></label>
+                    <input v-model="form.promotion_date" type="date" class="form-control" required />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">প্রমোশনের অবস্থা</label>
+                  <select v-model="form.status" class="form-select">
+                    <option value="approved">অনুমোদিত (Approved)</option>
+                    <option value="pending">মুলতুবি (Pending)</option>
+                    <option value="rejected">প্রত্যাখ্যান (Rejected)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">মন্তব্য (Comments)</label>
+                  <textarea
+                    v-model="form.comments"
+                    class="form-control"
+                    rows="2"
+                    placeholder="প্রমোশন সংক্রান্ত কোনো বিশেষ নির্দেশনা বা মন্তব্য থাকলে লিখুন..."
+                  ></textarea>
+                </div>
+              </form>
+            </div>
+
+            <div class="modal-footer">
+              <button class="btn btn-outline" @click="closeCreateModal">বাতিল</button>
+              <button class="btn btn-primary" @click="saveSinglePromotion" :disabled="saving">
+                <Icon name="loader" v-if="saving" />
+                <Icon name="save" v-else />
+                {{ editingPromotion ? 'আপডেট সম্পন্ন করুন' : 'প্রমোশন সংরক্ষণ করুন' }}
+              </button>
             </div>
           </div>
-          <button class="modal-close" @click="closeCreateModal">
-            <Icon name="close" />
-          </button>
         </div>
-        <div class="modal-body">
-          <form @submit.prevent="saveSinglePromotion">
-            <div class="form-group">
-              <label class="form-label">শিক্ষার্থী নির্বাচন করুন <span class="required">*</span></label>
-              <select
-                v-model="form.student_id"
-                class="form-select"
-                @change="onSingleStudentSelect"
-                required
-              >
-                <option value="">তালিকায় থাকা শিক্ষার্থী নির্বাচন করুন</option>
-                <option v-for="s in studentOptions" :key="s.id" :value="s.id">
-                  {{ s.name }} (রোল: {{ s.roll_no }}) — {{ s.class?.name || s.class?.name_bn || '—' }}
-                </option>
-              </select>
-            </div>
-
-            <div class="form-row-2">
-              <div class="form-group">
-                <label class="form-label">পূর্ববর্তী শ্রেণি <span class="required">*</span></label>
-                <select v-model="form.from_class_id" class="form-select" required>
-                  <option value="">শ্রেণি নির্বাচন করুন</option>
-                  <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">উত্তীর্ণ পরবর্তী শ্রেণি <span class="required">*</span></label>
-                <select v-model="form.to_class_id" class="form-select" required>
-                  <option value="">শ্রেণি নির্বাচন করুন</option>
-                  <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Visual Class Promotion Flow Banner -->
-            <div v-if="form.from_class_id && form.to_class_id" class="promotion-preview-flow">
-              <div class="flow-step from">
-                <span class="flow-label">পূর্ববর্তী শ্রেণি</span>
-                <strong>{{ getClassNameById(form.from_class_id) }}</strong>
-              </div>
-              <div class="flow-arrow">
-                <Icon name="arrowRight" />
-              </div>
-              <div class="flow-step to">
-                <span class="flow-label">উত্তীর্ণ পরবর্তী শ্রেণি</span>
-                <strong>{{ getClassNameById(form.to_class_id) }}</strong>
-              </div>
-            </div>
-
-            <div class="form-row-2">
-              <div class="form-group">
-                <label class="form-label">নতুন শিক্ষাবর্ষ <span class="required">*</span></label>
-                <input
-                  v-model="form.academic_year"
-                  type="text"
-                  class="form-control"
-                  placeholder="যেমন: ২০২৬-২০২৭"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label">প্রমোশনের তারিখ <span class="required">*</span></label>
-                <input v-model="form.promotion_date" type="date" class="form-control" required />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">প্রমোশনের অবস্থা</label>
-              <select v-model="form.status" class="form-select">
-                <option value="approved">অনুমোদিত (Approved)</option>
-                <option value="pending">মুলতুবি (Pending)</option>
-                <option value="rejected">প্রত্যাখ্যান (Rejected)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">মন্তব্য (Comments)</label>
-              <textarea
-                v-model="form.comments"
-                class="form-control"
-                rows="2"
-                placeholder="প্রমোশন সংক্রান্ত কোনো বিশেষ নির্দেশনা বা মন্তব্য থাকলে লিখুন..."
-              ></textarea>
-            </div>
-          </form>
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn btn-outline" @click="closeCreateModal">বাতিল</button>
-          <button class="btn btn-primary" @click="saveSinglePromotion" :disabled="saving">
-            <Icon name="loader" v-if="saving" />
-            <Icon name="save" v-else />
-            {{ editingPromotion ? 'আপডেট সম্পন্ন করুন' : 'প্রমোশন সংরক্ষণ করুন' }}
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Modal 3: Delete Confirmation Modal -->
-    <div v-if="showDelete" class="modal-overlay" @click.self="showDelete = false">
-      <div class="modal-card modal-sm">
-        <div class="modal-header">
-          <div class="modal-title-with-icon">
-            <div class="icon-bubble red"><Icon name="delete" /></div>
-            <div>
-              <h3>প্রমোশন রেকর্ড মুছে ফেলুন</h3>
-              <p class="modal-subtitle">রেকর্ডটি ডাটাবেজ থেকে স্থায়ীভাবে অপসারণ করা হবে</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDelete" class="modal-overlay" @click.self="showDelete = false">
+          <div class="modal-card modal-sm">
+            <div class="modal-header">
+              <div class="modal-title-with-icon">
+                <div class="icon-bubble red"><Icon name="delete" /></div>
+                <div>
+                  <h3>প্রমোশন রেকর্ড মুছে ফেলুন</h3>
+                  <p class="modal-subtitle">রেকর্ডটি ডাটাবেজ থেকে স্থায়ীভাবে অপসারণ করা হবে</p>
+                </div>
+              </div>
+              <button class="modal-close" type="button" @click="showDelete = false" title="বন্ধ করুন">
+                <Icon name="close" />
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>
+                আপনি কি নিশ্চিত যে শিক্ষার্থী 
+                "<strong>{{ getStudentName(deleteTarget) }}</strong>" এর প্রমোশন রেকর্ড মুছে ফেলতে চান?
+              </p>
+              <div class="delete-detail-box" v-if="deleteTarget">
+                <div><strong>শিক্ষার্থী:</strong> {{ getStudentName(deleteTarget) }}</div>
+                <div><strong>পূর্ববর্তী শ্রেণি:</strong> {{ deleteTarget.fromClass?.name_bn || deleteTarget.fromClass?.name_en || deleteTarget.fromClass?.name || '—' }}</div>
+                <div><strong>উত্তীর্ণ শ্রেণি:</strong> {{ deleteTarget.toClass?.name_bn || deleteTarget.toClass?.name_en || deleteTarget.toClass?.name || '—' }}</div>
+                <div><strong>শিক্ষাবর্ষ:</strong> {{ deleteTarget.academic_year || '—' }}</div>
+              </div>
+              <p class="text-muted text-xs mt-2" style="font-size: 0.8rem; color: #64748b; margin-top: 0.6rem;">
+                এই রেকর্ড মুছে ফেললে শিক্ষার্থী পুনরায় পূর্বের শ্রেণিতে গণ্য হবে।
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline" @click="showDelete = false">বাতিল</button>
+              <button class="btn btn-danger" @click="confirmDelete" :disabled="deleting">
+                <Icon name="loader" v-if="deleting" />
+                <Icon name="delete" v-else />
+                মুছে ফেলুন
+              </button>
             </div>
           </div>
-          <button class="modal-close" @click="showDelete = false">
-            <Icon name="close" />
-          </button>
         </div>
-        <div class="modal-body">
-          <p>
-            আপনি কি নিশ্চিত যে শিক্ষার্থী 
-            "<strong>{{ getStudentName(deleteTarget) }}</strong>" এর প্রমোশন রেকর্ড মুছে ফেলতে চান?
-          </p>
-          <div class="delete-detail-box" v-if="deleteTarget">
-            <div><strong>শিক্ষার্থী:</strong> {{ getStudentName(deleteTarget) }}</div>
-            <div><strong>পূর্ববর্তী শ্রেণি:</strong> {{ deleteTarget.fromClass?.name_bn || deleteTarget.fromClass?.name_en || deleteTarget.fromClass?.name || '—' }}</div>
-            <div><strong>উত্তীর্ণ শ্রেণি:</strong> {{ deleteTarget.toClass?.name_bn || deleteTarget.toClass?.name_en || deleteTarget.toClass?.name || '—' }}</div>
-            <div><strong>শিক্ষাবর্ষ:</strong> {{ deleteTarget.academic_year || '—' }}</div>
-          </div>
-          <p class="text-muted text-xs mt-2" style="font-size: 0.8rem; color: #64748b; margin-top: 0.6rem;">
-            এই রেকর্ড মুছে ফেললে শিক্ষার্থী পুনরায় পূর্বের শ্রেণিতে গণ্য হবে।
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-outline" @click="showDelete = false">বাতিল</button>
-          <button class="btn btn-danger" @click="confirmDelete" :disabled="deleting">
-            <Icon name="loader" v-if="deleting" />
-            <Icon name="delete" v-else />
-            মুছে ফেলুন
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
@@ -1923,13 +1935,16 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
   background: rgba(10, 35, 20, 0.65);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1050;
-  padding: 1rem;
+  z-index: 99999;
+  padding: 1.5rem;
   animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1939,12 +1954,13 @@ onMounted(() => {
   border-radius: var(--radius-lg, 12px);
   width: 100%;
   max-width: 580px;
-  max-height: calc(100vh - 3.5rem);
+  max-height: min(90vh, 720px);
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  margin: auto;
 
   &.modal-lg {
     max-width: 860px;

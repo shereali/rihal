@@ -363,17 +363,19 @@
     </div>
 
     <!-- ==================== CREATE / EDIT TEMPLATE MODAL ==================== -->
-    <div v-if="showCreate" class="modal-overlay no-print" @click.self="showCreate = false">
-      <div class="modal-card modal-lg">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <span class="modal-eyebrow">টেমপলেট কনফিগারেশন</span>
-            <h3>{{ editingTemplate ? 'সার্টিফিকেট টেমপলেট সম্পাদনা' : 'নতুন সার্টিফিকেট টেমপলেট' }}</h3>
-          </div>
-          <button class="action-btn close" @click="showCreate = false">
-            <Icon name="close" />
-          </button>
-        </div>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showCreate" class="modal-overlay no-print" @click.self="showCreate = false">
+          <div class="modal-card modal-lg">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">টেমপলেট কনফিগারেশন</span>
+                <h3>{{ editingTemplate ? 'সার্টিফিকেট টেমপলেট সম্পাদনা' : 'নতুন সার্টিফিকেট টেমপলেট' }}</h3>
+              </div>
+              <button class="action-btn close" type="button" @click="showCreate = false" title="বন্ধ করুন">
+                <Icon name="close" />
+              </button>
+            </div>
         <div class="modal-body">
           <form @submit.prevent="saveTemplate">
             <div class="form-row mb-3">
@@ -530,19 +532,23 @@
         </div>
       </div>
     </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- ==================== ISSUE CERTIFICATE MODAL ==================== -->
-    <div v-if="showIssue" class="modal-overlay no-print" @click.self="showIssue = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-wrap">
-            <span class="modal-eyebrow">সনদ প্রকাশনা</span>
-            <h3>শিক্ষার্থীকে সার্টিফিকেট প্রদান করুন</h3>
-          </div>
-          <button class="action-btn close" @click="showIssue = false">
-            <Icon name="close" />
-          </button>
-        </div>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showIssue" class="modal-overlay no-print" @click.self="showIssue = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">সনদ প্রকাশনা</span>
+                <h3>শিক্ষার্থীকে সার্টিফিকেট প্রদান করুন</h3>
+              </div>
+              <button class="action-btn close" type="button" @click="showIssue = false" title="বন্ধ করুন">
+                <Icon name="close" />
+              </button>
+            </div>
         <div class="modal-body">
           <form @submit.prevent="issueCertificate">
             <div class="form-group mb-3">
@@ -624,24 +630,28 @@
         </div>
       </div>
     </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- ==================== VIEW & PRINT CERTIFICATE MODAL ==================== -->
-    <div v-if="showViewIssue" class="modal-overlay" @click.self="showViewIssue = false">
-      <div class="modal-card modal-cert-preview">
-        <div class="modal-header no-print">
-          <div class="modal-title-wrap">
-            <span class="modal-eyebrow">সনদপত্র প্রিভিউ ও মুদ্রণ</span>
-            <h3>সার্টিফিকেটের বিবরণ ও প্রিন্ট</h3>
-          </div>
-          <div class="flex gap-2 align-center">
-            <button class="btn btn-primary" @click="printCurrentCertificate">
-              <Icon name="printer" /> প্রিন্ট করুন
-            </button>
-            <button class="action-btn close" @click="showViewIssue = false">
-              <Icon name="close" />
-            </button>
-          </div>
-        </div>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showViewIssue" class="modal-overlay" @click.self="showViewIssue = false">
+          <div class="modal-card modal-cert-preview">
+            <div class="modal-header no-print">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">সনদপত্র প্রিভিউ ও মুদ্রণ</span>
+                <h3>সার্টিফিকেটের বিবরণ ও প্রিন্ট</h3>
+              </div>
+              <div class="flex gap-2 align-center">
+                <button class="btn btn-primary" @click="printCurrentCertificate">
+                  <Icon name="printer" /> প্রিন্ট করুন
+                </button>
+                <button class="action-btn close" type="button" @click="showViewIssue = false" title="বন্ধ করুন">
+                  <Icon name="close" />
+                </button>
+              </div>
+            </div>
 
         <div class="modal-body cert-preview-modal-body">
           <!-- Authentic Printable Certificate Paper -->
@@ -726,33 +736,39 @@
         </div>
       </div>
     </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- ==================== DELETE CONFIRMATION MODAL ==================== -->
-    <div v-if="showDeleteConfirm && deleteConfirmItem" class="modal-overlay no-print" @click.self="showDeleteConfirm = false">
-      <div class="modal-card" style="max-width: 440px;">
-        <div class="modal-header">
-          <h3>{{ deleteConfirmType === 'template' ? 'টেমপলেট মুছে ফেলা' : 'সার্টিফিকেট মুছে ফেলা' }}</h3>
-          <button class="action-btn close" @click="showDeleteConfirm = false">
-            <Icon name="close" />
-          </button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDeleteConfirm && deleteConfirmItem" class="modal-overlay no-print" @click.self="showDeleteConfirm = false">
+          <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+              <h3>{{ deleteConfirmType === 'template' ? 'টেমপলেট মুছে ফেলা' : 'সার্টিফিকেট মুছে ফেলা' }}</h3>
+              <button class="action-btn close" type="button" @click="showDeleteConfirm = false" title="বন্ধ করুন">
+                <Icon name="close" />
+              </button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem;">
+              <p v-if="deleteConfirmType === 'template'">
+                আপনি কি নিশ্চিত যে <strong>"{{ deleteConfirmItem.title }}"</strong> টেমপলেটটি মুছে ফেলতে চান?
+              </p>
+              <p v-else>
+                আপনি কি নিশ্চিত যে <strong>{{ deleteConfirmItem.certificate_number }}</strong> সনদটি রেজিস্টার থেকে মুছে ফেলতে চান?
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-outline" @click="showDeleteConfirm = false" :disabled="deleteConfirming">বাতিল</button>
+              <button class="btn btn-danger" @click="executeConfirmedDelete" :disabled="deleteConfirming">
+                <Icon name="loader" v-if="deleteConfirming" />
+                মুছে ফেলুন
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body" style="padding: 1.25rem;">
-          <p v-if="deleteConfirmType === 'template'">
-            আপনি কি নিশ্চিত যে <strong>"{{ deleteConfirmItem.title }}"</strong> টেমপলেটটি মুছে ফেলতে চান?
-          </p>
-          <p v-else>
-            আপনি কি নিশ্চিত যে <strong>{{ deleteConfirmItem.certificate_number }}</strong> সনদটি রেজিস্টার থেকে মুছে ফেলতে চান?
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-outline" @click="showDeleteConfirm = false" :disabled="deleteConfirming">বাতিল</button>
-          <button class="btn btn-danger" @click="executeConfirmedDelete" :disabled="deleteConfirming">
-            <Icon name="loader" v-if="deleteConfirming" />
-            মুছে ফেলুন
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
@@ -1861,28 +1877,35 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.55);
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(10, 35, 20, 0.65);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1050;
-  padding: 1rem;
-  backdrop-filter: blur(2px);
+  z-index: 99999;
+  padding: 1.5rem;
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-card {
   background: #ffffff;
+  border: 1px solid var(--color-border-light, #e2e8f0);
   border-radius: var(--radius-lg, 12px);
   width: 100%;
-  max-width: 540px;
-  max-height: 90vh;
+  max-width: 580px;
+  max-height: min(90vh, 720px);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
   animation: scaleIn 0.2s ease;
+  margin: auto;
 
-  &.modal-lg { max-width: 760px; }
-  &.modal-cert-preview { max-width: 900px; }
+  &.modal-lg { max-width: 780px; }
+  &.modal-cert-preview { max-width: 900px; max-height: 92vh; }
 }
 
 .modal-header {
@@ -1891,6 +1914,8 @@ onMounted(() => {
   justify-content: space-between;
   padding: 1.15rem 1.5rem;
   border-bottom: 1px solid var(--color-border-light, #e2e8f0);
+  background: var(--color-bg-card, #ffffff);
+  flex-shrink: 0;
 
   .modal-title-wrap {
     .modal-eyebrow {
@@ -1907,11 +1932,33 @@ onMounted(() => {
       font-family: var(--font-bn);
     }
   }
+
+  .action-btn.close {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border-light, #e2e8f0);
+    background: var(--color-bg-muted, #f8fafc);
+    color: var(--color-text-light, #64748b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+
+    &:hover {
+      background: #fee2e2;
+      color: #ef4444;
+      border-color: #fca5a5;
+    }
+  }
 }
 
 .modal-body {
   padding: 1.25rem 1.5rem;
   overflow-y: auto;
+  flex: 1;
 }
 
 .modal-footer {
@@ -1923,6 +1970,7 @@ onMounted(() => {
   background: #f8fafc;
   border-bottom-left-radius: var(--radius-lg, 12px);
   border-bottom-right-radius: var(--radius-lg, 12px);
+  flex-shrink: 0;
 }
 
 .form-group {
