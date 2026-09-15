@@ -411,6 +411,21 @@
               </div>
             </div>
 
+            <!-- Visual Class Promotion Flow Banner -->
+            <div v-if="bulkForm.from_class_id && bulkForm.to_class_id" class="promotion-preview-flow">
+              <div class="flow-step from">
+                <span class="flow-label">পূর্ববর্তী শ্রেণি</span>
+                <strong>{{ getClassNameById(bulkForm.from_class_id) }}</strong>
+              </div>
+              <div class="flow-arrow">
+                <Icon name="arrowRight" />
+              </div>
+              <div class="flow-step to">
+                <span class="flow-label">উত্তীর্ণ পরবর্তী শ্রেণি</span>
+                <strong>{{ getClassNameById(bulkForm.to_class_id) }}</strong>
+              </div>
+            </div>
+
             <!-- Session & Date Row -->
             <div class="form-row-2">
               <div class="form-group">
@@ -539,7 +554,13 @@
     <div v-if="showCreate" class="modal-overlay" @click.self="closeCreateModal">
       <div class="modal-card">
         <div class="modal-header">
-          <h3>{{ editingPromotion ? 'প্রমোশন রেকর্ড সম্পাদনা' : 'একক শিক্ষার্থী প্রমোশন' }}</h3>
+          <div class="modal-title-with-icon">
+            <div class="icon-bubble green"><Icon name="user" /></div>
+            <div>
+              <h3>{{ editingPromotion ? 'প্রমোশন রেকর্ড সম্পাদনা' : 'একক শিক্ষার্থী প্রমোশন' }}</h3>
+              <p class="modal-subtitle">{{ editingPromotion ? 'বিদ্যমান প্রমোশন রেকর্ডের তথ্য পরিবর্তন করুন' : 'নির্দিষ্ট একজন শিক্ষার্থীকে পরবর্তী শ্রেণিতে উন্নীত করুন' }}</p>
+            </div>
+          </div>
           <button class="modal-close" @click="closeCreateModal">
             <Icon name="close" />
           </button>
@@ -547,14 +568,14 @@
         <div class="modal-body">
           <form @submit.prevent="saveSinglePromotion">
             <div class="form-group">
-              <label class="form-label">শিক্ষার্থী <span class="required">*</span></label>
+              <label class="form-label">শিক্ষার্থী নির্বাচন করুন <span class="required">*</span></label>
               <select
                 v-model="form.student_id"
                 class="form-select"
                 @change="onSingleStudentSelect"
                 required
               >
-                <option value="">শিক্ষার্থী নির্বাচন করুন</option>
+                <option value="">তালিকায় থাকা শিক্ষার্থী নির্বাচন করুন</option>
                 <option v-for="s in studentOptions" :key="s.id" :value="s.id">
                   {{ s.name }} (রোল: {{ s.roll_no }}) — {{ s.class?.name || s.class?.name_bn || '—' }}
                 </option>
@@ -575,6 +596,21 @@
                   <option value="">শ্রেণি নির্বাচন করুন</option>
                   <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
                 </select>
+              </div>
+            </div>
+
+            <!-- Visual Class Promotion Flow Banner -->
+            <div v-if="form.from_class_id && form.to_class_id" class="promotion-preview-flow">
+              <div class="flow-step from">
+                <span class="flow-label">পূর্ববর্তী শ্রেণি</span>
+                <strong>{{ getClassNameById(form.from_class_id) }}</strong>
+              </div>
+              <div class="flow-arrow">
+                <Icon name="arrowRight" />
+              </div>
+              <div class="flow-step to">
+                <span class="flow-label">উত্তীর্ণ পরবর্তী শ্রেণি</span>
+                <strong>{{ getClassNameById(form.to_class_id) }}</strong>
               </div>
             </div>
 
@@ -620,6 +656,7 @@
           <button class="btn btn-outline" @click="closeCreateModal">বাতিল</button>
           <button class="btn btn-primary" @click="saveSinglePromotion" :disabled="saving">
             <Icon name="loader" v-if="saving" />
+            <Icon name="save" v-else />
             {{ editingPromotion ? 'আপডেট সম্পন্ন করুন' : 'প্রমোশন সংরক্ষণ করুন' }}
           </button>
         </div>
@@ -630,7 +667,13 @@
     <div v-if="showDelete" class="modal-overlay" @click.self="showDelete = false">
       <div class="modal-card modal-sm">
         <div class="modal-header">
-          <h3>প্রমোশন মুছে ফেলার নিশ্চিতকরণ</h3>
+          <div class="modal-title-with-icon">
+            <div class="icon-bubble red"><Icon name="delete" /></div>
+            <div>
+              <h3>প্রমোশন রেকর্ড মুছে ফেলুন</h3>
+              <p class="modal-subtitle">রেকর্ডটি ডাটাবেজ থেকে স্থায়ীভাবে অপসারণ করা হবে</p>
+            </div>
+          </div>
           <button class="modal-close" @click="showDelete = false">
             <Icon name="close" />
           </button>
@@ -640,13 +683,22 @@
             আপনি কি নিশ্চিত যে শিক্ষার্থী 
             "<strong>{{ getStudentName(deleteTarget) }}</strong>" এর প্রমোশন রেকর্ড মুছে ফেলতে চান?
           </p>
-          <p class="text-muted text-xs mt-1">এই রেকর্ড মুছে ফেললে শিক্ষার্থী পুনরায় পূর্বের শ্রেণিতে গণ্য হবে।</p>
+          <div class="delete-detail-box" v-if="deleteTarget">
+            <div><strong>শিক্ষার্থী:</strong> {{ getStudentName(deleteTarget) }}</div>
+            <div><strong>পূর্ববর্তী শ্রেণি:</strong> {{ deleteTarget.fromClass?.name_bn || deleteTarget.fromClass?.name_en || deleteTarget.fromClass?.name || '—' }}</div>
+            <div><strong>উত্তীর্ণ শ্রেণি:</strong> {{ deleteTarget.toClass?.name_bn || deleteTarget.toClass?.name_en || deleteTarget.toClass?.name || '—' }}</div>
+            <div><strong>শিক্ষাবর্ষ:</strong> {{ deleteTarget.academic_year || '—' }}</div>
+          </div>
+          <p class="text-muted text-xs mt-2" style="font-size: 0.8rem; color: #64748b; margin-top: 0.6rem;">
+            এই রেকর্ড মুছে ফেললে শিক্ষার্থী পুনরায় পূর্বের শ্রেণিতে গণ্য হবে।
+          </p>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline" @click="showDelete = false">বাতিল</button>
           <button class="btn btn-danger" @click="confirmDelete" :disabled="deleting">
             <Icon name="loader" v-if="deleting" />
-            নিশ্চিত মুছে ফেলুন
+            <Icon name="delete" v-else />
+            মুছে ফেলুন
           </button>
         </div>
       </div>
@@ -955,11 +1007,21 @@ function closeCreateModal() {
   editingPromotion.value = null
 }
 
+function getClassNameById(id: any) {
+  if (!id) return '—'
+  const found = classOptions.value.find(c => c.id === Number(id))
+  return found ? (found.name_bn || found.name_en || found.name) : '—'
+}
+
 function onSingleStudentSelect() {
   if (!form.student_id) return
   const st = studentOptions.value.find(s => s.id === Number(form.student_id))
   if (st && st.class_id) {
-    form.from_class_id = String(st.class_id)
+    form.from_class_id = Number(st.class_id)
+    const currentIndex = classOptions.value.findIndex(c => c.id === Number(st.class_id))
+    if (currentIndex !== -1 && currentIndex + 1 < classOptions.value.length) {
+      form.to_class_id = classOptions.value[currentIndex + 1].id
+    }
   }
 }
 
@@ -1852,28 +1914,287 @@ onMounted(() => {
   font-size: 0.95rem;
 }
 
-/* Modal Headers & Controls */
+/* =======================================================
+   MODAL & FORM SYSTEM (PREMIUM SCOPED FIXES)
+   ======================================================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 35, 20, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  width: 100%;
+  max-width: 580px;
+  max-height: calc(100vh - 3.5rem);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  animation: modalScaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.modal-lg {
+    max-width: 860px;
+  }
+  &.modal-sm {
+    max-width: 440px;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.15rem 1.5rem;
+  border-bottom: 1px solid var(--color-border-light, #e2e8f0);
+  background: var(--color-bg-card, #ffffff);
+  flex-shrink: 0;
+
+  h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text, #1e293b);
+    font-family: var(--font-bn);
+    line-height: 1.3;
+  }
+}
+
 .modal-title-with-icon {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+
+  .icon-bubble {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+
+    &.green {
+      background: rgba(20, 80, 50, 0.1);
+      color: #145032;
+    }
+    &.red {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+    &.blue {
+      background: #eff6ff;
+      color: #2563eb;
+    }
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text, #1e293b);
+    font-family: var(--font-bn);
+    line-height: 1.3;
+  }
+
+  .modal-subtitle {
+    margin: 0.15rem 0 0;
+    font-size: 0.8rem;
+    color: var(--color-text-light, #64748b);
+    font-family: var(--font-bn);
+  }
 }
 
-.icon-bubble {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
+.modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  background: var(--color-bg-muted, #f8fafc);
+  color: var(--color-text-light, #64748b);
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 
-  &.green { background: #ecfdf5; color: #059669; }
+  &:hover {
+    background: #fee2e2;
+    color: #ef4444;
+    border-color: #fca5a5;
+  }
 }
 
-.modal-subtitle {
-  font-size: 0.78rem;
-  color: var(--color-text-light);
-  margin: 0.15rem 0 0;
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-border-light, #e2e8f0);
+  background: var(--color-bg-muted, #f8fafc);
+  border-bottom-left-radius: var(--radius-lg, 12px);
+  border-bottom-right-radius: var(--radius-lg, 12px);
+  flex-shrink: 0;
+}
+
+/* Form Styles */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.1rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 0;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text, #1e293b);
+  font-family: var(--font-bn);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  .required {
+    color: #ef4444;
+    font-weight: 700;
+  }
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-light, #64748b);
+  font-family: var(--font-bn);
+  margin-top: 0.2rem;
+}
+
+.form-control,
+.form-select,
+textarea.form-control {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--color-border, #cbd5e1);
+  border-radius: var(--radius-sm, 8px);
+  font-family: var(--font-bn);
+  font-size: 0.9rem;
+  background: #ffffff;
+  color: var(--color-text, #1e293b);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary, #145032);
+    box-shadow: 0 0 0 3px rgba(20, 80, 50, 0.12);
+  }
+
+  &:disabled {
+    background: #f1f5f9;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 75px;
+}
+
+/* Visual Class Transition Banner */
+.promotion-preview-flow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: rgba(20, 80, 50, 0.04);
+  border: 1px dashed rgba(20, 80, 50, 0.35);
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: 1.1rem;
+  gap: 0.75rem;
+
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    .flow-label {
+      font-size: 0.72rem;
+      color: var(--color-text-light, #64748b);
+      font-family: var(--font-bn);
+      font-weight: 500;
+    }
+
+    strong {
+      font-size: 0.95rem;
+      color: var(--color-primary, #145032);
+      font-family: var(--font-bn);
+    }
+
+    &.to strong {
+      color: #059669;
+    }
+  }
+
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary, #145032);
+    font-size: 1.2rem;
+    opacity: 0.8;
+  }
+}
+
+.delete-detail-box {
+  margin-top: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: var(--color-bg-muted, #f8fafc);
+  border: 1px solid var(--color-border-light, #e2e8f0);
+  border-radius: var(--radius-sm, 8px);
+  font-size: 0.88rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-family: var(--font-bn);
+
+  strong {
+    color: var(--color-text, #1e293b);
+  }
 }
 
 /* Buttons */
