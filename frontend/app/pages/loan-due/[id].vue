@@ -57,39 +57,41 @@
       <!-- Record Payment -->
       <div class="card">
         <h3>প্রদান রেকর্ড করুন</h3>
-        <form @submit.prevent="recordPayment" class="payment-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>পরিমাণ (৳) *</label>
-              <input v-model.number="payment.amount" type="number" min="1" step="0.01" placeholder="0" :disabled="loading" />
+        <div class="card-body">
+          <form @submit.prevent="recordPayment" class="payment-form">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">পরিমাণ (৳) <span class="required-star">*</span></label>
+                <input v-model.number="payment.amount" type="number" min="1" step="0.01" class="form-control" placeholder="০.০০" :disabled="loading" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">তারিখ</label>
+                <input v-model="payment.payment_date" type="date" class="form-control" :disabled="loading" />
+              </div>
             </div>
-            <div class="form-group">
-              <label>তারিখ</label>
-              <input v-model="payment.payment_date" type="date" :disabled="loading" />
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">পদ্ধতি</label>
+                <select v-model="payment.payment_method" class="form-control" :disabled="loading">
+                  <option value="নগদ">নগদ (Cash)</option>
+                  <option value="ব্যাংক">ব্যাংক (Bank Transfer)</option>
+                  <option value="মুদ্রা">মোবাইল ব্যাংকিং (bKash/Nagad)</option>
+                  <option value="চেক">চেক (Cheque)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">রেফারেন্স / ট্রানজ্যাকশন আইডি</label>
+                <input v-model="payment.reference" type="text" class="form-control" placeholder="যেমন: TRX-102934" :disabled="loading" />
+              </div>
             </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>পদ্ধতি</label>
-              <select v-model="payment.payment_method" :disabled="loading">
-                <option value="নগদ">নগদ</option>
-                <option value="ব্যাংক">ব্যাংক</option>
-                <option value="মুদ্রা">মুদ্রা</option>
-                <option value="চেক">চেক</option>
-              </select>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" :disabled="loading || !payment.amount">
+                <span v-if="loading" class="spinner"></span>
+                <span v-else>প্রদান রেকর্ড করুন</span>
+              </button>
             </div>
-            <div class="form-group">
-              <label>রেফারেন্স</label>
-              <input v-model="payment.reference" type="text" placeholder="ট্রানজ্যাকশন আইডি" :disabled="loading" />
-            </div>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" :disabled="loading || !payment.amount">
-              <span v-if="loading" class="spinner"></span>
-              <span v-else>প্রদান রেকর্ড</span>
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
 
       <!-- Payment History -->
@@ -229,14 +231,8 @@ onMounted(loadLoan)
 .badge-danger { background: rgba(220, 38, 38, 0.15); color: #dc2626; }
 .badge-secondary { background: rgba(107, 114, 128, 0.15); color: #6b7280; }
 .badge-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text-light); }
-.payment-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
-.form-group label { font-size: 0.9rem; font-weight: 500; font-family: 'Noto Sans Bengali', sans-serif; }
-.form-group input, .form-group select {
-  padding: 0.55rem 0.8rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.9rem;
-  font-family: 'Noto Sans Bengali', sans-serif; background: var(--color-bg);
-}
-.form-actions { margin-top: 0.5rem; }
+
+
 .btn { padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-family: 'Noto Sans Bengali', sans-serif; display: inline-flex; align-items: center; gap: 0.35rem; }
 .btn-primary { background: var(--color-primary); color: var(--color-text-on-primary); }
 .spinner { width: 14px; height: 14px; border: 2px solid var(--color-text-on-primary); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }

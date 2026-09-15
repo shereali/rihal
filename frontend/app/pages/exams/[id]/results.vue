@@ -48,13 +48,13 @@
 
     <div class="toolbar card">
       <div class="search-box"><icon name="search" /><input v-model="search" placeholder="শিক্ষার্থী খুঁজুন..." @keyup.enter="load" /></div>
-      <select v-model="statusFilter" class="form-control compact" @change="load">
+      <select v-model="statusFilter" class="form-control form-select compact" @change="load">
         <option value="">সব অবস্থা</option>
         <option value="passed">পাস</option>
         <option value="failed">ফেল</option>
         <option value="pending">মুলতবি</option>
       </select>
-      <select v-model="typeFilter" class="form-control compact" @change="load">
+      <select v-model="typeFilter" class="form-control form-select compact" @change="load">
         <option value="">সব প্রকাশ অবস্থা</option>
         <option value="published">প্রকাশিত</option>
         <option value="unpublished">অপ্রকাশিত</option>
@@ -94,13 +94,18 @@
         </tbody>
       </table>
     </div>
-    <div v-if="deleteTarget" class="modal-overlay">
-      <div class="modal">
-        <h3>ফলাফল মুছবেন?</h3>
-        <p>{{ deleteTarget.student?.name_bn }} — {{ deleteTarget.exam?.name_bn }}</p>
-        <div class="modal-actions">
-          <button class="btn btn-outline-danger" @click="deleteResult()">হ্যাঁ, মুছুন</button>
+    <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
+      <div class="modal-card modal-sm">
+        <div class="modal-header">
+          <h3 class="font-bold text-lg">ফলাফল মুছবেন?</h3>
+          <button class="modal-close" @click="deleteTarget = null">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="text-secondary">{{ deleteTarget.student?.name_bn }} — {{ deleteTarget.exam?.name_bn }}</p>
+        </div>
+        <div class="modal-footer">
           <button class="btn btn-ghost" @click="deleteTarget = null">বাতিল</button>
+          <button class="btn btn-outline-danger" @click="deleteResult()">হ্যাঁ, মুছুন</button>
         </div>
       </div>
     </div>
@@ -240,11 +245,6 @@ onMounted(() => Promise.all([loadExam(), load()]))
 .pub-dot { font:.72rem var(--font-bn); }
 .pub-yes { color:#16a34a; font-weight:600; } .pub-no { color:var(--color-text-muted); }
 .actions-cell { white-space:nowrap; } .actions-cell .btn { margin-right:.2mo; }
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); display:grid; place-items:center; z-index:200; }
-.modal { background:#fff; border-radius:18px; padding:1.5rem; max-width:380px; width:90%; }
-.modal h3 { margin:0 0 .5rem; font:700 1.1rem var(--font-bn); }
-.modal p { color:var(--color-text-muted); margin-bottom:1rem; }
-.modal-actions { display:flex; gap:.6rem; justify-content:flex-end; }
 .empty-card { padding:2.5rem 1.5rem; text-align:center; background:#fff; border:1px solid var(--color-border-light); border-radius:16px; }
 .empty-icon { width:60px; height:60px; margin:0 auto .7rem; border-radius:50%; background:var(--color-bg-muted); display:grid; place-items:center; color:var(--color-text-muted); }
 .empty-card h3 { margin:.3rem 0; font:700 1.05rem var(--font-bn); }

@@ -64,40 +64,40 @@
 
     <!-- Add visitor modal -->
     <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
-      <div class="modal card">
+      <div class="modal-card">
         <div class="modal-header">
           <h2>নতুন ভিজিটর যোগ করুন</h2>
-          <button class="close-btn" @click="showForm = false">×</button>
+          <button class="modal-close" @click="showForm = false">×</button>
         </div>
         <div class="modal-body">
           <div class="form-row">
             <div class="form-group">
-              <label>নাম (বাংলা)</label>
-              <input v-model="form.name_bn" class="form-control" placeholder="ভিজিটরের পূর্ণ নাম (বাংলা)" />
+              <label class="form-label">নাম (বাংলা) <span class="required-star">*</span></label>
+              <input v-model="form.name_bn" class="form-control" placeholder="ভিজিটরের পূর্ণ নাম (বাংলা)" required />
             </div>
             <div class="form-group">
-              <label>নাম (ইংরেজি)</label>
+              <label class="form-label">নাম (ইংরেজি)</label>
               <input v-model="form.name_en" class="form-control" placeholder="Visitor's full name" />
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>ফোন</label>
-              <input v-model="form.phone" class="form-control" placeholder="০১৭১২৩৪৫৬৭৮" />
+              <label class="form-label">ফোন <span class="required-star">*</span></label>
+              <input v-model="form.phone" class="form-control" placeholder="০১৭১২৩৪৫৬৭৮" required />
             </div>
             <div class="form-group">
-              <label>ইমেইল</label>
+              <label class="form-label">ইমেইল</label>
               <input v-model="form.email" type="email" class="form-control" placeholder="email@example.com" />
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>আগমনের তারিখ</label>
+              <label class="form-label">আগমনের তারিখ</label>
               <input v-model="form.arrival_date" type="date" class="form-control" />
             </div>
             <div class="form-group">
-              <label>অবস্থা</label>
-              <select v-model="form.status" class="form-control">
+              <label class="form-label">অবস্থা</label>
+              <select v-model="form.status" class="form-control form-select">
                 <option value="pending">মুলতুবি</option>
                 <option value="arrived">আসয়ন</option>
                 <option value="departed">যাওয়া</option>
@@ -105,27 +105,28 @@
             </div>
           </div>
           <div class="form-group">
-            <label>উদ্দেশ্য (বাংলা)</label>
+            <label class="form-label">উদ্দেশ্য (বাংলা)</label>
             <input v-model="form.purpose_bn" class="form-control" placeholder="ভিজিটের উদ্দেশ্য (বাংলা)" />
           </div>
           <div class="form-group">
-            <label>উদ্দেশ্য (ইংরেজি)</label>
+            <label class="form-label">উদ্দেশ্য (ইংরেজি)</label>
             <input v-model="form.purpose_en" class="form-control" placeholder="Purpose of visit" />
           </div>
           <div class="form-group">
-            <label>ছবি</label>
+            <label class="form-label">ছবি</label>
             <input v-model="form.photo_url" class="form-control" placeholder="ছবির URL (যদি থাকে)" />
           </div>
           <div class="form-group">
-            <label>অতিরিক্ত নোট</label>
+            <label class="form-label">অতিরিক্ত নোট</label>
             <textarea v-model="form.notes_bn" class="form-control" rows="2" placeholder="অতিরিক্ত তথ্য, নোট..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
+          <button class="btn btn-ghost" @click="showForm = false">বাতিল</button>
           <button class="btn btn-primary" @click="saveVisitor" :disabled="saving">
+            <icon v-if="saving" name="loader" class="animate-spin" />
             {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'ভিজিটর যোগ করুন' }}
           </button>
-          <button class="btn btn-ghost" @click="showForm = false">বাতিল</button>
         </div>
       </div>
     </div>
@@ -413,100 +414,6 @@ async function saveVisitor() {
 .btn-sm icon {
   width: 12px;
   height: 12px;
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 500;
-}
-
-.modal {
-  width: 100%;
-  max-width: 560px;
-  background: white;
-  border-radius: 15px;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.2rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.modal-header h2 {
-  font-family: var(--font-bn);
-  font-size: 1.1rem;
-  color: var(--color-primary);
-  margin: 0;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 0;
-}
-
-.modal-body {
-  padding: 1.2rem;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.8rem;
-  margin-bottom: 0.8rem;
-}
-
-.form-group {
-  margin-bottom: 0.8rem;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.72rem;
-  color: var(--color-text-muted);
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-  font-family: var(--font-bn);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-family: var(--font-bn);
-  background: white;
-  color: var(--color-text);
-  outline: none;
-}
-
-.form-control:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-100);
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  padding: 0.8rem 1.2rem;
-  border-top: 1px solid var(--color-border-light);
 }
 
 .btn {

@@ -112,42 +112,47 @@
 
     <!-- Edit Modal -->
     <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
-      <div class="modal card">
+      <div class="modal-card">
         <div class="modal-header">
           <h3>কক্ষ তথ্য সম্পাদনা</h3>
-          <button class="close-btn" @click="showEditModal = false">×</button>
+          <button class="modal-close" @click="showEditModal = false">×</button>
         </div>
-        <form @submit.prevent="saveEdit" class="modal-body">
-          <div class="form-group">
-            <label>কক্ষ নম্বর *</label>
-            <input v-model="editForm.room_number" class="form-control" required />
+        <form @submit.prevent="saveEdit">
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">কক্ষ নম্বর <span class="required-star">*</span></label>
+              <input v-model="editForm.room_number" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">বিল্ডিং / ব্লক</label>
+              <input v-model="editForm.block" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">তলা</label>
+              <input v-model="editForm.floor" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ধারণক্ষমতা (জন) <span class="required-star">*</span></label>
+              <input v-model.number="editForm.capacity" type="number" class="form-control" min="1" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">মাসিক ভাড়া (টাকা)</label>
+              <input v-model.number="editForm.monthly_rent" type="number" class="form-control" min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">ওয়ার্ডেন</label>
+              <select v-model="editForm.warden_id" class="form-control form-select">
+                <option value="">ওয়ার্ডেন নির্বাচন করুন</option>
+                <option v-for="w in wardenOptions" :key="w.id" :value="w.id">{{ w.name_bn || w.name_en }}</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label>বিল্ডিং / ব্লক</label>
-            <input v-model="editForm.block" class="form-control" />
-          </div>
-          <div class="form-group">
-            <label>তলা</label>
-            <input v-model="editForm.floor" class="form-control" />
-          </div>
-          <div class="form-group">
-            <label>ধারণক্ষমতা (জন) *</label>
-            <input v-model.number="editForm.capacity" type="number" class="form-control" min="1" required />
-          </div>
-          <div class="form-group">
-            <label>মাসিক ভাড়া (টাকা)</label>
-            <input v-model.number="editForm.monthly_rent" type="number" class="form-control" min="0" />
-          </div>
-          <div class="form-group">
-            <label>ওয়ার্ডেন</label>
-            <select v-model="editForm.warden_id" class="form-control">
-              <option value="">ওয়ার্ডেন নির্বাচন করুন</option>
-              <option v-for="w in wardenOptions" :key="w.id" :value="w.id">{{ w.name_bn || w.name_en }}</option>
-            </select>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" :disabled="saving">আপডেট করুন</button>
+          <div class="modal-footer">
             <button type="button" class="btn btn-ghost" @click="showEditModal = false">বাতিল</button>
+            <button type="submit" class="btn btn-primary" :disabled="saving">
+              <icon v-if="saving" name="loader" class="animate-spin" />
+              {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'আপডেট করুন' }}
+            </button>
           </div>
         </form>
       </div>
@@ -437,80 +442,7 @@ onMounted(() => {
 .empty-slate {
   text-align: center;
   padding: 1.5rem;
-  color: var(--color-text-light);
 }
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  padding: 1rem;
-}
-
-.modal {
-  width: 100%;
-  max-width: 480px;
-  background: var(--color-bg-card);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.modal-header h3 { margin: 0; font-size: 1.1rem; }
-.modal-body { padding: 1.25rem; }
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.82rem;
-  font-weight: 500;
-  margin-bottom: 0.35rem;
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-size: 0.9rem;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.25rem;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-}
-
-.btn-primary { background: var(--color-primary); color: #fff; }
-.btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
-.btn-ghost { background: transparent; color: var(--color-text); }
 
 .card {
   background: var(--color-bg-card);

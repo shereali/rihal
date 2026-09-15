@@ -1,67 +1,94 @@
 <template>
-  <div class="create-page">
-    <div class="page-header">
-      <div class="header-left">
-        <NuxtLink to="/finance" class="back-link"><icon name="arrow-left" /> ফিরে যান</NuxtLink>
-        <h1>নতুন দান</h1>
+  <div class="create-page-container">
+    <div class="page-header-row">
+      <div class="header-title-block">
+        <NuxtLink to="/finance" class="btn btn-outline btn-sm mb-2">
+          <Icon name="arrow-left" /> ফিরে যান
+        </NuxtLink>
+        <h1>নতুন দান এন্ট্রি</h1>
+        <p class="page-subtitle">দাতার অনুদান ও ফান্ড এন্ট্রি সঠিকভাবে সংরক্ষণ করুন</p>
       </div>
     </div>
 
     <div v-if="error" class="alert alert-error">{{ error }}</div>
     <div v-if="success" class="alert alert-success">{{ success }}</div>
 
-    <form @submit.prevent="handleSubmit" class="create-form card">
-      <div class="form-row">
-        <div class="form-group">
-          <label>দাতা *</label>
-          <select v-model="form.donor_id" :disabled="loading || donors.length === 0">
-            <option value="" disabled>দাতা নির্বাচন করুন</option>
-            <option v-for="d in donors" :key="d.id" :value="d.id">{{ d.name_bn || d.name_en }}</option>
-          </select>
-          <small v-if="donors.length === 0" class="text-muted">কোনো দাতা নেই — আগে দাতা যোগ করুন</small>
+    <div class="card create-card">
+      <form @submit.prevent="handleSubmit">
+        <div class="form-section">
+          <h3 class="section-title">দাতা ও ফান্ডের তথ্য</h3>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">
+                দাতা নির্বাচন <span class="required-star">*</span>
+              </label>
+              <select v-model="form.donor_id" class="form-control" :disabled="loading || donors.length === 0" required>
+                <option value="" disabled>দাতা নির্বাচন করুন</option>
+                <option v-for="d in donors" :key="d.id" :value="d.id">{{ d.name_bn || d.name_en }}</option>
+              </select>
+              <span v-if="donors.length === 0" class="form-hint">কোনো দাতা নেই — আগে দাতা যোগ করুন</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">
+                ফান্ড নির্বাচন <span class="required-star">*</span>
+              </label>
+              <select v-model="form.fund_id" class="form-control" :disabled="loading || funds.length === 0" required>
+                <option value="" disabled>ফান্ড নির্বাচন করুন</option>
+                <option v-for="f in funds" :key="f.id" :value="f.id">{{ f.name_bn }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">
+                পরিমাণ (৳) <span class="required-star">*</span>
+              </label>
+              <input v-model.number="form.amount" type="number" min="1" class="form-control" placeholder="যেমন: ৫০০০" :disabled="loading" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">পদ্ধতি</label>
+              <select v-model="form.payment_method" class="form-control" :disabled="loading">
+                <option value="নগদ">নগদ (Cash)</option>
+                <option value="ব্যাংক">ব্যাংক (Bank Transfer)</option>
+                <option value="চেক">চেক (Cheque)</option>
+                <option value="মোবাইল ব্যাংকিং">মোবাইল ব্যাংকিং (bKash/Nagad/Rocket)</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>ফান্ড *</label>
-          <select v-model="form.fund_id" :disabled="loading || funds.length === 0">
-            <option value="" disabled>ফান্ড নির্বাচন করুন</option>
-            <option v-for="f in funds" :key="f.id" :value="f.id">{{ f.name_bn }}</option>
-          </select>
+
+        <div class="form-section">
+          <h3 class="section-title">তারিখ ও অন্যান্য</h3>
+
+          <div class="form-group">
+            <label class="form-label">দানের তারিখ</label>
+            <input v-model="form.donation_date" type="date" class="form-control" :disabled="loading" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">মন্তব্য / বিবরণ</label>
+            <textarea v-model="form.notes" rows="3" class="form-control" placeholder="অনুদান সংক্রান্ত অতিরিক্ত তথ্য (ঐচ্ছিক)" :disabled="loading"></textarea>
+          </div>
+
+          <div class="form-group mt-2">
+            <label class="checkbox-label">
+              <input type="checkbox" v-model="form.is_anonymous" :disabled="loading" />
+              <span>গোপনীয় রাখুন (রশিদ বা তালিকায় নাম প্রকাশ করবেন না)</span>
+            </label>
+          </div>
         </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>পরিমাণ (৳) *</label>
-          <input v-model.number="form.amount" type="number" min="1" placeholder="0" :disabled="loading" />
+
+        <div class="form-actions">
+          <NuxtLink to="/finance" class="btn btn-ghost">বাতিল</NuxtLink>
+          <button type="submit" class="btn btn-primary" :disabled="loading || !form.donor_id || !form.fund_id || !form.amount">
+            <span v-if="loading" class="spinner"></span>
+            <span v-else>দান সংরক্ষণ করুন</span>
+          </button>
         </div>
-        <div class="form-group">
-          <label>পদ্ধতি</label>
-          <select v-model="form.payment_method" :disabled="loading">
-            <option value="নগদ">নগদ</option>
-            <option value="ব্যাংক">ব্যাংক</option>
-            <option value="চেক">চেক</option>
-            <option value="মোবাইল ব্যাংকিং">মোবাইল ব্যাংকিং</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>তারিখ</label>
-        <input v-model="form.donation_date" type="date" :disabled="loading" />
-      </div>
-      <div class="form-group">
-        <label>মন্তব্য</label>
-        <textarea v-model="form.notes" rows="3" placeholder="ঐচ্ছিক মন্তব্য" :disabled="loading"></textarea>
-      </div>
-      <label class="checkbox-label">
-        <input type="checkbox" v-model="form.is_anonymous" :disabled="loading" />
-        গোপনীয় রাখুন (নাম প্রকাশ করবেন না)
-      </label>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary" :disabled="loading || !form.donor_id || !form.fund_id || !form.amount">
-          <span v-if="loading" class="spinner"></span>
-          <span v-else>সংরক্ষণ করুন</span>
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -69,6 +96,7 @@
 import { ref, onMounted } from 'vue'
 import { useApiClient } from '~/utils/api'
 import { useAuth } from '~/composables/useAuth'
+import Icon from '~/components/Icon.vue'
 
 const api = useApiClient()
 const { isAuthenticated } = useAuth()
@@ -105,15 +133,7 @@ async function handleSubmit() {
   success.value = ''
   loading.value = true
   try {
-    await api.post('/finance/donations', {
-      donor_id: form.value.donor_id,
-      fund_id: form.value.fund_id,
-      amount: form.value.amount,
-      payment_method: form.value.payment_method,
-      donation_date: form.value.donation_date || undefined,
-      notes: form.value.notes || undefined,
-      is_anonymous: form.value.is_anonymous,
-    })
+    await api.post('/finance/donations', form.value)
     success.value = 'দান সফলভাবে যোগ করা হয়েছে!'
     setTimeout(() => navigateTo('/finance'), 1200)
   } catch (e: any) {
@@ -126,29 +146,5 @@ async function handleSubmit() {
 if (isAuthenticated.value) onMounted(loadSelects)
 </script>
 
-<style scoped>
-.create-page { max-width: 640px; margin: 0 auto; padding: 1.5rem; }
-.page-header { margin-bottom: 1.5rem; }
-.header-left h1 { margin: 0.5rem 0 0; font-family: 'Noto Sans Bengali', sans-serif; }
-.back-link { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--color-primary); text-decoration: none; font-family: 'Noto Sans Bengali', sans-serif; }
-.create-form { background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.1rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.form-group label { font-size: 0.9rem; font-weight: 500; font-family: 'Noto Sans Bengali', sans-serif; }
-.form-group input, .form-group select, .form-group textarea {
-  padding: 0.7rem 0.9rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: 1rem;
-  font-family: 'Noto Sans Bengali', sans-serif; background: var(--color-bg);
-}
-.checkbox-label { display: flex; align-items: center; gap: 0.5rem; font-family: 'Noto Sans Bengali', sans-serif; font-size: 0.9rem; }
-.form-actions { margin-top: 0.5rem; }
-.btn { padding: 0.75rem 1.5rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; font-family: 'Noto Sans Bengali', sans-serif; }
-.btn-primary { background: var(--color-primary); color: var(--color-text-on-primary); }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-.spinner { width: 18px; height: 18px; border: 2px solid var(--color-text-on-primary); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.alert { padding: 0.75rem 1rem; border-radius: 8px; font-family: 'Noto Sans Bengali', sans-serif; }
-.alert-error { background: #fce4e4; color: var(--color-error); }
-.alert-success { background: #e8f5e9; color: var(--color-success); }
-.text-muted { color: var(--color-text-light); font-family: 'Noto Sans Bengali', sans-serif; }
-small { font-size: 0.8rem; }
-</style>
+
+

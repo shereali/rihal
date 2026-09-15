@@ -46,15 +46,32 @@
           <p v-if="!sponsorships.length" class="text-muted">কোনো স্পন্সর যুক্ত নেই।</p>
         </div>
         <form class="payment-form sponsor-form" @submit.prevent="addSponsor">
-          <div class="form-row">
-            <div class="form-group"><label>দাতা</label><select v-model="sponsorForm.donor_id" required><option value="">দাতা নির্বাচন</option><option v-for="donor in donors" :key="donor.id" :value="donor.id">{{ donor.name_bn || donor.name_en }}</option></select></div>
-            <div class="form-group"><label>মাসিক অঙ্গীকার (৳)</label><input v-model.number="sponsorForm.monthly_commitment" type="number" min="0" required /></div>
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label class="form-label">দাতা <span class="required-star">*</span></label>
+              <select v-model="sponsorForm.donor_id" class="form-control form-select" required>
+                <option value="">দাতা নির্বাচন</option>
+                <option v-for="donor in donors" :key="donor.id" :value="donor.id">{{ donor.name_bn || donor.name_en }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">মাসিক অঙ্গীকার (৳) <span class="required-star">*</span></label>
+              <input v-model.number="sponsorForm.monthly_commitment" type="number" min="0" class="form-control" required />
+            </div>
           </div>
-          <div class="form-row">
-            <div class="form-group"><label>শুরুর তারিখ</label><input v-model="sponsorForm.starts_at" type="date" required /></div>
-            <div class="form-group"><label>অংশ (%)</label><input v-model.number="sponsorForm.share_percent" type="number" min="0" max="100" /></div>
+          <div class="form-row form-row-2">
+            <div class="form-group">
+              <label class="form-label">শুরুর তারিখ <span class="required-star">*</span></label>
+              <input v-model="sponsorForm.starts_at" type="date" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">অংশ (%)</label>
+              <input v-model.number="sponsorForm.share_percent" type="number" min="0" max="100" class="form-control" />
+            </div>
           </div>
-          <button type="submit" class="btn btn-primary" :disabled="loading">স্পন্সর যুক্ত করুন</button>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" :disabled="loading">স্পন্সর যুক্ত করুন</button>
+          </div>
         </form>
       </div>
 
@@ -63,30 +80,30 @@
         <h3>স্পন্সরশিপ প্রদান রেকর্ড</h3>
         <form @submit.prevent="recordPayment" class="payment-form">
           <div class="form-group">
-            <label>স্পন্সরশিপ *</label>
-            <select v-model="payment.orphan_sponsorship_id" required :disabled="loading">
+            <label class="form-label">স্পন্সরশিপ <span class="required-star">*</span></label>
+            <select v-model="payment.orphan_sponsorship_id" class="form-control form-select" required :disabled="loading">
               <option value="">স্পন্সর নির্বাচন করুন</option>
               <option v-for="item in activeSponsorships" :key="item.id" :value="String(item.id)">{{ item.donor?.name_bn || item.donor?.name_en }} — ৳{{ money(item.monthly_commitment) }}/মাস</option>
             </select>
           </div>
-          <div class="form-row">
+          <div class="form-row form-row-2">
             <div class="form-group">
-              <label>পরিমাণ (৳) *</label>
-              <input v-model.number="payment.amount" type="number" min="1" step="0.01" placeholder="0" :disabled="loading" />
+              <label class="form-label">পরিমাণ (৳) <span class="required-star">*</span></label>
+              <input v-model.number="payment.amount" type="number" min="1" step="0.01" placeholder="0" class="form-control" :disabled="loading" />
             </div>
             <div class="form-group">
-              <label>তারিখ</label>
-              <input v-model="payment.payment_date" type="date" :disabled="loading" />
+              <label class="form-label">তারিখ</label>
+              <input v-model="payment.payment_date" type="date" class="form-control" :disabled="loading" />
             </div>
           </div>
           <div class="form-group">
-            <label> উদ্দেশ্য</label>
-            <input v-model="payment.purpose_bn" type="text" placeholder="যেমন: মাসিক খরচ, বইয়ের দরকারি আইটেম" :disabled="loading" />
+            <label class="form-label">উদ্দেশ্য</label>
+            <input v-model="payment.purpose_bn" type="text" placeholder="যেমন: মাসিক খরচ, বইয়ের দরকারি আইটেম" class="form-control" :disabled="loading" />
           </div>
-          <div class="form-row">
+          <div class="form-row form-row-2">
             <div class="form-group">
-              <label>পদ্ধতি</label>
-              <select v-model="payment.payment_method" :disabled="loading">
+              <label class="form-label">পদ্ধতি</label>
+              <select v-model="payment.payment_method" class="form-control form-select" :disabled="loading">
                 <option value="নগদ">নগদ</option>
                 <option value="ব্যাংক">ব্যাংক</option>
                 <option value="মুদ্রা">মুদ্রা</option>
@@ -94,8 +111,8 @@
               </select>
             </div>
             <div class="form-group">
-              <label>রেফারেন্স</label>
-              <input v-model="payment.reference" type="text" :disabled="loading" />
+              <label class="form-label">রেফারেন্স</label>
+              <input v-model="payment.reference" type="text" class="form-control" :disabled="loading" />
             </div>
           </div>
           <div class="form-actions">
@@ -284,14 +301,8 @@ onMounted(loadOrphan)
 .badge-success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 .badge-warning { background: rgba(234, 179, 8, 0.15); color: #d97706; }
 .badge-secondary { background: rgba(107, 114, 128, 0.15); color: #6b7280; }
-.badge-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text-light); }
+.payment-form { padding: 1.25rem; }
 .payment-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
-.form-group label { font-size: 0.9rem; font-weight: 500; font-family: 'Noto Sans Bengali', sans-serif; }
-.form-group input, .form-group select {
-  padding: 0.55rem 0.8rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.9rem;
-  font-family: 'Noto Sans Bengali', sans-serif; background: var(--color-bg);
-}
 .form-actions { margin-top: 0.5rem; }
 .btn { padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-family: 'Noto Sans Bengali', sans-serif; display: inline-flex; align-items: center; gap: 0.35rem; }
 .btn-primary { background: var(--color-primary); color: var(--color-text-on-primary); }

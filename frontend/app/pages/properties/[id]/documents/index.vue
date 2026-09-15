@@ -53,19 +53,19 @@
 
     <!-- Upload Modal -->
     <div class="modal-overlay" v-if="showUpload" @click.self="showUpload = false">
-      <div class="modal card">
+      <div class="modal-card">
         <div class="modal-header">
           <h2>ডকুমেন্ট আপলোড</h2>
-          <button class="close-btn" @click="showUpload = false">×</button>
+          <button class="modal-close" @click="showUpload = false">×</button>
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>ডকুমেন্টের নাম</label>
-            <input v-model="uploadForm.name" class="form-control" placeholder="যেমন: জমির খতিয়ান" />
+            <label class="form-label">ডকুমেন্টের নাম <span class="required-star">*</span></label>
+            <input v-model="uploadForm.name" class="form-control" placeholder="যেমন: জমির খতিয়ান" required />
           </div>
           <div class="form-group">
-            <label>ধরন</label>
-            <select v-model="uploadForm.type" class="form-control">
+            <label class="form-label">ধরন</label>
+            <select v-model="uploadForm.type" class="form-control form-select">
               <option value="deed">খতিয়ান / জমিনামা</option>
               <option value="ownership">অধিকার প্রমাণপত্র</option>
               <option value="tax">কর ভাড়া রসিদ</option>
@@ -75,23 +75,24 @@
             </select>
           </div>
           <div class="form-group">
-            <label>লিংক ইউআরএল</label>
+            <label class="form-label">লিংক ইউআরএল</label>
             <input v-model="uploadForm.url" type="url" class="form-control" placeholder="ডকুমেন্টের URL (গুগল ড্রাইভ, এক্সেল, পিডিএফ ইত্যাদি)" />
           </div>
           <div class="form-group">
-            <label>মেয়াদ শেষ (যদি থাকে)</label>
+            <label class="form-label">মেয়াদ শেষ (যদি থাকে)</label>
             <input v-model="uploadForm.expiry_date" type="date" class="form-control" />
           </div>
           <div class="form-group">
-            <label>বিবরণ</label>
+            <label class="form-label">বিবরণ</label>
             <textarea v-model="uploadForm.description" class="form-control" rows="2" placeholder="তথ্য, সম্পত্তির বিবরণ..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
+          <button class="btn btn-ghost" @click="showUpload = false">বাতিল</button>
           <button class="btn btn-primary" @click="uploadDocument" :disabled="uploading">
+            <icon v-if="uploading" name="loader" class="animate-spin" />
             {{ uploading ? 'আপলোড হচ্ছে...' : 'ডকুমেন্ট যোগ করুন' }}
           </button>
-          <button class="btn btn-ghost" @click="showUpload = false">বাতিল</button>
         </div>
       </div>
     </div>
@@ -430,92 +431,6 @@ async function uploadDocument() {
   border-radius: 99px;
   font-weight: 600;
   font-family: var(--font-bn);
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 500;
-}
-
-.modal {
-  width: 100%;
-  max-width: 500px;
-  background: white;
-  border-radius: 15px;
-  box-shadow: var(--shadow-lg);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.2rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.modal-header h2 {
-  font-family: var(--font-bn);
-  font-size: 1.1rem;
-  color: var(--color-primary);
-  margin: 0;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 0;
-}
-
-.modal-body {
-  padding: 1.2rem;
-}
-
-.form-group {
-  margin-bottom: 0.8rem;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
-  font-weight: 600;
-  margin-bottom: 0.3rem;
-  font-family: var(--font-bn);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.55rem 0.8rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-family: var(--font-bn);
-  background: white;
-  color: var(--color-text);
-  outline: none;
-}
-
-.form-control:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-100);
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  padding: 0.8rem 1.2rem;
-  border-top: 1px solid var(--color-border-light);
 }
 
 .btn {

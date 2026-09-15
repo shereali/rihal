@@ -109,45 +109,50 @@
 
     <!-- Edit Task Modal -->
     <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
-      <div class="modal card">
+      <div class="modal-card">
         <div class="modal-header">
           <h3>টাস্ক সম্পাদনা</h3>
-          <button class="close-btn" @click="showEditModal = false">×</button>
+          <button class="modal-close" @click="showEditModal = false">×</button>
         </div>
-        <form @submit.prevent="saveEdit" class="modal-body">
-          <div class="form-group">
-            <label>শিরোনাম (বাংলা) *</label>
-            <input v-model="editForm.title_bn" class="form-control" required />
+        <form @submit.prevent="saveEdit">
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">শিরোনাম (বাংলা) <span class="required-star">*</span></label>
+              <input v-model="editForm.title_bn" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">পাঠানোর মাধ্যম</label>
+              <select v-model="editForm.type" class="form-control form-select">
+                <option value="sms">SMS</option>
+                <option value="email">ইমেইল</option>
+                <option value="push">পুশ নোটিফিকেশন</option>
+                <option value="whatsapp">হোয়াটসঅ্যাপ</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">প্রাধান্য</label>
+              <select v-model="editForm.priority" class="form-control form-select">
+                <option value="low">নিম্ন</option>
+                <option value="medium">মধ্যম</option>
+                <option value="high">উচ্চ</option>
+                <option value="urgent">জরুরি</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">নির্ধারিত সময়</label>
+              <input v-model="editForm.scheduled_for" type="datetime-local" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">বিবরণ</label>
+              <textarea v-model="editForm.description_bn" class="form-control" rows="2"></textarea>
+            </div>
           </div>
-          <div class="form-group">
-            <label>পাঠানোর মাধ্যম</label>
-            <select v-model="editForm.type" class="form-control">
-              <option value="sms">SMS</option>
-              <option value="email">ইমেইল</option>
-              <option value="push">পুশ নোটিফিকেশন</option>
-              <option value="whatsapp">হোয়াটসঅ্যাপ</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>প্রাধান্য</label>
-            <select v-model="editForm.priority" class="form-control">
-              <option value="low">নিম্ন</option>
-              <option value="medium">মধ্যম</option>
-              <option value="high">উচ্চ</option>
-              <option value="urgent">জরুরি</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>নির্ধারিত সময়</label>
-            <input v-model="editForm.scheduled_for" type="datetime-local" class="form-control" />
-          </div>
-          <div class="form-group">
-            <label>বিবরণ</label>
-            <textarea v-model="editForm.description_bn" class="form-control" rows="2"></textarea>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" :disabled="saving">সংরক্ষণ করুন</button>
+          <div class="modal-footer">
             <button type="button" class="btn btn-ghost" @click="showEditModal = false">বাতিল</button>
+            <button type="submit" class="btn btn-primary" :disabled="saving">
+              <icon v-if="saving" name="loader" class="animate-spin" />
+              {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন' }}
+            </button>
           </div>
         </form>
       </div>
@@ -301,18 +306,6 @@ onMounted(() => {
 .badge-warning { background: rgba(245, 158, 11, 0.15); color: #b45309; }
 .badge-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
 .badge-default { background: rgba(107, 114, 128, 0.15); color: #6b7280; }
-
-.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 1rem; }
-.modal { width: 100%; max-width: 480px; background: var(--color-bg-card); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--color-border-light); }
-.modal-header h3 { margin: 0; font-size: 1.1rem; }
-.close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--color-text-light); }
-.modal-body { padding: 1.25rem; }
-.form-group { margin-bottom: 1rem; }
-.form-group label { display: block; font-size: 0.82rem; font-weight: 500; margin-bottom: 0.35rem; }
-.form-control { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg); color: var(--color-text); font-size: 0.9rem; }
-.form-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem; }
-
 .btn { padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; }
 .btn-primary { background: var(--color-primary); color: #fff; }
 .btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }

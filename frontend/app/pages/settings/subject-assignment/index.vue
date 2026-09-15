@@ -19,11 +19,11 @@
           <Icon name="search" />
           <input v-model="search" placeholder="বরাদ্দ খুঁজুন..." @keyup.enter="load" />
         </div>
-        <select v-model="teacherFilter" class="form-control" @change="load">
+        <select v-model="teacherFilter" class="form-control form-select" @change="load">
           <option value="">সব শিক্ষক</option>
           <option v-for="t in teacherOptions" :key="t.id" :value="t.id">{{ t.name_bn || t.name }}</option>
         </select>
-        <select v-model="classFilter" class="form-control" @change="load">
+        <select v-model="classFilter" class="form-control form-select" @change="load">
           <option value="">সব শ্রেণি</option>
           <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.class_name_en || c.class_name }}</option>
         </select>
@@ -89,7 +89,7 @@
 
     <!-- Create/Edit Modal -->
     <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
-      <div class="modal card">
+      <div class="modal-card">
         <div class="modal-header">
           <h2>{{ isEditing ? 'বরাদ্দ সম্পাদনা' : 'নতুন বরাদ্দ তৈরি' }}</h2>
           <button class="close-btn" @click="showForm = false">×</button>
@@ -97,36 +97,36 @@
         <form @submit.prevent="saveAssignment" class="modal-body">
           <div class="form-grid">
             <div class="form-group">
-              <label>শিক্ষক *</label>
-              <select v-model="form.teacher_id" class="form-control">
+              <label class="form-label">শিক্ষক <span class="required-star">*</span></label>
+              <select v-model="form.teacher_id" class="form-control form-select" required>
                 <option value="">শিক্ষক নির্বাচন করুন</option>
                 <option v-for="t in teacherOptions" :key="t.id" :value="t.id">{{ t.name_bn || t.name }}</option>
               </select>
             </div>
             <div class="form-group">
-              <label>বিষয় *</label>
-              <select v-model="form.subject_id" class="form-control">
+              <label class="form-label">বিষয় <span class="required-star">*</span></label>
+              <select v-model="form.subject_id" class="form-control form-select" required>
                 <option value="">বিষয় নির্বাচন করুন</option>
                 <option v-for="s in subjectOptions" :key="s.id" :value="s.id">{{ s.subject_bn || s.subject_name }}</option>
               </select>
             </div>
             <div class="form-group">
-              <label>শ্রেণি *</label>
-              <select v-model="form.class_id" class="form-control">
+              <label class="form-label">শ্রেণি <span class="required-star">*</span></label>
+              <select v-model="form.class_id" class="form-control form-select" required>
                 <option value="">শ্রেণি নির্বাচন করুন</option>
                 <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.class_name_en || c.class_name }}</option>
               </select>
             </div>
             <div class="form-group">
-              <label>বিভাগ</label>
-              <select v-model="form.section_id" class="form-control">
+              <label class="form-label">বিভাগ</label>
+              <select v-model="form.section_id" class="form-control form-select">
                 <option value="">সব বিভাগ</option>
                 <option v-for="sec in sectionOptions" :key="sec.id" :value="sec.id">{{ sec.section_bn || sec.section_name }}</option>
               </select>
             </div>
             <div class="form-group">
-              <label>অবস্থা</label>
-              <select v-model="form.status" class="form-control">
+              <label class="form-label">অবস্থা</label>
+              <select v-model="form.status" class="form-control form-select">
                 <option value="active">সক্রিয়</option>
                 <option value="inactive">নিষ্ক্রিয়</option>
                 <option value="pending">মুনাফা</option>
@@ -287,7 +287,6 @@ onMounted(load)
 .filter-row { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
 .search-box { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--color-bg-muted); border-radius: 10px; max-width: 220px; }
 .search-box input { width: 100%; padding: 0.4rem 0; border: 0; outline: 0; background: transparent; font-family: var(--font-bn); font-size: 0.82rem; }
-.form-control { padding: 0.55rem 0.7rem; border: 1px solid var(--color-border); border-radius: 8px; font-family: var(--font-bn); font-size: 0.82rem; outline: none; }
 .loading-overlay { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4rem; gap: 1rem; }
 .spinner { width: 36px; height: 36px; border: 3px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -311,14 +310,9 @@ onMounted(load)
 .status-inactive { background: #fde8e8; color: #a03030; }
 .status-pending { background: #fef3e2; color: #a07035; }
 .pagination { padding: 0.7rem 1rem; background: var(--color-bg-muted); display: flex; align-items: center; font-size: 0.78rem; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal { width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; border-bottom: 1px solid var(--color-border-light); }
-.modal-header h2 { font-family: var(--font-bn); font-size: 1.1rem; margin: 0; }
-.close-btn { border: 0; background: transparent; font-size: 1.5rem; color: var(--color-text-muted); cursor: pointer; }
-.modal-body { padding: 1.2rem; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.25rem; }
-.form-group label { font-family: var(--font-bn); font-size: 0.78rem; font-weight: 600; color: var(--color-text); }
-.modal-footer { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--color-border-light); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
 </style>

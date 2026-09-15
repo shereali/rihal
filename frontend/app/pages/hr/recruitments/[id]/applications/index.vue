@@ -37,44 +37,44 @@
 
       <div class="form-row">
         <div class="form-group wide">
-          <label>আবেদনকারীর নাম (বাংলা) *</label>
+          <label class="form-label">আবেদনকারীর নাম (বাংলা) <span class="required-star">*</span></label>
           <input v-model="formData.guest_name_bn" class="form-control" required placeholder="আবেদনকারীর পূর্ণ নাম (বাংলা)" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>নাম (ইংরেজি)</label>
+          <label class="form-label">নাম (ইংরেজি)</label>
           <input v-model="formData.guest_name_en" class="form-control" placeholder="Full Name in English" />
         </div>
         <div class="form-group">
-          <label>জাতীয় পরিচয়পত্র নম্বর</label>
+          <label class="form-label">জাতীয় পরিচয়পত্র নম্বর</label>
           <input v-model="formData.nid_number" class="form-control" placeholder="NID নম্বর" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>ফোন নম্বর *</label>
+          <label class="form-label">ফোন নম্বর <span class="required-star">*</span></label>
           <input v-model="formData.guest_phone" class="form-control" required placeholder="০১৭১২৩৪৫৬৭৮" />
         </div>
         <div class="form-group">
-          <label>ইমেইল</label>
+          <label class="form-label">ইমেইল</label>
           <input v-model="formData.guest_email" type="email" class="form-control" placeholder="applicant@email.com" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group wide">
-          <label>ঠিকানা</label>
+          <label class="form-label">ঠিকানা</label>
           <input v-model="formData.guest_address_bn" class="form-control" placeholder="বর্তমান ঠিকানা..." />
         </div>
       </div>
       <div class="form-group wide">
-        <label>সংক্ষিপ্ত পরিচয় / আবেদনের কারণ</label>
+        <label class="form-label">সংক্ষিপ্ত পরিচয় / আবেদনের কারণ</label>
         <textarea v-model="formData.guest_bio_bn" class="form-control" rows="2" placeholder="অভিজ্ঞতা ও সংক্ষিপ্ত পরিচয়..."></textarea>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>অবস্থা</label>
-          <select v-model="formData.status" class="form-control">
+          <label class="form-label">অবস্থা</label>
+          <select v-model="formData.status" class="form-control form-select">
             <option value="pending">মুলতুবি (Pending)</option>
             <option value="reviewed">পর্যালোচিত (Reviewed)</option>
             <option value="accepted">গৃহীত (Accepted)</option>
@@ -141,35 +141,35 @@
 
     <!-- Application Detail Modal -->
     <div v-if="selectedApp" class="modal-overlay" @click.self="selectedApp = null">
-      <div class="modal card">
+      <div class="modal-card">
         <div class="modal-header">
           <h3>আবেদনকারীর বিস্তারিত তথ্য</h3>
-          <button class="close-btn" @click="selectedApp = null">×</button>
+          <button class="modal-close" @click="selectedApp = null">×</button>
         </div>
         <div class="modal-body">
           <div class="app-detail-grid">
             <div class="detail-item">
-              <label>নাম (বাংলা)</label>
+              <label class="form-label">নাম (বাংলা)</label>
               <p><strong>{{ selectedApp.guest_name_bn || '—' }}</strong></p>
             </div>
             <div class="detail-item">
-              <label>নাম (ইংরেজি)</label>
+              <label class="form-label">নাম (ইংরেজি)</label>
               <p>{{ selectedApp.guest_name_en || '—' }}</p>
             </div>
             <div class="detail-item">
-              <label>ফোন নম্বর</label>
+              <label class="form-label">ফোন নম্বর</label>
               <p>{{ selectedApp.guest_phone || '—' }}</p>
             </div>
             <div class="detail-item">
-              <label>ইমেইল</label>
+              <label class="form-label">ইমেইল</label>
               <p>{{ selectedApp.guest_email || '—' }}</p>
             </div>
             <div class="detail-item">
-              <label>জাতীয় পরিচয়পত্র নং</label>
+              <label class="form-label">জাতীয় পরিচয়পত্র নং</label>
               <p>{{ selectedApp.nid_number || '—' }}</p>
             </div>
             <div class="detail-item">
-              <label>বর্তমান অবস্থা</label>
+              <label class="form-label">বর্তমান অবস্থা</label>
               <p>
                 <span class="status-badge" :class="statusClass(selectedApp.status)">
                   {{ formatStatus(selectedApp.status) }}
@@ -177,17 +177,17 @@
               </p>
             </div>
             <div class="detail-item full-width" v-if="selectedApp.guest_address_bn">
-              <label>ঠিকানা</label>
+              <label class="form-label">ঠিকানা</label>
               <p>{{ selectedApp.guest_address_bn }}</p>
             </div>
             <div class="detail-item full-width" v-if="selectedApp.guest_bio_bn">
-              <label>পরিচিতি / কারণ</label>
+              <label class="form-label">পরিচিতি / কারণ</label>
               <p class="bio-text">{{ selectedApp.guest_bio_bn }}</p>
             </div>
           </div>
 
           <div class="status-change-box">
-            <label>অবস্থা পরিবর্তন করুন:</label>
+            <label class="form-label">অবস্থা পরিবর্তন করুন:</label>
             <div class="status-buttons">
               <button class="btn btn-sm btn-outline" @click="updateStatus(selectedApp, 'pending')">মুলতুবি</button>
               <button class="btn btn-sm btn-outline" @click="updateStatus(selectedApp, 'reviewed')">পর্যালোচিত</button>
@@ -195,6 +195,9 @@
               <button class="btn btn-sm btn-danger" @click="updateStatus(selectedApp, 'rejected')">প্রত্যাখ্যাত</button>
             </div>
           </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" @click="selectedApp = null">বন্ধ করুন</button>
         </div>
       </div>
     </div>
@@ -393,21 +396,6 @@ onMounted(loadApplications)
   grid-column: 1 / -1;
 }
 
-.form-group label {
-  font-size: 0.82rem;
-  font-weight: 500;
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-size: 0.9rem;
-}
-
 .form-actions {
   display: flex;
   gap: 0.75rem;
@@ -432,34 +420,6 @@ onMounted(loadApplications)
 .status-reviewed { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
 .status-accepted { background: rgba(16, 185, 129, 0.15); color: #10b981; }
 .status-rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  padding: 1rem;
-}
-
-.modal {
-  width: 100%;
-  max-width: 540px;
-  background: var(--color-bg-card);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.modal-header h3 { margin: 0; font-size: 1.1rem; }
-.modal-body { padding: 1.25rem; }
 
 .app-detail-grid {
   display: grid;

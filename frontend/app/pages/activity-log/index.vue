@@ -22,7 +22,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>একশন টাইপ</label>
-              <select v-model="filters.action" @change="applyFilters">
+              <select v-model="filters.action" class="form-control form-select" @change="applyFilters">
                 <option value="">সব একশন</option>
                 <option value="created">তৈরি (created)</option>
                 <option value="updated">আপডেট (updated)</option>
@@ -34,7 +34,7 @@
             </div>
             <div class="form-group">
               <label>ব্যবহারকারী</label>
-              <select v-model="filters.userId" @change="applyFilters">
+              <select v-model="filters.userId" class="form-control form-select" @change="applyFilters">
                 <option value="">সব ব্যবহারকারী</option>
                 <option v-for="u in allUsers" :key="u.id" :value="u.id">
                   {{ u.name_bn || u.name_en || u.email }}
@@ -43,11 +43,11 @@
             </div>
             <div class="form-group">
               <label>শুরুর তারিখ</label>
-              <input v-model="filters.from" type="date" @change="applyFilters" />
+              <input v-model="filters.from" type="date" class="form-control" @change="applyFilters" />
             </div>
             <div class="form-group">
               <label>শেষ তারিখ</label>
-              <input v-model="filters.to" type="date" @change="applyFilters" />
+              <input v-model="filters.to" type="date" class="form-control" @change="applyFilters" />
             </div>
             <button class="btn btn-outline btn-sm" @click="resetFilters">
               <icon name="cancel" /> রিসেট
@@ -267,12 +267,7 @@ onMounted(() => {
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
 .header-left h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
 
-.filters-row { margin-bottom: 1rem; padding: 0 0.5rem; }
-.form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end; }
-.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
-.form-group label { font-size: 0.75rem; font-weight: 500; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.3px; }
-.form-group select, .form-group input { padding: 0.5rem 0.75rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-bg); color: var(--color-text); font-size: 0.875rem; }
-.form-group select:focus, .form-group input:focus { border-color: var(--color-primary); outline: none; }
+.filters-row { margin-bottom: 1.25rem; }
 
 .table-responsive { overflow-x: auto; margin-bottom: 1rem; }
 .table { width: 100%; border-collapse: collapse; }

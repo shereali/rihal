@@ -1,96 +1,138 @@
 <template>
-  <div class="create-page">
-    <div class="page-header">
-      <div class="header-left">
-        <NuxtLink to="/loan-due" class="back-link"><icon name="arrow-left" /> ফিরে যান</NuxtLink>
-        <h1>নতুন ঋণ</h1>
+  <div class="create-page-container">
+    <div class="page-header-row">
+      <div class="header-title-block">
+        <NuxtLink to="/loan-due" class="btn btn-outline btn-sm mb-2">
+          <Icon name="arrow-left" /> ফিরে যান
+        </NuxtLink>
+        <h1>নতুন ঋণ এন্ট্রি</h1>
+        <p class="page-subtitle">প্রতিষ্ঠানের ঋণ ও কিস্তির তথ্য নির্ধারণ করে সংরক্ষণ করুন</p>
       </div>
     </div>
 
     <div v-if="error" class="alert alert-error">{{ error }}</div>
     <div v-if="success" class="alert alert-success">{{ success }}</div>
 
-    <form @submit.prevent="handleSubmit" class="create-form card">
-      <div class="form-group">
-        <label>শিরোনাম (বাংলা) *</label>
-        <input v-model="form.title_bn" type="text" placeholder="যেমন: গভর্নর ঋণ" :disabled="loading" />
-      </div>
-      <div class="form-group">
-        <label>শিরোনাম (ইংরেজি)</label>
-        <input v-model="form.title_en" type="text" placeholder="Governor Loan" :disabled="loading" />
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>ধরণ *</label>
-          <select v-model="form.loan_type" :disabled="loading">
-            <option value="general">সাধারণ</option>
-            <option value="student">শিক্ষার্থী</option>
-            <option value="staff">কর্মী</option>
-            <option value="emergency">জরুরি</option>
-            <option value="development">উন্নয়ন</option>
-          </select>
+    <div class="card create-card">
+      <form @submit.prevent="handleSubmit">
+        <div class="form-section">
+          <h3 class="section-title">ঋণের সাধারণ তথ্য</h3>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">
+                শিরোনাম (বাংলা) <span class="required-star">*</span>
+              </label>
+              <input v-model="form.title_bn" type="text" class="form-control" placeholder="যেমন: শিক্ষক কল্যাণ ঋণ বা জরুরি ফান্ড" :disabled="loading" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">শিরোনাম (ইংরেজি)</label>
+              <input v-model="form.title_en" type="text" class="form-control" placeholder="যেমন: Staff Welfare Loan" :disabled="loading" />
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">
+                ঋণের ধরণ <span class="required-star">*</span>
+              </label>
+              <select v-model="form.loan_type" class="form-control" :disabled="loading">
+                <option value="general">সাধারণ (General)</option>
+                <option value="student">শিক্ষার্থী (Student)</option>
+                <option value="staff">কর্মী / শিক্ষক (Staff)</option>
+                <option value="emergency">জরুরি (Emergency)</option>
+                <option value="development">উন্নয়ন (Development)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">গ্রাহক (ব্যবহারকারী আইডি)</label>
+              <input v-model.number="form.user_id" type="number" min="0" class="form-control" placeholder="ঐচ্ছিক গ্রাহক আইডি" :disabled="loading" />
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>প্রতিষ্ঠানকর্তা (ব্যবহারকারী আইডি)</label>
-          <input v-model.number="form.user_id" type="number" min="0" placeholder="ব্যবহারকারীর আইডি" :disabled="loading" />
+
+        <div class="form-section">
+          <h3 class="section-title">পরিমাণ ও কিস্তির হিসাব</h3>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">
+                মূল পরিমাণ (৳) <span class="required-star">*</span>
+              </label>
+              <input v-model.number="form.principal_amount" type="number" min="1" step="0.01" class="form-control" placeholder="০.০০" :disabled="loading" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">বার্ষিক লাভ / সুদ (%)</label>
+              <input v-model.number="form.interest_rate" type="number" min="0" step="0.01" class="form-control" placeholder="০" :disabled="loading" />
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label class="form-label">পদ্ধতি</label>
+              <select v-model="form.interest_type" class="form-control" :disabled="loading">
+                <option value="reducing">হ্রাসমান ব্যালেন্স (Reducing)</option>
+                <option value="flat">ফ্ল্যাট রেট (Flat Rate)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">
+                কিস্তির সংখ্যা <span class="required-star">*</span>
+              </label>
+              <input v-model.number="form.installment_count" type="number" min="1" max="600" class="form-control" :disabled="loading" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">পরিশোধের বিরতি</label>
+              <select v-model="form.repayment_frequency" class="form-control" :disabled="loading">
+                <option value="monthly">মাসিক (Monthly)</option>
+                <option value="weekly">সাপ্তাহিক (Weekly)</option>
+                <option value="quarterly">ত্রৈমাসিক (Quarterly)</option>
+                <option value="yearly">বার্ষিক (Yearly)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- EMI Live Estimate Card -->
+          <div class="emi-preview-card">
+            <div class="emi-icon-col">
+              <Icon name="cash" />
+            </div>
+            <div class="emi-text-col">
+              <span class="emi-label">আনুমানিক প্রতি কিস্তির পরিমাণ</span>
+              <strong class="emi-value">৳ {{ estimatedEmi.toLocaleString('bn-BD', { maximumFractionDigits: 2 }) }}</strong>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>মূল পরিমাণ (৳) *</label>
-          <input v-model.number="form.principal_amount" type="number" min="1" step="0.01" placeholder="0" :disabled="loading" />
+
+        <div class="form-section">
+          <h3 class="section-title">সময়সূচি ও নোট</h3>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label">শুরুর তারিখ</label>
+              <input v-model="form.start_date" type="date" class="form-control" :disabled="loading" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">সর্বশেষ পরিশোধ তারিখ</label>
+              <input v-model="form.due_date" type="date" class="form-control" :disabled="loading" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">নোট / বিবরণ</label>
+            <textarea v-model="form.notes" rows="3" class="form-control" placeholder="ঋণ প্রদান ও চুক্তি সংক্রান্ত মন্তব্য (ঐচ্ছিক)" :disabled="loading"></textarea>
+          </div>
         </div>
-        <div class="form-group">
-          <label>সুদের হার (%)</label>
-          <input v-model.number="form.interest_rate" type="number" min="0" step="0.01" placeholder="0" :disabled="loading" />
+
+        <div class="form-actions">
+          <NuxtLink to="/loan-due" class="btn btn-ghost">বাতিল</NuxtLink>
+          <button type="submit" class="btn btn-primary" :disabled="loading || !form.title_bn || !form.principal_amount">
+            <span v-if="loading" class="spinner"></span>
+            <span v-else>ঋণ তৈরি করুন</span>
+          </button>
         </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>শুরুর তারিখ</label>
-          <input v-model="form.start_date" type="date" :disabled="loading" />
-        </div>
-        <div class="form-group">
-          <label>শেষ তারিখ (ডিউটি)</label>
-          <input v-model="form.due_date" type="date" :disabled="loading" />
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>সুদের ধরন</label>
-          <select v-model="form.interest_type" :disabled="loading">
-            <option value="reducing">হ্রাসমান ব্যালেন্স</option>
-            <option value="flat">ফ্ল্যাট রেট</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>কিস্তির সংখ্যা *</label>
-          <input v-model.number="form.installment_count" type="number" min="1" max="600" :disabled="loading" />
-        </div>
-      </div>
-      <div class="form-group">
-        <label>পরিশোধের বিরতি</label>
-        <select v-model="form.repayment_frequency" :disabled="loading">
-          <option value="weekly">সাপ্তাহিক</option>
-          <option value="monthly">মাসিক</option>
-          <option value="quarterly">ত্রৈমাসিক</option>
-          <option value="yearly">বার্ষিক</option>
-        </select>
-      </div>
-      <div class="emi-preview">
-        <span>আনুমানিক প্রতি কিস্তি</span><strong>৳{{ estimatedEmi.toLocaleString('bn-BD', { maximumFractionDigits: 2 }) }}</strong>
-      </div>
-      <div class="form-group">
-        <label>নোট</label>
-        <textarea v-model="form.notes" rows="3" placeholder="ঋণ সংক্রেতন..." :disabled="loading"></textarea>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary" :disabled="loading">
-          <span v-if="loading" class="spinner"></span>
-          <span v-else>সংরক্ষণ করুন</span>
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -98,6 +140,7 @@
 import { computed, ref } from 'vue'
 import { useApiClient } from '~/utils/api'
 import { useRouter } from 'vue-router'
+import Icon from '~/components/Icon.vue'
 
 const api = useApiClient()
 const router = useRouter()
@@ -158,28 +201,44 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-.create-page { padding: 1.5rem; }
-.page-header { margin-bottom: 1.25rem; }
-.header-left h1 { margin: 0; font-family: 'Noto Sans Bengali', sans-serif; }
-.back-link { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--color-primary); text-decoration: none; font-family: 'Noto Sans Bengali', sans-serif; }
-.create-form { padding: 1.25rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
-.form-group label { font-size: 0.9rem; font-weight: 500; font-family: 'Noto Sans Bengali', sans-serif; }
-.form-group input, .form-group textarea, .form-group select {
-  padding: 0.6rem 0.85rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: 0.95rem;
-  font-family: 'Noto Sans Bengali', sans-serif; background: var(--color-bg);
+.emi-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.25rem 0;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-100);
+  color: var(--color-primary);
 }
-.form-group textarea { resize: vertical; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.form-row .form-group { margin-bottom: 0; }
-.emi-preview { display:flex;justify-content:space-between;align-items:center;padding:1rem;margin:.9rem 0;border-radius:12px;background:#edf6f0;color:#145032; }
-.emi-preview strong { font-size:1.25rem; }
-.form-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
-.btn { padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-family: 'Noto Sans Bengali', sans-serif; display: inline-flex; align-items: center; gap: 0.35rem; }
-.btn-primary { background: var(--color-primary); color: var(--color-text-on-primary); }
-.spinner { width: 16px; height: 16px; border: 2px solid var(--color-text-on-primary); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.alert { padding: 0.6rem 0.9rem; border-radius: 8px; margin-bottom: 0.75rem; font-family: 'Noto Sans Bengali', sans-serif; }
-.alert-error { background: #fde2e2; color: var(--color-error); }
-.alert-success { background: #dcfce8; color: #16a34a; }
+.emi-icon-col {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+.emi-text-col {
+  display: flex;
+  flex-direction: column;
+}
+.emi-label {
+  font-size: var(--text-xs);
+  color: var(--color-primary-light);
+  font-family: var(--font-bn);
+  font-weight: var(--weight-medium);
+}
+.emi-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  font-family: var(--font-bn);
+  color: var(--color-primary-dark);
+}
 </style>
+

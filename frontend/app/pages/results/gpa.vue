@@ -4,7 +4,7 @@
       <div><span class="eyebrow">একাডেমিক বিশ্লেষণ</span><h1>জিপিএ ও শতকরা হারের হিসাব</h1><p>শ্রেণি ভিত্তিক গড় জিপিএ, শতকরা গড় ও শীর্ষ নির্বাচনের হিসাব</p></div>
       <div class="header-actions">
         <button class="btn btn-outline btn-sm" @click="load"><icon name="refresh" /> রিফ্রেশ</button>
-        <select v-model="groupBy" class="form-control compact" @change="load">
+        <select v-model="groupBy" class="form-control form-select compact" @change="load">
           <option value="class">শ্রেণি অনুযায়ী</option>
           <option value="exam">পরীক্ষা অনুযায়ী</option>
         </select>

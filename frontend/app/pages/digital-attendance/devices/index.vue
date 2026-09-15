@@ -121,26 +121,24 @@
 
     <!-- Create/Edit Modal -->
     <div v-if="showCreate" class="modal-overlay" @click.self="showCreate = false">
-      <div class="modal" :class="{ 'modal-lg': editingDevice }">
+      <div class="modal-card" :class="{ 'modal-lg': editingDevice }">
         <div class="modal-header">
           <h3>{{ editingDevice ? 'ডিভাইস সম্পাদনা' : 'নতুন ডিভাইস' }}</h3>
-          <button class="btn btn-icon" @click="showCreate = false">
-            <Icon name="close" />
-          </button>
+          <button class="modal-close" @click="showCreate = false">×</button>
         </div>
         <div class="modal-body">
           <form @submit.prevent="saveDevice">
             <div class="form-group">
-              <label class="form-label">ডিভাইসের নাম <span class="required">*</span></label>
+              <label class="form-label">ডিভাইসের নাম <span class="required-star">*</span></label>
               <input v-model="form.name" type="text" class="form-control" placeholder="যেমন: কক্ষ ৫ বায়োমেট্রিক স্ক্যানার" />
             </div>
             <div class="form-group">
-              <label class="form-label">সিরিয়াল নম্বর <span class="required">*</span></label>
+              <label class="form-label">সিরিয়াল নম্বর <span class="required-star">*</span></label>
               <input v-model="form.serial_number" type="text" class="form-control" placeholder="ডিভাইসের সিরিয়াল নম্বর" />
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">ধরন <span class="required">*</span></label>
+                <label class="form-label">ধরন <span class="required-star">*</span></label>
                 <select v-model="form.device_type" class="form-select">
                   <option value="biometric">বায়োমেট্রিক</option>
                   <option value="rfid"> RFID</option>
@@ -149,7 +147,7 @@
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">অবস্থা <span class="required">*</span></label>
+                <label class="form-label">অবস্থা <span class="required-star">*</span></label>
                 <select v-model="form.status" class="form-select">
                   <option value="active">সক্রিয়</option>
                   <option value="inactive">নিষ্ক্রিয়</option>
@@ -175,7 +173,7 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-outline" @click="showCreate = false">বাতিল</button>
+          <button class="btn btn-ghost" @click="showCreate = false">বাতিল</button>
           <button class="btn btn-primary" @click="saveDevice" :disabled="saving">
             <Icon name="spinner" v-if="saving" />
             {{ editingDevice ? 'আপডেট করুন' : 'সংরক্ষণ করুন' }}
@@ -186,12 +184,10 @@
 
     <!-- Delete Confirm -->
     <div v-if="showDelete" class="modal-overlay" @click.self="showDelete = false">
-      <div class="modal">
+      <div class="modal-card modal-sm">
         <div class="modal-header">
           <h3>আপনি কি নিশ্চিত?</h3>
-          <button class="btn btn-icon" @click="showDelete = false">
-            <Icon name="close" />
-          </button>
+          <button class="modal-close" @click="showDelete = false">×</button>
         </div>
         <div class="modal-body">
           <p>
@@ -199,8 +195,8 @@
           </p>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-outline" @click="showDelete = false">বাতিল</button>
-          <button class="btn btn-danger" @click="confirmDelete" :disabled="deleting">
+          <button class="btn btn-ghost" @click="showDelete = false">বাতিল</button>
+          <button class="btn btn-outline-danger" @click="confirmDelete" :disabled="deleting">
             <Icon name="spinner" v-if="deleting" />
             মুছে ফেলুন
           </button>

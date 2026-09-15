@@ -28,49 +28,50 @@
       <div v-if="error" class="alert alert-error">{{ error }}</div>
       <div class="form-row">
         <div class="form-group wide">
-          <label>দর্শনার্থীর নাম (বাংলা) *</label>
+          <label class="form-label">দর্শনার্থীর নাম (বাংলা) <span class="required-star">*</span></label>
           <input v-model="formData.name_bn" class="form-control" required placeholder="দর্শনার্থীর পূর্ণ নাম (বাংলা)" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>নাম (ইংরেজি)</label>
+          <label class="form-label">নাম (ইংরেজি)</label>
           <input v-model="formData.name_en" class="form-control" placeholder="Visitor Full Name" />
         </div>
         <div class="form-group">
-          <label>ফোন নম্বর *</label>
+          <label class="form-label">ফোন নম্বর <span class="required-star">*</span></label>
           <input v-model="formData.phone" class="form-control" required placeholder="০১৭১২৩৪৫৬৭৮" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>ইমেইল</label>
+          <label class="form-label">ইমেইল</label>
           <input v-model="formData.email" type="email" class="form-control" placeholder="visitor@example.com" />
         </div>
         <div class="form-group">
-          <label>আসার তারিখ</label>
+          <label class="form-label">আসার তারিখ</label>
           <input v-model="formData.expected_date" type="date" class="form-control" />
         </div>
       </div>
       <div class="form-group wide">
-        <label>ঠিকানা</label>
+        <label class="form-label">ঠিকানা</label>
         <textarea v-model="formData.address_bn" class="form-control" rows="2" placeholder="পূর্ণ ঠিকানা..."></textarea>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>দর্শনার্থীদের সংখ্যা</label>
+          <label class="form-label">দর্শনার্থীদের সংখ্যা</label>
           <input v-model.number="formData.guest_count" type="number" class="form-control" min="1" placeholder="১" />
         </div>
         <div class="form-group">
-          <label>বিশেষ নোট / উদ্দেশ্য</label>
+          <label class="form-label">বিশেষ নোট / উদ্দেশ্য</label>
           <input v-model="formData.notes_bn" class="form-control" placeholder="পরিদর্শনের কারণ বা শিক্ষার্থী সম্পর্ক..." />
         </div>
       </div>
       <div class="form-actions">
+        <button class="btn btn-ghost" type="button" @click="showForm = false">বাতিল</button>
         <button class="btn btn-primary" :disabled="saving">
+          <icon v-if="saving" name="loader" class="animate-spin" />
           {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'দর্শনার্থী যোগ করুন' }}
         </button>
-        <button class="btn btn-ghost" type="button" @click="showForm = false">বাতিল</button>
       </div>
     </form>
 
@@ -120,49 +121,49 @@
 
     <!-- Visitor Detail Modal -->
     <div v-if="selectedVisitor" class="modal-overlay" @click.self="selectedVisitor = null">
-      <div class="modal card">
+      <div class="modal-card">
         <div class="modal-header">
           <h3>দর্শনার্থীর তথ্য</h3>
-          <button class="close-btn" @click="selectedVisitor = null">×</button>
+          <button class="modal-close" @click="selectedVisitor = null">×</button>
         </div>
         <div class="modal-body">
           <div class="visitor-detail-grid">
             <div class="detail-item">
-              <label>নাম (বাংলা)</label>
+              <label class="form-label">নাম (বাংলা)</label>
               <p><strong>{{ selectedVisitor.name_bn || '—' }}</strong></p>
             </div>
             <div class="detail-item">
-              <label>নাম (ইংরেজি)</label>
+              <label class="form-label">নাম (ইংরেজি)</label>
               <p>{{ selectedVisitor.name_en || '—' }}</p>
             </div>
             <div class="detail-item">
-              <label>ফোন নম্বর</label>
+              <label class="form-label">ফোন নম্বর</label>
               <p>{{ selectedVisitor.phone || '—' }}</p>
             </div>
             <div class="detail-item">
-              <label>ইমেইল</label>
+              <label class="form-label">ইমেইল</label>
               <p>{{ selectedVisitor.email || '—' }}</p>
             </div>
             <div class="detail-item">
-              <label>আসার তারিখ</label>
+              <label class="form-label">আসার তারিখ</label>
               <p>{{ selectedVisitor.expected_date ? formatDate(selectedVisitor.expected_date) : '—' }}</p>
             </div>
             <div class="detail-item">
-              <label>দর্শনার্থী সংখ্যা</label>
+              <label class="form-label">দর্শনার্থী সংখ্যা</label>
               <p>{{ selectedVisitor.guest_count || 1 }} জন</p>
             </div>
             <div class="detail-item full-width" v-if="selectedVisitor.address_bn">
-              <label>ঠিকানা</label>
+              <label class="form-label">ঠিকানা</label>
               <p>{{ selectedVisitor.address_bn }}</p>
             </div>
             <div class="detail-item full-width" v-if="selectedVisitor.notes_bn">
-              <label>বিশেষ নোট / উদ্দেশ্য</label>
+              <label class="form-label">বিশেষ নোট / উদ্দেশ্য</label>
               <p class="notes-text">{{ selectedVisitor.notes_bn }}</p>
             </div>
           </div>
-          <div class="form-actions">
-            <button class="btn btn-ghost" @click="selectedVisitor = null">বন্ধ করুন</button>
-          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" @click="selectedVisitor = null">বন্ধ করুন</button>
         </div>
       </div>
     </div>
@@ -316,21 +317,6 @@ onMounted(loadVisitors)
   grid-column: 1 / -1;
 }
 
-.form-group label {
-  font-size: 0.82rem;
-  font-weight: 500;
-}
-
-.form-control {
-  width: 100%;
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-size: 0.9rem;
-}
-
 .form-actions {
   display: flex;
   gap: 0.75rem;
@@ -343,34 +329,6 @@ onMounted(loadVisitors)
 .table th, .table td { padding: 0.85rem 1rem; text-align: left; border-bottom: 1px solid var(--color-border-light); }
 .table th { background: rgba(0, 0, 0, 0.02); font-weight: 600; color: var(--color-text-light); font-size: 0.8rem; }
 .table-hover tr:hover { background: rgba(0, 0, 0, 0.015); }
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  padding: 1rem;
-}
-
-.modal {
-  width: 100%;
-  max-width: 500px;
-  background: var(--color-bg-card);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.modal-header h3 { margin: 0; font-size: 1.1rem; }
-.modal-body { padding: 1.25rem; }
 
 .visitor-detail-grid {
   display: grid;

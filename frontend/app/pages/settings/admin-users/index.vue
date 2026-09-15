@@ -61,7 +61,7 @@
 
     <!-- Create/Edit Modal -->
     <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
-      <div class="modal card">
+      <div class="modal-card">
         <div class="modal-header">
           <h2>{{ isEditing ? 'ব্যবহারকারী সম্পাদনা' : 'নতুন ব্যবহারকারী তৈরি' }}</h2>
           <button class="close-btn" @click="showForm = false">×</button>
@@ -69,24 +69,24 @@
         <form @submit.prevent="saveUser" class="modal-body">
           <div class="form-grid">
             <div class="form-group">
-              <label>নাম (বাংলা)</label>
+              <label class="form-label">নাম (বাংলা)</label>
               <input v-model="form.name_bn" class="form-control" placeholder="উপাধি নাম" />
             </div>
             <div class="form-group">
-              <label>নাম (ইংরেজি) *</label>
-              <input v-model="form.name" class="form-control" placeholder="Full Name" />
+              <label class="form-label">নাম (ইংরেজি) <span class="required-star">*</span></label>
+              <input v-model="form.name" class="form-control" placeholder="Full Name" required />
             </div>
             <div class="form-group">
-              <label>ইমেইল *</label>
-              <input v-model="form.email" type="email" class="form-control" placeholder="email@example.com" />
+              <label class="form-label">ইমেইল <span class="required-star">*</span></label>
+              <input v-model="form.email" type="email" class="form-control" placeholder="email@example.com" required />
             </div>
             <div class="form-group">
-              <label>মোবাইল</label>
+              <label class="form-label">মোবাইল</label>
               <input v-model="form.phone" class="form-control" placeholder="01৭১২৩৪৫৬৭৮" />
             </div>
             <div class="form-group">
-              <label>ভূমিকা *</label>
-              <select v-model="form.role" class="form-control">
+              <label class="form-label">ভূমিকা <span class="required-star">*</span></label>
+              <select v-model="form.role" class="form-control form-select" required>
                 <option value="">ভূমিকা নির্বাচন করুন</option>
                 <option value="superadmin">সুপার অ্যাডমিন</option>
                 <option value="admin">অ্যাডমিন</option>
@@ -98,12 +98,12 @@
               </select>
             </div>
             <div class="form-group">
-              <label>পাসওয়ার্ড *</label>
-              <input v-model="form.password" type="password" class="form-control" placeholder="ন্যূনতম ৬ অক্ষর" />
+              <label class="form-label">পাসওয়ার্ড <span v-if="!isEditing" class="required-star">*</span></label>
+              <input v-model="form.password" type="password" class="form-control" placeholder="ন্যূনতম ৬ অক্ষর" :required="!isEditing" />
             </div>
             <div class="form-group">
-              <label>অবস্থা</label>
-              <select v-model="form.status" class="form-control">
+              <label class="form-label">অবস্থা</label>
+              <select v-model="form.status" class="form-control form-select">
                 <option value="active">সক্রিয়</option>
                 <option value="inactive">নিষ্ক্রিয়</option>
                 <option value="invited">নিমন্ত্রণ</option>
@@ -261,16 +261,9 @@ onMounted(load)
 .status-active { background: #e6f4ec; color: #19724a; }
 .status-inactive { background: #fde8e8; color: #a03030; }
 .pagination { padding: 0.7rem 1rem; background: var(--color-bg-muted); display: flex; align-items: center; font-size: 0.78rem; }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal { width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; border-bottom: 1px solid var(--color-border-light); }
-.modal-header h2 { font-family: var(--font-bn); font-size: 1.1rem; margin: 0; }
-.close-btn { border: 0; background: transparent; font-size: 1.5rem; color: var(--color-text-muted); cursor: pointer; }
-.modal-body { padding: 1.2rem; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
-.form-group { display: flex; flex-direction: column; gap: 0.25rem; }
-.form-group label { font-family: var(--font-bn); font-size: 0.78rem; font-weight: 600; color: var(--color-text); }
-.form-control { padding: 0.55rem 0.7rem; border: 1px solid var(--color-border); border-radius: 8px; font-family: var(--font-bn); font-size: 0.82rem; outline: none; transition: border 0.15s; }
-.form-control:focus { border-color: var(--color-primary); }
-.modal-footer { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--color-border-light); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
 </style>

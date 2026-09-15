@@ -1,27 +1,29 @@
 <template>
-  <div class="bulk-page">
-    <div class="page-header">
-      <div class="header-left">
-        <NuxtLink to="/attendance" class="back-link"><icon name="arrow-left" /> ফিরে যান</NuxtLink>
-        <h1>বাল্ক হাজিরা</h1>
-        <p class="text-muted">শ্রেণি নির্বাচন করে একসাথে হাজিরা চিহ্নিত করুন</p>
+  <div class="page-wrapper">
+    <div class="page-header-row">
+      <div class="header-title-block">
+        <NuxtLink to="/attendance" class="btn btn-outline btn-sm mb-2">
+          <Icon name="arrow-left" /> ফিরে যান
+        </NuxtLink>
+        <h1>বাল্ক হাজিরা এন্ট্রি</h1>
+        <p class="page-subtitle">শ্রেণি ও তারিখ নির্বাচন করে একসাথে সকল শিক্ষার্থীর হাজিরা চিহ্নিত করুন</p>
       </div>
     </div>
 
-    <div class="filters card">
-      <div class="form-row">
-        <div class="form-group">
-          <label>শ্রেণি *</label>
-          <select v-model="classId" :disabled="loading" @change="loadStudents">
+    <div class="card card-pad mb-3">
+      <div class="form-row-3" style="align-items: flex-end;">
+        <div class="form-group mb-0">
+          <label class="form-label">শ্রেণি নির্বাচন <span class="required-star">*</span></label>
+          <select v-model="classId" class="form-control" :disabled="loading" @change="loadStudents">
             <option value="">শ্রেণি নির্বাচন করুন</option>
             <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name_bn }}</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>তারিখ *</label>
-          <input v-model="date" type="date" :disabled="loading" @change="prefill" />
+        <div class="form-group mb-0">
+          <label class="form-label">তারিখ <span class="required-star">*</span></label>
+          <input v-model="date" type="date" class="form-control" :disabled="loading" @change="prefill" />
         </div>
-        <div class="form-group bulk-actions">
+        <div class="form-group mb-0" style="display: flex; gap: 0.5rem;">
           <button class="btn btn-outline btn-sm" @click="markAll('present')">সব উপস্থিত</button>
           <button class="btn btn-outline btn-sm" @click="markAll('absent')">সব অনুপস্থিত</button>
         </div>
@@ -31,38 +33,42 @@
     <div v-if="error" class="alert alert-error">{{ error }}</div>
     <div v-if="success" class="alert alert-success">{{ success }}</div>
 
-    <div v-if="students.length" class="card">
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead>
-              <tr><th>নাম</th><th>ভর্তি নং</th><th>অবস্থা</th></tr>
-            </thead>
-            <tbody>
-              <tr v-for="s in students" :key="s.id">
-                <td>{{ s.name_bn || s.name_en }}</td>
-                <td>{{ s.admission_number || '-' }}</td>
-                <td>
-                  <div class="status-toggle">
-                    <button class="toggle" :class="{ active: s.status === 'present', present: true }" @click="setStatus(s, 'present')">উপস্থিত</button>
-                    <button class="toggle" :class="{ active: s.status === 'absent', absent: true }" @click="setStatus(s, 'absent')">অনুপস্থিত</button>
-                    <button class="toggle" :class="{ active: s.status === 'late', late: true }" @click="setStatus(s, 'late')">দেরি</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-primary" :disabled="saving || !classId || !date" @click="submitAll">
-            <span v-if="saving" class="spinner"></span>
-            <span v-else>সংরক্ষণ করুন ({{ students.length }})</span>
-          </button>
-        </div>
+    <div v-if="students.length" class="table-card">
+      <div class="table-responsive">
+        <table class="premium-table">
+          <thead>
+            <tr>
+              <th>শিক্ষার্থীর নাম</th>
+              <th>ভর্তি নং</th>
+              <th class="text-right">হাজিরা অবস্থা</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="s in students" :key="s.id">
+              <td class="font-medium">{{ s.name_bn || s.name_en }}</td>
+              <td class="text-muted">{{ s.admission_number || '-' }}</td>
+              <td class="text-right">
+                <div class="status-toggle" style="justify-content: flex-end;">
+                  <button class="toggle" :class="{ active: s.status === 'present', present: true }" @click="setStatus(s, 'present')">উপস্থিত</button>
+                  <button class="toggle" :class="{ active: s.status === 'absent', absent: true }" @click="setStatus(s, 'absent')">অনুপস্থিত</button>
+                  <button class="toggle" :class="{ active: s.status === 'late', late: true }" @click="setStatus(s, 'late')">দেরি</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="form-actions" style="padding: 1rem 1.5rem; background: var(--color-bg);">
+        <button class="btn btn-primary" :disabled="saving || !classId || !date" @click="submitAll">
+          <span v-if="saving" class="spinner"></span>
+          <span v-else>সংরক্ষণ করুন ({{ students.length }} জন)</span>
+        </button>
       </div>
     </div>
 
-    <div v-else-if="classId && date && !loading" class="empty-state"><p>এই শ্রেণির কোনো ছাত্র নেই</p></div>
+    <div v-else-if="classId && date && !loading" class="empty-state">
+      <p>এই শ্রেণির কোনো ছাত্রের তথ্য পাওয়া যায়নি</p>
+    </div>
   </div>
 </template>
 
@@ -151,32 +157,10 @@ if (isAuthenticated.value) onMounted(loadClasses)
 </script>
 
 <style scoped>
-.bulk-page { padding: 1.5rem; }
-.page-header { margin-bottom: 1.25rem; }
-.header-left h1 { margin: 0.4rem 0 0; font-family: 'Noto Sans Bengali', sans-serif; }
-.back-link { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--color-primary); text-decoration: none; font-family: 'Noto Sans Bengali', sans-serif; }
-.filters { padding: 1rem 1.25rem; margin-bottom: 1.25rem; background: var(--color-bg-card); border: 1px solid var(--color-border-light); border-radius: 12px; }
-.form-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
-.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
-.form-group label { font-size: 0.9rem; font-weight: 500; font-family: 'Noto Sans Bengali', sans-serif; }
-.form-group select, .form-group input { padding: 0.65rem 0.9rem; border: 1px solid var(--color-border); border-radius: 8px; font-size: 1rem; font-family: 'Noto Sans Bengali', sans-serif; background: var(--color-bg); }
-.bulk-actions { flex-direction: row; gap: 0.5rem; }
-.btn { padding: 0.6rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-family: 'Noto Sans Bengali', sans-serif; }
-.btn-sm { padding: 0.4rem 0.75rem; font-size: 0.85rem; }
-.btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
-.btn-primary { background: var(--color-primary); color: var(--color-text-on-primary); }
-.btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .status-toggle { display: flex; gap: 0.35rem; }
-.toggle { padding: 0.35rem 0.7rem; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-bg); cursor: pointer; font-family: 'Noto Sans Bengali', sans-serif; font-size: 0.85rem; }
-.toggle.present.active { background: var(--color-success); color: #fff; border-color: var(--color-success); }
-.toggle.absent.active { background: var(--color-error); color: #fff; border-color: var(--color-error); }
-.toggle.late.active { background: var(--color-warning); color: #fff; border-color: var(--color-warning); }
-.form-actions { margin-top: 1rem; }
-.spinner { width: 16px; height: 16px; border: 2px solid var(--color-text-on-primary); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.alert { padding: 0.7rem 1rem; border-radius: 8px; font-family: 'Noto Sans Bengali', sans-serif; }
-.alert-error { background: #fce4e4; color: var(--color-error); }
-.alert-success { background: #e8f5e9; color: var(--color-success); }
-.table-responsive { overflow-x: auto; }
-.empty-state { padding: 2rem; text-align: center; color: var(--color-text-light); font-family: 'Noto Sans Bengali', sans-serif; }
+.toggle { padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-bg-card); cursor: pointer; font-family: var(--font-bn); font-size: var(--text-xs); font-weight: var(--weight-medium); transition: all var(--transition-fast); }
+.toggle:hover { border-color: var(--color-primary); }
+.toggle.present.active { background: var(--color-success); color: #fff; border-color: var(--color-success); font-weight: var(--weight-bold); }
+.toggle.absent.active { background: var(--color-error); color: #fff; border-color: var(--color-error); font-weight: var(--weight-bold); }
+.toggle.late.active { background: var(--color-warning); color: #fff; border-color: var(--color-warning); font-weight: var(--weight-bold); }
 </style>
