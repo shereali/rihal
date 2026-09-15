@@ -1,5 +1,19 @@
 <template>
   <div class="page-wrapper">
+    <!-- Dedicated Printable Ledger Header (Visible only when printed) -->
+    <div class="print-register-header print-only">
+      <div class="bismillah-line">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</div>
+      <h1 class="institution-title">{{ institutionName }}</h1>
+      <p class="institution-address" v-if="institutionAddress">{{ institutionAddress }}</p>
+      <div class="ledger-badge-title">স্থায়ী শিক্ষার্থী ভর্তি রেজিস্টার বহিখাতা (Admission Ledger)</div>
+      <div class="print-meta-bar">
+        <span><strong>শিক্ষাবর্ষ:</strong> {{ yearFilter ? yearFilter + ' শিক্ষাবর্ষ' : 'সকল শিক্ষাবর্ষ (সার্বিক)' }}</span>
+        <span><strong>মোট শিক্ষার্থী:</strong> {{ filteredStudents.length.toLocaleString('bn-BD') }} জন</span>
+        <span><strong>মুদ্রণের তারিখ:</strong> {{ printDateBn }}</span>
+      </div>
+    </div>
+
+    <!-- On-screen Header -->
     <div class="page-header-row no-print">
       <div class="header-title-block">
         <NuxtLink to="/students" class="back-link"><icon name="arrow-left" /> শিক্ষার্থী তালিকায় ফিরে যান</NuxtLink>
@@ -40,41 +54,64 @@
         <table class="premium-table ledger-table">
           <thead>
             <tr>
-              <th>ভর্তি / দাখেলা নং</th>
-              <th>ভর্তির তারিখ</th>
+              <th style="width: 40px;">ক্র.</th>
+              <th style="width: 110px;">ভর্তি / দাখেলা নং</th>
+              <th style="width: 95px;">ভর্তির তারিখ</th>
               <th>শিক্ষার্থীর পূর্ণ নাম</th>
               <th>পিতার নাম ও পেশা</th>
               <th>মাতার নাম</th>
               <th>স্থায়ী ঠিকানা</th>
-              <th>জন্ম তারিখ / বয়স</th>
-              <th>রক্তের গ্রুপ</th>
-              <th>ভর্তিকৃত শ্রেণি</th>
+              <th style="width: 95px;">জন্ম তারিখ</th>
+              <th style="width: 55px;">রক্তের গ্রুপ</th>
+              <th style="width: 100px;">ভর্তিকৃত শ্রেণি</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="st in filteredStudents" :key="st.id">
+            <tr v-for="(st, idx) in filteredStudents" :key="st.id">
+              <td class="text-center font-bold">{{ (idx + 1).toLocaleString('bn-BD') }}</td>
               <td><strong class="mono-font">{{ st.admission_no }}</strong></td>
               <td>{{ st.admission_date }}</td>
               <td>
                 <div class="user-cell">
-                  <div class="user-avatar-initials" :style="{ backgroundColor: getAvatarColor(st.name) }">
+                  <div class="user-avatar-initials no-print" :style="{ backgroundColor: getAvatarColor(st.name) }">
                     {{ st.name.charAt(0) }}
                   </div>
-                  <strong>{{ st.name }}</strong>
+                  <strong class="student-name-text">{{ st.name }}</strong>
                 </div>
               </td>
               <td>
                 <div>{{ st.father_name }}</div>
-                <div class="sub-text">পেশা: {{ st.father_occupation }}</div>
+                <div class="sub-text" v-if="st.father_occupation !== '—'">পেশা: {{ st.father_occupation }}</div>
               </td>
               <td>{{ st.mother_name }}</td>
-              <td>{{ st.village }}, {{ st.post }}, {{ st.district }}</td>
+              <td>{{ st.village }}<span v-if="st.post && st.post !== '—'">, {{ st.post }}</span><span v-if="st.district && st.district !== '—'">, {{ st.district }}</span></td>
               <td>{{ st.dob }}</td>
-              <td><span class="type-tag" v-if="st.blood_group">{{ st.blood_group }}</span><span v-else>—</span></td>
+              <td class="text-center"><span class="type-tag" v-if="st.blood_group">{{ st.blood_group }}</span><span v-else>—</span></td>
               <td><span class="fund-tag">{{ st.enrolled_class }}</span></td>
+            </tr>
+            <tr v-if="filteredStudents.length === 0">
+              <td colspan="10" class="empty-state-cell">
+                কোনো শিক্ষার্থীর তথ্য পাওয়া যায়নি
+              </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Dedicated Printable Ledger Footer Signatures (Visible only when printed) -->
+    <div class="print-register-footer print-only">
+      <div class="sig-block">
+        <div class="sig-line" />
+        <span>প্রস্তুতকারী / অফিস সহকারী</span>
+      </div>
+      <div class="sig-block">
+        <div class="sig-line" />
+        <span>নাযেম / ভর্তি রেজিস্টারার</span>
+      </div>
+      <div class="sig-block">
+        <div class="sig-line" />
+        <span>মুহতামিম / অধ্যক্ষ</span>
       </div>
     </div>
   </div>
@@ -88,11 +125,15 @@ const api = useApiClient()
 const search = ref('')
 const yearFilter = ref('')
 
+const institutionName = ref('দারুল কিরাত মজিদিয়া ফুলতলী ট্রাস্ট')
+const institutionAddress = ref('পোস্ট ও জেলা: গোপালগঞ্জ')
+
 const registerData = ref<any[]>([
   {
     id: 1,
     admission_no: 'ADM-2026-001',
     admission_date: '০১ জানু, ২০২৬',
+    raw_admission_date: '2026-01-01',
     name: 'মুহাম্মদ সালমান ফারসি',
     father_name: 'মুহাম্মদ রফিকুল ইসলাম',
     father_occupation: 'ব্যবসায়ী',
@@ -112,6 +153,24 @@ function formatDateBn(dateStr: string | null | undefined): string {
     return new Date(dateStr).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' })
   } catch {
     return dateStr
+  }
+}
+
+const printDateBn = computed(() => {
+  return new Date().toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })
+})
+
+async function loadInstitution() {
+  try {
+    const res = await api.get('/settings/general').catch(() => null)
+    if (res?.data?.name || res?.data?.institution_name) {
+      institutionName.value = res.data.name || res.data.institution_name
+    }
+    if (res?.data?.address || res?.data?.address_bn) {
+      institutionAddress.value = res.data.address || res.data.address_bn
+    }
+  } catch (e) {
+    console.error(e)
   }
 }
 
@@ -154,7 +213,10 @@ const filteredStudents = computed(() => {
   })
 })
 
-onMounted(loadStudents)
+onMounted(() => {
+  loadInstitution()
+  loadStudents()
+})
 
 function printRegister() {
   window.print()
@@ -170,6 +232,10 @@ function getAvatarColor(name: string) {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+
+.print-only { display: none !important; }
+
 .page-wrapper { max-width: 1380px; margin: 0 auto; padding: 1.75rem; }
 .page-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem; }
 .back-link { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; font-weight: 600; color: var(--color-primary); text-decoration: none; margin-bottom: 0.35rem; }
@@ -190,14 +256,162 @@ function getAvatarColor(name: string) {
 .mono-font { font-family: monospace; font-size: 0.82rem; }
 .type-tag { display: inline-block; padding: 0.15rem 0.5rem; background: rgba(0, 0, 0, 0.05); border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
 .fund-tag { display: inline-block; padding: 0.15rem 0.55rem; background: rgba(20, 80, 50, 0.08); color: var(--color-primary); border-radius: 6px; font-size: 0.78rem; font-weight: 600; }
+.text-center { text-align: center; }
+.font-bold { font-weight: 700; }
+.empty-state-cell { text-align: center; padding: 2rem; color: var(--color-text-light); }
 
 .btn { padding: 0.6rem 1.15rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease; text-decoration: none; }
 .btn-primary { background: linear-gradient(135deg, #145032 0%, #1a6b43 100%); color: #fff; box-shadow: 0 3px 10px rgba(20, 80, 50, 0.25); }
 .btn-outline { background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-text); }
 
 @media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm 10mm;
+  }
+
   .no-print { display: none !important; }
-  .page-wrapper { max-width: 100%; padding: 0; }
-  .table-card { box-shadow: none; border: none; }
+  .print-only { display: block !important; }
+
+  .page-wrapper {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .table-card {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+
+  .table-responsive {
+    overflow: visible !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .ledger-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 11px !important;
+    border: 1.5px solid #222222 !important;
+  }
+
+  .ledger-table th, .ledger-table td {
+    padding: 5px 6px !important;
+    border: 1px solid #444444 !important;
+    color: #000000 !important;
+    line-height: 1.25 !important;
+    background: #ffffff !important;
+  }
+
+  .ledger-table th {
+    background: #e2e8f0 !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    font-size: 11.5px !important;
+  }
+
+  .print-register-header {
+    text-align: center;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #145032;
+    padding-bottom: 6px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .bismillah-line {
+    font-family: 'Amiri', serif;
+    font-size: 14px;
+    color: #145032;
+    margin-bottom: 2px;
+    font-weight: bold;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .institution-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #145032;
+    margin: 0 0 2px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .institution-address {
+    font-size: 11px;
+    color: #475569;
+    margin: 0 0 4px;
+  }
+
+  .ledger-badge-title {
+    display: inline-block;
+    background: #145032;
+    color: #ffffff !important;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 14px;
+    border-radius: 12px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-meta-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #1e293b;
+    margin-top: 6px;
+    padding: 3px 8px;
+    background: #f1f5f9;
+    border: 1px solid #94a3b8;
+    border-radius: 4px;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-register-footer {
+    display: flex !important;
+    justify-content: space-between;
+    margin-top: 25px;
+    padding: 0 30px;
+    page-break-inside: avoid;
+  }
+
+  .sig-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #000000;
+  }
+
+  .sig-line {
+    width: 140px;
+    border-bottom: 1.5px dashed #000000;
+    margin-bottom: 4px;
+  }
+
+  .type-tag, .fund-tag {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+  }
+
+  .student-name-text {
+    font-size: 11.5px !important;
+  }
 }
 </style>

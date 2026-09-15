@@ -1020,7 +1020,35 @@ input[type="checkbox"], input[type="radio"] {
    Print Styles (Global)
    ============================================================ */
 @media print {
-  /* Hide structural and interactive elements */
+  /* Reset document and layout ancestors to block flow to prevent flexbox pagination collapse / blank pages */
+  html,
+  body,
+  #__nuxt,
+  #app,
+  .default-layout,
+  .layout-main,
+  .layout-main.with-sidebar,
+  .layout-main.sidebar-collapsed,
+  .layout-content,
+  .page-wrapper {
+    display: block !important;
+    position: static !important;
+    float: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Hide structural, navigation and interactive UI elements */
   .sidebar,
   .topbar,
   .sidebar-backdrop,
@@ -1039,24 +1067,8 @@ input[type="checkbox"], input[type="radio"] {
     display: none !important;
   }
 
-  /* Reset layout margins/paddings for print */
-  .layout-main,
-  .layout-main.with-sidebar,
-  .layout-main.sidebar-collapsed,
-  .layout-content,
-  .default-layout,
-  body,
-  html,
-  .page-wrapper {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    background: transparent !important;
-  }
-
-  /* Remove backgrounds, shadows, and borders from standard report containers (preserving ID cards and badges) */
-  .card:not(.id-card-cr80):not(.print-preserve),
+  /* Remove extraneous backgrounds, shadows, and borders from standard content cards */
+  .card:not(.id-card-cr80):not(.print-preserve):not(.form-paper),
   .table-card,
   .table-wrap,
   .panel,
@@ -1064,45 +1076,57 @@ input[type="checkbox"], input[type="radio"] {
     background: transparent !important;
     box-shadow: none !important;
     border: none !important;
+    overflow: visible !important;
   }
 
-  /* Force report table and text colors to black for contrast while preserving badges/cards */
+  /* Force report table and text colors to black for contrast */
   .premium-table td,
   .premium-table th,
   .table td,
   .table th {
-    color: #000 !important;
+    color: #000000 !important;
   }
 
   /* Print specific adjustments for tables */
   .premium-table, .table {
-    border: 1px solid #000 !important;
+    border: 1px solid #333333 !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
   }
   
   .premium-table th,
   .table th,
   .premium-table td,
   .table td {
-    border: 1px solid #ddd !important;
+    border: 1px solid #cccccc !important;
   }
   
   .premium-table th,
   .table th {
-    background: #f3f4f6 !important;
+    background: #f1f5f9 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  /* Avoid awkward page breaks */
+  /* Avoid awkward page breaks and unroll responsive scroll tables */
   .table-responsive {
     overflow: visible !important;
+    display: block !important;
+    width: 100% !important;
   }
+
   table {
     page-break-inside: auto;
   }
   tr {
     page-break-inside: avoid;
     page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
   }
 }
 

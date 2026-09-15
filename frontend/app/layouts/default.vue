@@ -79,4 +79,20 @@ onMounted(() => {
     overflow-x: hidden;
   }
 }
+
+@media print {
+  .default-layout,
+  .layout-main,
+  .layout-main.with-sidebar,
+  .layout-main.sidebar-collapsed,
+  .layout-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: block !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+}
 </style>
