@@ -16,16 +16,9 @@ echo "=== $(date -u '+%Y-%m-%d %H:%M:%S UTC') deploy start ===" >> "$LOG_FILE"
 
 cd "$DEPLOY_DIR"
 
-# Configure git safe directory to avoid dubious ownership block
-git config --global --add safe.directory "$DEPLOY_DIR" || true
-
-# If git credentials exist, attempt pull, otherwise source was synced by CI/CD runner
-git fetch origin master >> "$LOG_FILE" 2>&1 || true
-git reset --hard origin/master >> "$LOG_FILE" 2>&1 || true
-
-echo "Rebuilding and starting production containers..." >> "$LOG_FILE"
+echo "Rebuilding and restarting production containers with fresh source..." >> "$LOG_FILE"
 if docker compose -f docker-compose.prod.yml build --no-cache frontend >> "$LOG_FILE" 2>&1 && \
-   docker compose -f docker-compose.prod.yml up -d >> "$LOG_FILE" 2>&1; then
+   docker compose -f docker-compose.prod.yml up -d --force-recreate >> "$LOG_FILE" 2>&1; then
     # Clear cached optimization and run migrations
     docker compose -f docker-compose.prod.yml exec -T backend php artisan optimize:clear >> "$LOG_FILE" 2>&1 || true
     docker compose -f docker-compose.prod.yml exec -T backend php artisan migrate --force >> "$LOG_FILE" 2>&1 || true

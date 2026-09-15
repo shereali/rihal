@@ -15,7 +15,7 @@ RUN npm run build
 
 ENV HOST=0.0.0.0
 ENV PORT=3000
-ENV NUXT_PUBLIC_API_BASE=http://localhost:8000/api/v1
+ENV NUXT_PUBLIC_API_BASE=/api/v1
 
 EXPOSE 3000
 
