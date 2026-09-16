@@ -347,10 +347,12 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useApiClient } from '~/utils/api'
+import Icon from '~/components/Icon.vue'
 
 const route = useRoute()
+const router = useRouter()
 const api = useApiClient()
 
 const studentId = computed(() => route.params.id)
@@ -535,7 +537,7 @@ async function saveStudent() {
     success.value = res.data?.message || 'শিক্ষার্থীর তথ্য সফলভাবে আপডেট করা হয়েছে!'
 
     setTimeout(() => {
-      navigateTo(`/students/${id}`)
+      router.push(`/students/${id}`)
     }, 600)
   } catch (err: any) {
     console.error('Failed to update student:', err)
