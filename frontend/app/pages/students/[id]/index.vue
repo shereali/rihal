@@ -20,9 +20,13 @@
           <Icon name="plus" size="16" />
           <span>নতুন ভর্তি</span>
         </NuxtLink>
-        <NuxtLink :to="`/students/${student.id}/edit`" class="action-pill-btn primary">
+        <button class="action-pill-btn primary" @click="openQuickEditModal" title="শিক্ষার্থীর তথ্য দ্রুত সরাসরি সম্পাদনা করুন">
           <Icon name="pencil" size="16" />
           <span>তথ্য সম্পাদনা</span>
+        </button>
+        <NuxtLink :to="`/students/${student.id}/edit`" class="action-pill-btn outline" title="সম্পূর্ণ এডিট ফর্মে যান">
+          <Icon name="pencil" size="16" />
+          <span>সম্পূর্ণ এডিট</span>
         </NuxtLink>
         <button class="action-pill-btn danger" @click="showDeleteModal = true">
           <Icon name="delete" size="16" />
@@ -247,6 +251,9 @@
                   <p class="section-sub">শিক্ষার্থীর প্রাথমিক পরিচয় ও স্বাস্থ্য তথ্য</p>
                 </div>
               </div>
+              <button class="btn btn-sm btn-outline" @click="openQuickEditModal" title="ব্যক্তিগত তথ্য সম্পাদনা">
+                <Icon name="pencil" size="14" /> সম্পাদনা
+              </button>
             </div>
             <div class="section-card-body">
               <div class="info-tiles-grid">
@@ -301,6 +308,9 @@
                   <p class="section-sub">মাদ্রাসায় শিক্ষার্থীর বর্তমান শ্রেণি ও ভর্তির অবস্থা</p>
                 </div>
               </div>
+              <button class="btn btn-sm btn-outline" @click="openQuickEditModal" title="একাডেমিক তথ্য সম্পাদনা">
+                <Icon name="pencil" size="14" /> জামাত পরিবর্তন
+              </button>
             </div>
             <div class="section-card-body">
               <div class="info-tiles-grid">
@@ -354,6 +364,9 @@
                   <p class="section-sub">অভিভাবক ও শিক্ষার্থীর যোগাযোগের ঠিকানা ও ফোন নম্বর</p>
                 </div>
               </div>
+              <button class="btn btn-sm btn-outline" @click="openQuickEditModal" title="ঠিকানা ও যোগাযোগ সম্পাদনা">
+                <Icon name="pencil" size="14" /> সম্পাদনা
+              </button>
             </div>
             <div class="section-card-body">
               <div class="info-tiles-grid">
@@ -456,6 +469,11 @@
 
         <!-- TAB 3: পিতা-মাতা ও পরিবার (Family & Guardian Cards) -->
         <div v-if="activeTab === 'guardian'" class="tab-pane-content">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+            <button class="btn btn-sm btn-outline" @click="openQuickEditModal" title="পিতা-মাতা ও অভিভাবকের তথ্য সম্পাদনা">
+              <Icon name="pencil" size="14" /> অভিভাবক তথ্য সম্পাদনা
+            </button>
+          </div>
           <div class="family-cards-grid">
             <!-- পিতা -->
             <div class="card family-card">
@@ -1271,12 +1289,163 @@
             </div>
           </div>
         </div>
+
+        <!-- In-App Quick Edit Modal -->
+        <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
+          <div class="modal-card modal-lg animate-fade-in" style="max-height: 90vh; overflow-y: auto; max-width: 800px; width: 95%;">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>শিক্ষার্থীর তথ্য সরাসরি সম্পাদনা</h3>
+                <p>শিক্ষার্থীর ব্যক্তিগত, জামাত ও অভিভাবক সংক্রান্ত তথ্য পরিবর্তন করুন</p>
+              </div>
+              <button class="action-btn" @click="showEditModal = false">
+                <Icon name="close" />
+              </button>
+            </div>
+
+            <div v-if="editError" class="alert alert-error" style="margin: 1rem 1.5rem 0; background: #fee2e2; color: #991b1b; padding: 0.75rem 1rem; border-radius: 8px;">
+              <span>{{ editError }}</span>
+            </div>
+
+            <form @submit.prevent="saveQuickEdit" style="padding: 1.25rem 1.5rem;">
+              <!-- Personal -->
+              <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-primary, #1e3a8a); margin-bottom: 0.75rem; border-bottom: 1px solid var(--color-border-light, #e5e7eb); padding-bottom: 0.35rem;">
+                ব্যক্তিগত তথ্য
+              </h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem;">
+                <div class="form-group">
+                  <label class="form-label">নাম (বাংলায়) *</label>
+                  <input v-model="editForm.name_bn" class="form-control" placeholder="বাংলায় নাম" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">নাম (ইংরেজিতে)</label>
+                  <input v-model="editForm.name_en" class="form-control" placeholder="English Name" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ভর্তি নম্বর</label>
+                  <input v-model="editForm.admission_number" class="form-control" placeholder="ADM-2026-001" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">রোল নম্বর</label>
+                  <input v-model="editForm.roll_number" class="form-control" placeholder="যেমন: ০৫" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মোবাইল নম্বর</label>
+                  <input v-model="editForm.phone" class="form-control" placeholder="017XXXXXXXX" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ইমেইল (ঐচ্ছিক)</label>
+                  <input v-model="editForm.email" class="form-control" placeholder="email@domain.com" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">জন্ম তারিখ</label>
+                  <input v-model="editForm.date_of_birth" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">লিঙ্গ</label>
+                  <select v-model="editForm.gender" class="form-control form-select">
+                    <option value="">নির্বাচন করুন</option>
+                    <option value="ছেলে">ছেলে</option>
+                    <option value="মেয়ে">মেয়ে</option>
+                    <option value="অন্যান্য">অন্যান্য</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">রক্তের গ্রুপ</label>
+                  <select v-model="editForm.blood_group" class="form-control form-select">
+                    <option value="">নির্বাচন করুন</option>
+                    <option value="A+">A+</option><option value="A-">A-</option>
+                    <option value="B+">B+</option><option value="B-">B-</option>
+                    <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                    <option value="O+">O+</option><option value="O-">O-</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অবস্থা (Status)</label>
+                  <select v-model="editForm.is_active" class="form-control form-select">
+                    <option :value="true">সক্রিয় (Active)</option>
+                    <option :value="false">নিষ্ক্রিয় (Inactive)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Academic -->
+              <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-primary, #1e3a8a); margin: 1.25rem 0 0.75rem 0; border-bottom: 1px solid var(--color-border-light, #e5e7eb); padding-bottom: 0.35rem;">
+                জামাত ও শ্রেণি
+              </h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem;">
+                <div class="form-group">
+                  <label class="form-label">শ্রেণি / জামাত</label>
+                  <select v-model="editForm.class_id" class="form-control form-select" @change="onEditClassChange">
+                    <option value="">শ্রেণি নির্বাচন করুন</option>
+                    <option v-for="cls in editClassOptions" :key="cls.id" :value="cls.id">
+                      {{ cls.name_bn || cls.name }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শাখা / সেকশন</label>
+                  <select v-model="editForm.section_id" class="form-control form-select">
+                    <option value="">শাখা নেই / সাধারণ</option>
+                    <option v-for="sec in editSectionOptions" :key="sec.id" :value="sec.id">
+                      {{ sec.name_bn || sec.name }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Parents & Guardian -->
+              <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-primary, #1e3a8a); margin: 1.25rem 0 0.75rem 0; border-bottom: 1px solid var(--color-border-light, #e5e7eb); padding-bottom: 0.35rem;">
+                পিতা-মাতা ও অভিভাবকের তথ্য
+              </h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem;">
+                <div class="form-group">
+                  <label class="form-label">পিতার নাম</label>
+                  <input v-model="editForm.father_name" class="form-control" placeholder="পিতার নাম" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">পিতার মোবাইল</label>
+                  <input v-model="editForm.father_phone" class="form-control" placeholder="017XXXXXXXX" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মাতার নাম</label>
+                  <input v-model="editForm.mother_name" class="form-control" placeholder="মাতার নাম" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মাতার মোবাইল</label>
+                  <input v-model="editForm.mother_phone" class="form-control" placeholder="017XXXXXXXX" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অভিভাবকের নাম</label>
+                  <input v-model="editForm.guardian_name" class="form-control" placeholder="অভিভাবকের নাম" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অভিভাবকের মোবাইল</label>
+                  <input v-model="editForm.guardian_phone" class="form-control" placeholder="018XXXXXXXX" />
+                </div>
+              </div>
+
+              <!-- Address -->
+              <div class="form-group" style="margin-top: 1rem;">
+                <label class="form-label">স্থায়ী ও বর্তমান ঠিকানা</label>
+                <textarea v-model="editForm.address_bn" class="form-control" rows="2" placeholder="গ্রাম, ডাকঘর, থানা, জেলা..."></textarea>
+              </div>
+
+              <div class="modal-footer" style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--color-border-light, #e5e7eb); padding-top: 1rem;">
+                <button type="button" class="btn btn-ghost" @click="showEditModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="editSaving || !editForm.name_bn">
+                  {{ editSaving ? 'সংরক্ষণ হচ্ছে...' : 'আপডেট সম্পন্ন করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </Teleport>
     </ClientOnly>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApiClient } from '~/utils/api'
 import Icon from '~/components/Icon.vue'
@@ -1301,6 +1470,131 @@ const copied = ref(false)
 
 const showIdCardModal = ref(false)
 const showDeleteModal = ref(false)
+const showEditModal = ref(false)
+const editSaving = ref(false)
+const editError = ref('')
+const editClassOptions = ref<any[]>([])
+const editSectionOptions = ref<any[]>([])
+
+const editForm = reactive({
+  name_bn: '',
+  name_en: '',
+  admission_number: '',
+  roll_number: '',
+  phone: '',
+  email: '',
+  date_of_birth: '',
+  gender: '',
+  blood_group: '',
+  nationality: 'বাংলাদেশী',
+  class_id: '' as string | number,
+  section_id: '' as string | number,
+  is_active: true,
+  father_name: '',
+  father_phone: '',
+  mother_name: '',
+  mother_phone: '',
+  guardian_name: '',
+  guardian_phone: '',
+  guardian_relation: '',
+  address_bn: '',
+  health_summary: '',
+})
+
+async function loadEditClasses() {
+  try {
+    const res = await api.get('/academic/classes').catch(() => null)
+    if (res?.data?.data) {
+      editClassOptions.value = res.data.data
+    } else {
+      const alt = await api.get('/settings/classes').catch(() => ({ data: { data: [] } }))
+      editClassOptions.value = alt.data?.data || []
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+async function loadEditSections(classId: string | number) {
+  if (!classId) {
+    editSectionOptions.value = []
+    return
+  }
+  try {
+    const res = await api.get(`/academic/sections?class_id=${classId}`).catch(() => null)
+    editSectionOptions.value = res?.data?.data || []
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+function onEditClassChange() {
+  editForm.section_id = ''
+  if (editForm.class_id) {
+    loadEditSections(editForm.class_id)
+  }
+}
+
+function openQuickEditModal() {
+  if (!student.value) return
+  const s = student.value
+  editForm.name_bn = s.name_bn || ''
+  editForm.name_en = s.name_en || ''
+  editForm.admission_number = s.admission_number || ''
+  editForm.roll_number = s.roll_number || currentEnrollment.value?.roll_number || ''
+  editForm.phone = s.phone || s.user?.phone || ''
+  editForm.email = s.email || s.user?.email || ''
+  editForm.date_of_birth = s.date_of_birth ? String(s.date_of_birth).slice(0, 10) : ''
+  editForm.gender = s.gender || ''
+  editForm.blood_group = s.blood_group || ''
+  editForm.nationality = s.nationality || 'বাংলাদেশী'
+  editForm.is_active = s.status ? s.status === 'active' : true
+
+  const activeClassId = s.class_id || currentEnrollment.value?.class_id || s.class?.id || ''
+  const activeSectionId = s.section_id || currentEnrollment.value?.section_id || ''
+  editForm.class_id = activeClassId
+  if (activeClassId) {
+    loadEditSections(activeClassId)
+  }
+  editForm.section_id = activeSectionId
+
+  editForm.father_name = s.father_name || s.guardian?.father_name || ''
+  editForm.father_phone = s.father_phone || s.guardian?.father_phone || ''
+  editForm.mother_name = s.mother_name || s.guardian?.mother_name || ''
+  editForm.mother_phone = s.mother_phone || s.guardian?.mother_phone || ''
+  editForm.guardian_name = s.guardian_name || s.guardian?.guardian_name || ''
+  editForm.guardian_phone = s.guardian_phone || s.guardian?.guardian_phone || ''
+  editForm.guardian_relation = s.guardian_relation || s.guardian?.relation || ''
+  editForm.address_bn = s.address_bn || ''
+  editForm.health_summary = s.health_summary || ''
+
+  editError.value = ''
+  showEditModal.value = true
+}
+
+async function saveQuickEdit() {
+  if (!editForm.name_bn.trim() || !student.value) return
+  editSaving.value = true
+  editError.value = ''
+
+  try {
+    const payload = {
+      ...editForm,
+      class_id: editForm.class_id ? Number(editForm.class_id) : undefined,
+      section_id: editForm.section_id ? Number(editForm.section_id) : undefined,
+    }
+
+    const res = await api.put(`/students/${student.value.id}`, payload)
+    showEditModal.value = false
+    await loadStudent()
+    alert('শিক্ষার্থীর তথ্য সফলভাবে আপডেট করা হয়েছে!')
+  } catch (err: any) {
+    console.error('Update failed:', err)
+    editError.value = err?.response?.data?.message || 'সংরক্ষণে ত্রুটি হয়েছে। তথ্যাবলী যাচাই করুন।'
+  } finally {
+    editSaving.value = false
+  }
+}
 
 const activeTab = ref('overview')
 
@@ -1474,6 +1768,7 @@ function getStatusBadgeClass(status: string) {
 
 onMounted(() => {
   loadStudent()
+  loadEditClasses()
 })
 </script>
 
