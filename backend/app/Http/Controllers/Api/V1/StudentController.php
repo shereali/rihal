@@ -196,9 +196,10 @@ class StudentController extends ApiController
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $user = $request->user();
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
 
-        $student = Student::where('tenant_id', $user->tenant_id)
+        $student = Student::withTrashed()
+            ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
             ->where('id', $id)
             ->first();
 
@@ -267,9 +268,23 @@ class StudentController extends ApiController
             }
         }
 
+        // Sync or create guardian record
+        if (!empty($data['guardian_name']) || !empty($data['guardian_phone'])) {
+            \App\Models\StudentGuardian::updateOrCreate(
+                ['student_id' => $student->id],
+                [
+                    'tenant_id' => $tenantId ?? $student->tenant_id,
+                    'guardian_name' => $data['guardian_name'] ?? $student->guardian_name ?? 'অভিভাবক',
+                    'phone' => $data['guardian_phone'] ?? $student->guardian_phone,
+                    'relationship' => $data['guardian_relation'] ?? $student->guardian_relation ?? 'অভিভাবক',
+                    'is_primary' => true,
+                ]
+            );
+        }
+
         // Sync or create enrollment record if class_id is provided
         if (!empty($data['class_id'])) {
-            $enrollment = Enrollment::where('tenant_id', $user->tenant_id)
+            $enrollment = Enrollment::where('tenant_id', $tenantId ?? $student->tenant_id)
                 ->where('student_id', $student->user_id ?: $student->id)
                 ->latest()
                 ->first();
@@ -280,9 +295,9 @@ class StudentController extends ApiController
                 if (array_key_exists('roll_number', $data)) $enrollUpdates['roll_number'] = $data['roll_number'];
                 $enrollment->update($enrollUpdates);
             } else {
-                $session = AcademicSession::where('tenant_id', $user->tenant_id)->first();
+                $session = AcademicSession::where('tenant_id', $tenantId ?? $student->tenant_id)->first();
                 Enrollment::create([
-                    'tenant_id' => $user->tenant_id,
+                    'tenant_id' => $tenantId ?? $student->tenant_id,
                     'student_id' => $student->user_id ?: $student->id,
                     'class_id' => $data['class_id'],
                     'section_id' => $data['section_id'] ?? null,

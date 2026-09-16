@@ -399,12 +399,13 @@ function toBn(n: any) {
 async function loadClassOptions() {
   try {
     const res = await api.get('/academic/classes').catch(() => null)
-    if (res?.data?.data) {
+    if (res?.data?.data && Array.isArray(res.data.data)) {
       classOptions.value = res.data.data
+    } else if (res?.data && Array.isArray(res.data)) {
+      classOptions.value = res.data
     } else {
-      // Fallback
       const alt = await api.get('/settings/classes').catch(() => ({ data: { data: [] } }))
-      classOptions.value = alt.data?.data || []
+      classOptions.value = alt.data?.data || alt.data || []
     }
   } catch (err) {
     console.error('Failed to load classes:', err)
@@ -418,7 +419,14 @@ async function loadSections(classId: string | number) {
   }
   try {
     const res = await api.get(`/academic/sections?class_id=${classId}`).catch(() => null)
-    sectionOptions.value = res?.data?.data || []
+    if (res?.data?.data && Array.isArray(res.data.data)) {
+      sectionOptions.value = res.data.data
+    } else if (res?.data && Array.isArray(res.data)) {
+      sectionOptions.value = res.data
+    } else {
+      const alt = await api.get(`/settings/sections?class_id=${classId}`).catch(() => null)
+      sectionOptions.value = alt?.data?.data || alt?.data || []
+    }
   } catch (err) {
     console.error('Failed to load sections:', err)
   }
@@ -435,19 +443,20 @@ async function loadStudent() {
   loading.value = true
   error.value = ''
   try {
-    const res = await api.get(`/students/${studentId.value}`)
-    const s = res.data?.data
-    if (!s) {
+    const id = route.params.id as string
+    const res = await api.get(`/students/${id}`)
+    const s = res.data?.data || res.data
+    if (!s || typeof s !== 'object') {
       error.value = 'শিক্ষার্থীর কোনো তথ্য পাওয়া যায়নি।'
       return
     }
 
-    studentName.value = s.name_bn || s.name_en || 'শিক্ষার্থী'
-    form.name_bn = s.name_bn || ''
-    form.name_en = s.name_en || ''
+    studentName.value = s.name_bn || s.name_en || s.user?.name_bn || s.user?.name || 'শিক্ষার্থী'
+    form.name_bn = s.name_bn || s.user?.name_bn || s.user?.name || ''
+    form.name_en = s.name_en || s.user?.name_en || ''
     form.admission_number = s.admission_number || ''
     form.roll_number = s.roll_number || s.enrollments?.[0]?.roll_number || ''
-    form.phone = s.phone || s.user?.phone || ''
+    form.phone = s.phone || s.user?.phone || s.guardian?.phone || s.father_phone || ''
     form.email = s.email || s.user?.email || ''
     form.date_of_birth = s.date_of_birth ? String(s.date_of_birth).slice(0, 10) : ''
     form.gender = s.gender || ''
@@ -457,8 +466,8 @@ async function loadStudent() {
 
     // Academic Class and Section
     const activeEnrollment = s.enrollments?.[0]
-    const activeClassId = s.class_id || activeEnrollment?.class_id || s.class?.id
-    const activeSectionId = s.section_id || activeEnrollment?.section_id
+    const activeClassId = s.class_id || activeEnrollment?.class_id || s.class?.id || s.class_info?.id
+    const activeSectionId = s.section_id || activeEnrollment?.section_id || s.section?.id
 
     if (activeClassId) {
       form.class_id = activeClassId
@@ -475,11 +484,11 @@ async function loadStudent() {
     form.mother_phone = s.mother_phone || s.guardian?.mother_phone || ''
     form.guardian_name = s.guardian_name || s.guardian?.guardian_name || ''
     form.guardian_phone = s.guardian_phone || s.guardian?.guardian_phone || ''
-    form.guardian_relation = s.guardian_relation || s.guardian?.relation || ''
+    form.guardian_relation = s.guardian_relation || s.guardian?.relation || s.guardian?.relationship || ''
 
     // Address & Health
     form.address_bn = s.address_bn || ''
-    form.health_summary = s.health_summary || ''
+    form.health_summary = typeof s.health_summary === 'string' ? s.health_summary : (s.health_summary?.notes || '')
   } catch (err: any) {
     console.error('Failed to load student:', err)
     error.value = err?.response?.data?.message || 'শিক্ষার্থীর তথ্য লোড করতে সমস্যা হয়েছে।'
@@ -496,18 +505,38 @@ async function saveStudent() {
   errors.value = {}
 
   try {
-    const payload = {
-      ...form,
-      class_id: form.class_id ? Number(form.class_id) : undefined,
-      section_id: form.section_id ? Number(form.section_id) : undefined,
+    const id = route.params.id as string
+    const payload: Record<string, any> = {
+      name_bn: form.name_bn?.trim(),
+      name_en: form.name_en?.trim() || null,
+      admission_number: form.admission_number?.trim() || null,
+      roll_number: form.roll_number?.trim() || null,
+      phone: form.phone?.trim() || null,
+      email: form.email?.trim() || null,
+      date_of_birth: form.date_of_birth || null,
+      gender: form.gender || null,
+      blood_group: form.blood_group || null,
+      nationality: form.nationality || 'বাংলাদেশী',
+      class_id: form.class_id ? Number(form.class_id) : null,
+      section_id: form.section_id ? Number(form.section_id) : null,
+      is_active: !!form.is_active,
+      father_name: form.father_name?.trim() || null,
+      father_phone: form.father_phone?.trim() || null,
+      mother_name: form.mother_name?.trim() || null,
+      mother_phone: form.mother_phone?.trim() || null,
+      guardian_name: form.guardian_name?.trim() || null,
+      guardian_phone: form.guardian_phone?.trim() || null,
+      guardian_relation: form.guardian_relation?.trim() || null,
+      address_bn: form.address_bn?.trim() || null,
+      health_summary: form.health_summary?.trim() || null,
     }
 
-    const res = await api.put(`/students/${studentId.value}`, payload)
+    const res = await api.put(`/students/${id}`, payload)
     success.value = res.data?.message || 'শিক্ষার্থীর তথ্য সফলভাবে আপডেট করা হয়েছে!'
 
     setTimeout(() => {
-      navigateTo(`/students/${studentId.value}`)
-    }, 800)
+      navigateTo(`/students/${id}`)
+    }, 600)
   } catch (err: any) {
     console.error('Failed to update student:', err)
     if (err.response?.data?.errors) {
@@ -520,7 +549,8 @@ async function saveStudent() {
 }
 
 onMounted(async () => {
-  await Promise.all([loadClassOptions(), loadStudent()])
+  await loadClassOptions()
+  await loadStudent()
 })
 </script>
 
