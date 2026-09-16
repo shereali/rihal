@@ -286,6 +286,24 @@ class HomeworkController extends ApiController
         return $this->successResponse($plan, 'পাঠ পরিকল্পনা তৈরি সফল', 201);
     }
 
+    public function showLessonPlan(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+
+        $plan = \App\Models\LessonPlan::where('tenant_id', $user->tenant_id)
+            ->where('id', $id)
+            ->with('teacher.user:id,name_bn,name_en')
+            ->with('class:id,name_bn,name_en')
+            ->with('subject:id,name_bn,name_en')
+            ->first();
+
+        if (!$plan) {
+            return $this->errorResponse('পাঠ পরিকল্পনা পাওয়া যায়নি', 404);
+        }
+
+        return $this->successResponse($plan);
+    }
+
     public function updateLessonPlan(Request $request, int $id): JsonResponse
     {
         $user = $request->user();

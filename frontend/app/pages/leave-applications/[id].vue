@@ -44,13 +44,18 @@
           </div>
         </div>
 
-        <div class="header-actions" v-if="leave.status === 'pending'">
-          <button class="btn btn-success" @click="approveLeave" :disabled="actionLoading">
-            <icon name="check" /> অনুমোদন করুন
+        <div class="header-actions">
+          <button class="btn btn-outline-primary" @click="openEditModal">
+            <icon name="edit" /> তথ্য সম্পাদনা
           </button>
-          <button class="btn btn-danger" @click="rejectLeave" :disabled="actionLoading">
-            <icon name="close" /> প্রত্যাখ্যান করুন
-          </button>
+          <template v-if="leave.status === 'pending'">
+            <button class="btn btn-success" @click="approveLeave" :disabled="actionLoading">
+              <icon name="check" /> অনুমোদন করুন
+            </button>
+            <button class="btn btn-danger" @click="rejectLeave" :disabled="actionLoading">
+              <icon name="close" /> প্রত্যাখ্যান করুন
+            </button>
+          </template>
         </div>
       </div>
 
@@ -143,11 +148,86 @@
         </div>
       </div>
     </div>
+
+    <!-- Edit Leave Application Modal -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showEditModal" class="modal-backdrop" @click.self="showEditModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>ছুটির আবেদন সম্পাদনা</h3>
+              <button class="btn-close" @click="showEditModal = false">✕</button>
+            </div>
+            <form @submit.prevent="saveLeaveEdit">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">আবেদনের শিরোনাম <span class="required">*</span></label>
+                  <input v-model="editForm.title_bn" type="text" class="form-input" required />
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">ছুটির ধরন <span class="required">*</span></label>
+                    <select v-model="editForm.leave_type" class="form-input" required>
+                      <option value="ছুটি">ছুটি</option>
+                      <option value="রোগ">রোগ / অসুস্থতা</option>
+                      <option value="ব্যক্তিগত">ব্যক্তিগত</option>
+                      <option value="মাতৃত্ব">মাতৃত্ব</option>
+                      <option value="সিহ্ব">সিহ্ব</option>
+                      <option value="অনুপস্থিতি">অনুপস্থিতি</option>
+                      <option value="অন্য">অন্য</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">বর্তমান অবস্থা</label>
+                    <select v-model="editForm.status" class="form-input">
+                      <option value="pending">মুলতুবি (Pending)</option>
+                      <option value="approved">অনুমোদিত (Approved)</option>
+                      <option value="rejected">প্রত্যাখ্যাত (Rejected)</option>
+                      <option value="cancelled">বাতিল (Cancelled)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">শুরুর তারিখ <span class="required">*</span></label>
+                    <input v-model="editForm.start_date" type="date" class="form-input" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">শেষ তারিখ <span class="required">*</span></label>
+                    <input v-model="editForm.end_date" type="date" class="form-input" required />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ছুটির কারণ ও বিবরণ <span class="required">*</span></label>
+                  <textarea v-model="editForm.description_bn" class="form-input" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অভ্যন্তরীণ নোট (ঐচ্ছিক)</label>
+                  <textarea v-model="editForm.notes" class="form-input" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input v-model="editForm.is_urgent" type="checkbox" />
+                    <span>জরুরি আবেদন হিসেবে চিহ্নিত করুন</span>
+                  </label>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @click="showEditModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useApiClient } from '~/utils/api'
 import { useAuth } from '~/composables/useAuth'
 import { useRoute, useRouter } from 'vue-router'
@@ -160,6 +240,46 @@ const router = useRouter()
 const leave = ref<any>(null)
 const loading = ref(true)
 const actionLoading = ref(false)
+const showEditModal = ref(false)
+const saving = ref(false)
+
+const editForm = reactive({
+  title_bn: '',
+  leave_type: 'ছুটি',
+  description_bn: '',
+  start_date: '',
+  end_date: '',
+  notes: '',
+  status: 'pending',
+  is_urgent: false,
+})
+
+function openEditModal() {
+  if (!leave.value) return
+  editForm.title_bn = leave.value.title_bn || leave.value.title || ''
+  editForm.leave_type = leave.value.leave_type || 'ছুটি'
+  editForm.description_bn = leave.value.description_bn || leave.value.description || ''
+  editForm.start_date = leave.value.raw_start_date || leave.value.start_date || ''
+  editForm.end_date = leave.value.raw_end_date || leave.value.end_date || ''
+  editForm.notes = leave.value.notes || ''
+  editForm.status = leave.value.status || 'pending'
+  editForm.is_urgent = !!leave.value.is_urgent
+  showEditModal.value = true
+}
+
+async function saveLeaveEdit() {
+  saving.value = true
+  try {
+    const id = route.params.id as string
+    await api.put(`/leave-applications/${id}`, { ...editForm })
+    showEditModal.value = false
+    await load()
+  } catch (err: any) {
+    alert(err?.response?.data?.message || 'ছুটির আবেদন আপডেট করা সম্ভব হয়নি')
+  } finally {
+    saving.value = false
+  }
+}
 
 async function load() {
   loading.value = true

@@ -196,9 +196,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/finance/donations', [FinanceController::class, 'donations']);
         Route::post('/finance/donations', [FinanceController::class, 'storeDonation'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/donations/{id}', [FinanceController::class, 'showDonation']);
+        Route::put('/finance/donations/{id}', [FinanceController::class, 'updateDonation'])->middleware('role:admin,tenant_admin,super_admin');
+        Route::delete('/finance/donations/{id}', [FinanceController::class, 'destroyDonation'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/expenses', [FinanceController::class, 'expenses']);
         Route::post('/finance/expenses', [FinanceController::class, 'storeExpense'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/expenses/{id}', [FinanceController::class, 'showExpense']);
+        Route::put('/finance/expenses/{id}', [FinanceController::class, 'updateExpense'])->middleware('role:admin,tenant_admin,super_admin');
+        Route::delete('/finance/expenses/{id}', [FinanceController::class, 'destroyExpense'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/vendors', [FinanceController::class, 'vendors']);
         Route::post('/finance/vendors', [FinanceController::class, 'storeVendor'])->middleware('role:admin,tenant_admin,super_admin');
         Route::get('/finance/fee-structures', [FinanceController::class, 'feeStructures']);
@@ -229,6 +233,7 @@ Route::prefix('v1')->group(function () {
         Route::put('/homework-submissions/{id}', [HomeworkController::class, 'updateSubmission']);
         Route::get('/lesson-plans', [HomeworkController::class, 'lessonPlans']);
         Route::post('/lesson-plans', [HomeworkController::class, 'storeLessonPlan']);
+        Route::get('/lesson-plans/{id}', [HomeworkController::class, 'showLessonPlan']);
         Route::put('/lesson-plans/{id}', [HomeworkController::class, 'updateLessonPlan']);
         Route::delete('/lesson-plans/{id}', [HomeworkController::class, 'destroyLessonPlan']);
 

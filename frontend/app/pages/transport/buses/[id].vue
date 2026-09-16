@@ -14,10 +14,67 @@
         <h1>যানবাহনের বিবরণী</h1>
         <p>{{ bus?.bus_number }} — ধরণ, রুট, চালক, ক্ষমতা ও ডকুমেন্ট</p>
       </div>
-      <NuxtLink to="/transport/buses" class="btn btn-ghost">
-        <icon name="arrow-left" /> বাস তালিকায় ফিরে যান
-      </NuxtLink>
+      <div class="header-actions">
+        <NuxtLink to="/transport/buses" class="btn btn-ghost">
+          <icon name="arrow-left" /> বাস তালিকায় ফিরে যান
+        </NuxtLink>
+        <button class="btn btn-primary btn-sm" @click="openEditModal" v-if="bus">
+          <icon name="pencil" /> তথ্য সম্পাদনা
+        </button>
+      </div>
     </div>
+
+    <!-- Edit Bus Modal -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showEdit" class="modal-overlay" @click.self="showEdit = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>যানবাহন তথ্য সম্পাদনা</h3>
+              <button class="modal-close" @click="showEdit = false">×</button>
+            </div>
+            <form @submit.prevent="saveEdit">
+              <div class="modal-body">
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">বাস নম্বর / নাম *</label>
+                    <input v-model="editForm.bus_number" class="form-control" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">যানবাহনের ধরন</label>
+                    <input v-model="editForm.vehicle_type" class="form-control" placeholder="যেমন: মিনিবাস / মাইক্রো" />
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">ধারণক্ষমতা (সিট সংখ্যা)</label>
+                    <input v-model.number="editForm.capacity" type="number" min="1" class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">রেজিস্ট্রেশন নম্বর</label>
+                    <input v-model="editForm.registration_number" type="text" class="form-control" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-check-label">
+                    <input type="checkbox" v-model="editForm.is_active" /> সক্রিয় যানবাহন
+                  </label>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showEdit = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving || !editForm.bus_number">
+                  <icon v-if="saving" name="loader" />
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Teleport>
+    </ClientOnly>
 
     <div v-if="loading" class="loading-state"><div class="spinner" /></div>
     <div v-else-if="!bus" class="empty-card">
@@ -109,9 +166,45 @@ import { useRoute } from 'vue-router'
 import { useApiClient } from '~/utils/api'
 
 const route = useRoute()
-const api = useApiClient()
 const loading = ref(true)
 const bus = ref<any>(null)
+const showEdit = ref(false)
+const saving = ref(false)
+
+const editForm = reactive({
+  bus_number: '',
+  vehicle_type: '',
+  capacity: 30,
+  registration_number: '',
+  is_active: true,
+})
+
+function openEditModal() {
+  if (!bus.value) return
+  const b = bus.value
+  editForm.bus_number = b.bus_number || ''
+  editForm.vehicle_type = b.vehicle_type || ''
+  editForm.capacity = b.capacity ? Number(b.capacity) : 30
+  editForm.registration_number = b.registration_number || ''
+  editForm.is_active = b.is_active ?? true
+  showEdit.value = true
+}
+
+async function saveEdit() {
+  if (!editForm.bus_number.trim()) return
+  saving.value = true
+  try {
+    const res = await api.put(`/transport/buses/${route.params.id}`, editForm)
+    bus.value = res.data?.data || { ...bus.value, ...editForm }
+    showEdit.value = false
+    alert('বাসের তথ্য সফলভাবে আপডেট করা হয়েছে!')
+  } catch (err: any) {
+    console.error('Update bus error:', err)
+    alert(err?.response?.data?.message || 'সংরক্ষণে ত্রুটি হয়েছে')
+  } finally {
+    saving.value = false
+  }
+}
 
 function load() {
   loading.value = true

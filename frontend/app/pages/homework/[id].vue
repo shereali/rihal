@@ -12,10 +12,67 @@
         <h1>গৃহকাজের বিবরণী</h1>
         <p>{{ assignment?.title_bn || assignment?.title_en }} — নির্দেশনা, সময়সীমা ও জমা তথ্য</p>
       </div>
-      <NuxtLink to="/homework" class="btn btn-ghost">
-        <icon name="arrow-left" /> সব গৃহকাজে ফিরে যান
-      </NuxtLink>
+      <div class="header-actions">
+        <NuxtLink to="/homework" class="btn btn-ghost">
+          <icon name="arrow-left" /> সব গৃহকাজে ফিরে যান
+        </NuxtLink>
+        <button class="btn btn-primary" @click="openEditModal" v-if="assignment">
+          <icon name="pencil" /> তথ্য সম্পাদনা
+        </button>
+      </div>
     </div>
+
+    <!-- Edit Homework Modal -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showEdit" class="modal-overlay" @click.self="showEdit = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>গৃহকাজ সম্পাদনা</h3>
+              <button class="modal-close" @click="showEdit = false">×</button>
+            </div>
+            <form @submit.prevent="saveEdit">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">শিরোনাম (বাংলায়) *</label>
+                  <input v-model="editForm.title_bn" class="form-control" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শিরোনাম (ইংরেজি)</label>
+                  <input v-model="editForm.title_en" class="form-control" />
+                </div>
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">জমার শেষ তারিখ</label>
+                    <input v-model="editForm.due_date" type="date" class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">সর্বোচ্চ নম্বর</label>
+                    <input v-model.number="editForm.max_score" type="number" min="0" class="form-control" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বিস্তারিত নির্দেশনা</label>
+                  <textarea v-model="editForm.description_bn" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-check-label">
+                    <input type="checkbox" v-model="editForm.is_active" /> সক্রিয় গৃহকাজ
+                  </label>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showEdit = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving || !editForm.title_bn">
+                  <icon v-if="saving" name="loader" />
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Teleport>
+    </ClientOnly>
 
     <div v-if="loading" class="loading-state"><div class="spinner" /></div>
     <div v-else-if="!assignment" class="empty-card">
@@ -155,9 +212,47 @@ const route = useRoute()
 const api = useApiClient()
 const loading = ref(true)
 const submitLoading = ref(false)
-const newSubmissionSuccess = ref(false)
 const assignment = ref<any>(null)
 const submissions = ref<any[]>([])
+const showEdit = ref(false)
+const saving = ref(false)
+
+const editForm = reactive({
+  title_bn: '',
+  title_en: '',
+  due_date: '',
+  max_score: 100,
+  description_bn: '',
+  is_active: true,
+})
+
+function openEditModal() {
+  if (!assignment.value) return
+  const a = assignment.value
+  editForm.title_bn = a.title_bn || ''
+  editForm.title_en = a.title_en || ''
+  editForm.due_date = a.due_date ? String(a.due_date).slice(0, 10) : ''
+  editForm.max_score = a.max_score ? Number(a.max_score) : 100
+  editForm.description_bn = a.description_bn || a.description || ''
+  editForm.is_active = a.is_active ?? true
+  showEdit.value = true
+}
+
+async function saveEdit() {
+  if (!editForm.title_bn.trim()) return
+  saving.value = true
+  try {
+    const res = await api.put(`/homework-assignments/${route.params.id}`, editForm)
+    assignment.value = res.data?.data || { ...assignment.value, ...editForm }
+    showEdit.value = false
+    alert('গৃহকাজের তথ্য সফলভাবে আপডেট করা হয়েছে!')
+  } catch (err: any) {
+    console.error('Update homework error:', err)
+    alert(err?.response?.data?.message || 'সংরক্ষণে ত্রুটি হয়েছে')
+  } finally {
+    saving.value = false
+  }
+}
 
 async function load() {
   loading.value = true

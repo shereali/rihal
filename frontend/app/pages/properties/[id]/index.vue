@@ -12,9 +12,14 @@
         <h1>সম্পত্তির বিবরণী</h1>
         <p>{{ property?.property_name_bn }} — ধরণ, অবস্থা, মূল্য ও সংশ্লিষ্ট তথ্য</p>
       </div>
-      <NuxtLink to="/properties" class="btn btn-outline">
-        <icon name="arrow-left" /> ফিরে যান
-      </NuxtLink>
+      <div class="header-actions">
+        <NuxtLink to="/properties" class="btn btn-outline">
+          <icon name="arrow-left" /> ফিরে যান
+        </NuxtLink>
+        <button class="btn btn-primary" @click="openEditPropertyModal" v-if="property">
+          <icon name="pencil" /> তথ্য সম্পাদনা
+        </button>
+      </div>
     </div>
 
     <div v-if="loading" class="loading-state"><div class="spinner" /><p>তথ্য লোড হচ্ছে...</p></div>
@@ -253,6 +258,82 @@
         </div>
       </Teleport>
     </ClientOnly>
+
+    <!-- Property Edit Modal -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showEditPropertyModal" class="modal-overlay" @click.self="showEditPropertyModal = false">
+          <div class="modal-card modal-lg">
+            <div class="modal-header">
+              <h3>সম্পত্তির তথ্য সম্পাদনা</h3>
+              <button class="modal-close" @click="showEditPropertyModal = false">×</button>
+            </div>
+            <form @submit.prevent="savePropertyEdit">
+              <div class="modal-body">
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">সম্পত্তির নাম (বাংলায়) <span class="required-star">*</span></label>
+                    <input v-model="propertyEditForm.property_name_bn" class="form-control" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">সম্পত্তির নাম (ইংরেজিতে)</label>
+                    <input v-model="propertyEditForm.property_name_en" class="form-control" />
+                  </div>
+                </div>
+
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label class="form-label">ধরণ</label>
+                    <select v-model="propertyEditForm.property_type" class="form-select">
+                      <option value="Land">জমি (Land)</option>
+                      <option value="Building">ভবন (Building)</option>
+                      <option value="Vehicle">যানবাহন (Vehicle)</option>
+                      <option value="Equipment">যন্ত্রপাতি (Equipment)</option>
+                      <option value="Other">অন্যান্য</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">অবস্থা</label>
+                    <select v-model="propertyEditForm.status" class="form-select">
+                      <option value="Active">সক্রিয় / ব্যবহারযোগ্য</option>
+                      <option value="Under Maintenance">রক্ষণাবেক্ষণাধীন</option>
+                      <option value="Disposed">পরিত্যক্ত / হস্তান্তরিত</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">আয়তন (বর্গফুট)</label>
+                    <input v-model.number="propertyEditForm.land_area_sqft" type="number" min="0" class="form-control" />
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">বর্তমান বাজারমূল্য (৳)</label>
+                    <input v-model.number="propertyEditForm.current_market_value" type="number" min="0" class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">দলিল / নিবন্ধন নং</label>
+                    <input v-model="propertyEditForm.registration_number" type="text" class="form-control" />
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">ঠিকানা / অবস্থান</label>
+                  <textarea v-model="propertyEditForm.location_address_bn" class="form-control" rows="2"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showEditPropertyModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving || !propertyEditForm.property_name_bn">
+                  <icon v-if="saving" name="loader" class="animate-spin" />
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
@@ -272,9 +353,51 @@ const visitors = ref<any[]>([])
 const loading = ref(true)
 const saving = ref(false)
 
+const showEditPropertyModal = ref(false)
 const showDocModal = ref(false)
 const showMaintModal = ref(false)
 const showVisitorModal = ref(false)
+
+const propertyEditForm = reactive({
+  property_name_bn: '',
+  property_name_en: '',
+  property_type: 'Land',
+  status: 'Active',
+  land_area_sqft: 0,
+  current_market_value: 0,
+  registration_number: '',
+  location_address_bn: '',
+})
+
+function openEditPropertyModal() {
+  if (!property.value) return
+  const p = property.value
+  propertyEditForm.property_name_bn = p.property_name_bn || ''
+  propertyEditForm.property_name_en = p.property_name_en || ''
+  propertyEditForm.property_type = p.property_type || 'Land'
+  propertyEditForm.status = p.status || 'Active'
+  propertyEditForm.land_area_sqft = p.land_area_sqft ? Number(p.land_area_sqft) : 0
+  propertyEditForm.current_market_value = p.current_market_value ? Number(p.current_market_value) : 0
+  propertyEditForm.registration_number = p.registration_number || ''
+  propertyEditForm.location_address_bn = p.location_address_bn || p.location_address_en || ''
+  showEditPropertyModal.value = true
+}
+
+async function savePropertyEdit() {
+  if (!propertyEditForm.property_name_bn.trim()) return
+  saving.value = true
+  try {
+    const res = await api.put(`/properties/${propertyId}`, propertyEditForm)
+    property.value = res.data?.data || { ...property.value, ...propertyEditForm }
+    showEditPropertyModal.value = false
+    alert('সম্পত্তির তথ্য সফলভাবে আপডেট করা হয়েছে!')
+  } catch (err: any) {
+    console.error('Update property failed:', err)
+    alert(err?.response?.data?.message || 'সংরক্ষণে ত্রুটি হয়েছে')
+  } finally {
+    saving.value = false
+  }
+}
 
 const docForm = reactive({ document_title: '', document_type: '', file_url: '' })
 const maintForm = reactive({ title_bn: '', cost: 0, maintenance_date: new Date().toISOString().slice(0, 10), status: 'completed' })

@@ -99,8 +99,10 @@ class LeaveManagementController extends Controller
             'user_email' => $l->user->email ?? '',
             'leave_type' => $l->leave_type, 'title_bn' => $l->title_bn, 'title' => $l->title,
             'description_bn' => $l->description_bn,
-            'start_date' => $l->start_date->format('d M, Y'),
-            'end_date' => $l->end_date->format('d M, Y'),
+            'start_date' => $l->start_date?->format('d M, Y'),
+            'raw_start_date' => $l->start_date?->format('Y-m-d'),
+            'end_date' => $l->end_date?->format('d M, Y'),
+            'raw_end_date' => $l->end_date?->format('Y-m-d'),
             'days_count' => $l->days_count, 'status' => $l->status,
             'notes' => $l->notes, 'is_urgent' => (bool) ($l->is_urgent ?? false),
             'created_at' => $l->created_at?->format('d M, Y h:i A'),
@@ -122,6 +124,9 @@ class LeaveManagementController extends Controller
             'is_urgent' => ['boolean'],
             'status' => ['sometimes', 'string', 'in:pending,approved,rejected,cancelled'],
         ]);
+        if (isset($validated['start_date']) && isset($validated['end_date'])) {
+            $validated['days_count'] = \Carbon\Carbon::parse($validated['start_date'])->diffInDays(\Carbon\Carbon::parse($validated['end_date'])) + 1;
+        }
         $leave->update($validated);
         return ApiResource::item($leave->fresh()->load('user'), fn($l) => [
             'id' => $l->id, 'user_id' => $l->user_id,
@@ -129,8 +134,10 @@ class LeaveManagementController extends Controller
             'user_email' => $l->user->email ?? '',
             'leave_type' => $l->leave_type, 'title_bn' => $l->title_bn, 'title' => $l->title,
             'description_bn' => $l->description_bn,
-            'start_date' => $l->start_date->format('d M, Y'),
-            'end_date' => $l->end_date->format('d M, Y'),
+            'start_date' => $l->start_date?->format('d M, Y'),
+            'raw_start_date' => $l->start_date?->format('Y-m-d'),
+            'end_date' => $l->end_date?->format('d M, Y'),
+            'raw_end_date' => $l->end_date?->format('Y-m-d'),
             'days_count' => $l->days_count, 'status' => $l->status,
             'notes' => $l->notes, 'is_urgent' => (bool) ($l->is_urgent ?? false),
             'created_at' => $l->created_at?->format('d M, Y h:i A'),

@@ -6,10 +6,97 @@
         <h1 v-if="orphan">অর্ফান: {{ orphan.name_bn }}</h1>
         <p v-else class="text-muted">অর্ফান লোড হচ্ছে...</p>
       </div>
-      <span v-if="orphan" class="badge" :class="statusClass(orphan.sponsorship_status)">
-        {{ statusLabel(orphan.sponsorship_status) }}
-      </span>
+      <div class="header-actions" v-if="orphan">
+        <span class="badge" :class="statusClass(orphan.sponsorship_status)">
+          {{ statusLabel(orphan.sponsorship_status) }}
+        </span>
+        <button class="btn btn-primary btn-sm" @click="openEditModal">
+          <icon name="pencil" /> তথ্য সম্পাদনা
+        </button>
+      </div>
     </div>
+
+    <!-- Edit Orphan Modal -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showEdit" class="modal-overlay" @click.self="showEdit = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>অর্ফানের তথ্য সম্পাদনা</h3>
+              <button class="modal-close" @click="showEdit = false">×</button>
+            </div>
+            <form @submit.prevent="saveOrphanEdit">
+              <div class="modal-body">
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">নাম (বাংলায়) *</label>
+                    <input v-model="editForm.name_bn" class="form-control" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">নাম (ইংরেজিতে)</label>
+                    <input v-model="editForm.name_en" class="form-control" />
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">জন্মতারিখ</label>
+                    <input v-model="editForm.birth_date" type="date" class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">লিঙ্গ</label>
+                    <select v-model="editForm.gender" class="form-control">
+                      <option value="male">ছেলে (Male)</option>
+                      <option value="female">মেয়ে (Female)</option>
+                      <option value="other">অন্যান্য</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">অভিভাবকের নাম</label>
+                    <input v-model="editForm.guardian_name_bn" class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">অভিভাবকের ফোন</label>
+                    <input v-model="editForm.guardian_phone" class="form-control" />
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">মাসিক সহায়তা লক্ষ্য (৳)</label>
+                    <input v-model.number="editForm.monthly_amount" type="number" min="0" class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">স্পন্সরশিপ অবস্থা</label>
+                    <select v-model="editForm.sponsorship_status" class="form-control">
+                      <option value="pending">অপেক্ষমান (Pending)</option>
+                      <option value="sponsored">স্পন্সরড (Sponsored)</option>
+                      <option value="completed">সম্পন্ন (Completed)</option>
+                      <option value="closed">বন্ধ (Closed)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">ঠিকানা</label>
+                  <textarea v-model="editForm.address_bn" class="form-control" rows="2"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-outline" @click="showEdit = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving || !editForm.name_bn">
+                  <icon v-if="saving" name="loader" />
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Teleport>
+    </ClientOnly>
 
     <div v-if="error" class="alert alert-error">{{ error }}</div>
     <div v-if="success" class="alert alert-success">{{ success }}</div>
@@ -163,6 +250,51 @@ const donors = ref<any[]>([])
 const activeSponsorships = computed(() => sponsorships.value.filter(item => item.status === 'active'))
 const error = ref('')
 const success = ref('')
+const showEdit = ref(false)
+const saving = ref(false)
+
+const editForm = reactive({
+  name_bn: '',
+  name_en: '',
+  birth_date: '',
+  gender: 'male',
+  guardian_name_bn: '',
+  guardian_phone: '',
+  monthly_amount: 0,
+  sponsorship_status: 'pending',
+  address_bn: '',
+})
+
+function openEditModal() {
+  if (!orphan.value) return
+  const o = orphan.value
+  editForm.name_bn = o.name_bn || ''
+  editForm.name_en = o.name_en || ''
+  editForm.birth_date = o.birth_date ? String(o.birth_date).slice(0, 10) : ''
+  editForm.gender = o.gender || 'male'
+  editForm.guardian_name_bn = o.guardian_name_bn || o.guardian_name_en || ''
+  editForm.guardian_phone = o.guardian_phone || ''
+  editForm.monthly_amount = o.monthly_amount ? Number(o.monthly_amount) : 0
+  editForm.sponsorship_status = o.sponsorship_status || 'pending'
+  editForm.address_bn = o.address_bn || o.address_en || ''
+  showEdit.value = true
+}
+
+async function saveOrphanEdit() {
+  if (!editForm.name_bn.trim()) return
+  saving.value = true
+  try {
+    const res = await api.put(`/orphans/${orphan.value.id}`, editForm)
+    orphan.value = { ...orphan.value, ...(res.data?.data || editForm) }
+    showEdit.value = false
+    alert('অর্ফানের তথ্য সফলভাবে আপডেট করা হয়েছে!')
+  } catch (err: any) {
+    console.error('Update orphan error:', err)
+    alert(err?.response?.data?.message || 'সংরক্ষণে ত্রুটি হয়েছে')
+  } finally {
+    saving.value = false
+  }
+}
 
 const payment = ref({
   orphan_sponsorship_id: '',

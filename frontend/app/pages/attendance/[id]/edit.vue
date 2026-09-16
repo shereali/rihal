@@ -23,8 +23,9 @@
             <div class="form-row form-row-2">
               <div class="form-group">
                 <label class="form-label">ছাত্র</label>
-                <select v-model="form.student_id" class="form-control">
+                <select v-model="form.student_id" class="form-control" required>
                   <option value="">নির্বাচন করুন</option>
+                  <option v-for="s in studentOptions" :key="s.id" :value="s.id">{{ s.label }}</option>
                 </select>
                 <p v-if="errors.student_id" class="error-message">{{ errors.student_id[0] }}</p>
               </div>

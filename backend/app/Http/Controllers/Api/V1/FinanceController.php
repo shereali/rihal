@@ -201,6 +201,52 @@ class FinanceController extends ApiController
         return $this->successResponse($donation, 'দান তৈরি সফল', 201);
     }
 
+    public function updateDonation(Request $request, int $id): JsonResponse
+    {
+        $donation = Donation::where('tenant_id', $request->user()->tenant_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$donation) {
+            return $this->errorResponse('দান পাওয়া যায়নি', 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'donor_id' => 'nullable|integer|exists:donors,id',
+            'fund_id' => 'nullable|integer|exists:funds,id',
+            'amount' => 'nullable|numeric|min:0',
+            'donation_date' => 'nullable|date',
+            'payment_method' => 'nullable|in:নগদ,ব্যাংক,মোবাইল ব্যাংকিং,চেক,অন্যান্য',
+            'receipt_number' => 'nullable|string|max:100',
+            'notes' => 'nullable|string',
+            'is_anonymous' => 'nullable|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse('বৈধতা ত্রুটি', 422, $validator->errors());
+        }
+
+        $donation->update($validator->validated());
+        $donation->load(['donor:id,name_bn,name_en', 'fund:id,name_bn']);
+
+        return $this->successResponse($donation->fresh(['donor', 'fund']), 'দান আপডেট সফল');
+    }
+
+    public function destroyDonation(Request $request, int $id): JsonResponse
+    {
+        $donation = Donation::where('tenant_id', $request->user()->tenant_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$donation) {
+            return $this->errorResponse('দান পাওয়া যায়নি', 404);
+        }
+
+        $donation->delete();
+
+        return $this->successResponse(null, 'দান মুছে ফেলা সফল');
+    }
+
     // ─── Expenses ────────────────────────────────────────────────────────────
 
     public function expenses(Request $request): JsonResponse
@@ -257,6 +303,57 @@ class FinanceController extends ApiController
         $expense->load('fund:id,name_bn');
 
         return $this->successResponse($expense, 'ব্যয় তৈরি সফল', 201);
+    }
+
+    public function updateExpense(Request $request, int $id): JsonResponse
+    {
+        $expense = Expense::where('tenant_id', $request->user()->tenant_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$expense) {
+            return $this->errorResponse('ব্যয় পাওয়া যায়নি', 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'description_bn' => 'nullable|string|max:500',
+            'description_en' => 'nullable|string|max:500',
+            'amount' => 'nullable|numeric|min:0',
+            'transaction_date' => 'nullable|date',
+            'vendor_id' => 'nullable|integer|exists:vendors,id',
+            'fund_id' => 'nullable|integer|exists:funds,id',
+            'payment_method' => 'nullable|in:নগদ,ব্যাংক,মোবাইল ব্যাংকিং,চেক,অন্যান্য',
+            'is_approved' => 'nullable|boolean',
+            'is_paid' => 'nullable|boolean',
+            'approval_status' => 'nullable|in:pending,approved,rejected',
+            'approved_by_user_id' => 'nullable|integer|exists:users,id',
+            'document_url' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse('বৈধতা ত্রুটি', 422, $validator->errors());
+        }
+
+        $expense->update($validator->validated());
+        $expense->load(['vendor:id,name_bn,name_en', 'fund:id,name_bn']);
+
+        return $this->successResponse($expense->fresh(['vendor', 'fund']), 'ব্যয় আপডেট সফল');
+    }
+
+    public function destroyExpense(Request $request, int $id): JsonResponse
+    {
+        $expense = Expense::where('tenant_id', $request->user()->tenant_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$expense) {
+            return $this->errorResponse('ব্যয় পাওয়া যায়নি', 404);
+        }
+
+        $expense->delete();
+
+        return $this->successResponse(null, 'ব্যয় মুছে ফেলা সফল');
     }
 
     // ─── Vendors ──────────────────────────────────────────────────────────────

@@ -6,10 +6,81 @@
         <h1 v-if="loan">ঋণ: {{ loan.title_bn }}</h1>
         <p v-else class="text-muted">ঋণ লোড হচ্ছে...</p>
       </div>
-      <span v-if="loan" class="badge" :class="statusClass(loan.status)">
-        {{ statusLabel(loan.status) }}
-      </span>
+      <div class="header-actions" v-if="loan">
+        <span class="badge" :class="statusClass(loan.status)">
+          {{ statusLabel(loan.status) }}
+        </span>
+        <button class="btn btn-primary btn-sm" @click="openEditModal">
+          <icon name="pencil" /> তথ্য সম্পাদনা
+        </button>
+      </div>
     </div>
+
+    <!-- Edit Loan Modal -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showEdit" class="modal-overlay" @click.self="showEdit = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>ঋণের তথ্য সম্পাদনা</h3>
+              <button class="modal-close" @click="showEdit = false">×</button>
+            </div>
+            <form @submit.prevent="saveLoanEdit">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">শিরোনাম (বাংলায়) *</label>
+                  <input v-model="editForm.title_bn" class="form-control" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শিরোনাম (ইংরেজিতে)</label>
+                  <input v-model="editForm.title_en" class="form-control" />
+                </div>
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">ঋণের ধরণ</label>
+                    <input v-model="editForm.loan_type" class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">পরিশোধের শেষ তারিখ</label>
+                    <input v-model="editForm.due_date" type="date" class="form-control" />
+                  </div>
+                </div>
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label">অবস্থা (Status)</label>
+                    <select v-model="editForm.status" class="form-control">
+                      <option value="active">সক্রিয় (Active)</option>
+                      <option value="paid">পরিশোধিত (Paid)</option>
+                      <option value="overdue">বিলম্বিত (Overdue)</option>
+                      <option value="closed">বন্ধ (Closed)</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">অনুমোদন অবস্থা</label>
+                    <select v-model="editForm.approval_status" class="form-control">
+                      <option value="approved">অনুমোদিত (Approved)</option>
+                      <option value="pending">অপেক্ষমান (Pending)</option>
+                      <option value="rejected">বাতিল (Rejected)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মন্তব্য / নোট</label>
+                  <textarea v-model="editForm.notes" class="form-control" rows="2"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-outline" @click="showEdit = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving || !editForm.title_bn">
+                  <icon v-if="saving" name="loader" />
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Teleport>
+    </ClientOnly>
 
     <div v-if="error" class="alert alert-error">{{ error }}</div>
     <div v-if="success" class="alert alert-success">{{ success }}</div>
@@ -131,13 +202,53 @@ const payments = ref<any[]>([])
 const installments = ref<any[]>([])
 const error = ref('')
 const success = ref('')
+const showEdit = ref(false)
+const saving = ref(false)
 
-const payment = ref({
+const payment = ref<any>({
   amount: null,
   payment_date: new Date().toISOString().split('T')[0],
   payment_method: 'নগদ',
   reference: '',
 })
+const editForm = reactive({
+  title_bn: '',
+  title_en: '',
+  loan_type: '',
+  due_date: '',
+  status: 'active',
+  approval_status: 'approved',
+  notes: '',
+})
+
+function openEditModal() {
+  if (!loan.value) return
+  const l = loan.value
+  editForm.title_bn = l.title_bn || ''
+  editForm.title_en = l.title_en || ''
+  editForm.loan_type = l.loan_type || ''
+  editForm.due_date = l.due_date ? String(l.due_date).slice(0, 10) : ''
+  editForm.status = l.status || 'active'
+  editForm.approval_status = l.approval_status || 'approved'
+  editForm.notes = l.notes || ''
+  showEdit.value = true
+}
+
+async function saveLoanEdit() {
+  if (!editForm.title_bn.trim()) return
+  saving.value = true
+  try {
+    const res = await api.put(`/loans/${loan.value.id}`, editForm)
+    loan.value = { ...loan.value, ...(res.data?.data || editForm) }
+    showEdit.value = false
+    alert('ঋণের তথ্য সফলভাবে আপডেট করা হয়েছে!')
+  } catch (err: any) {
+    console.error('Update loan error:', err)
+    alert(err?.response?.data?.message || 'সংরক্ষণে ত্রুটি হয়েছে')
+  } finally {
+    saving.value = false
+  }
+}
 
 async function loadLoan() {
   loading.value = true
