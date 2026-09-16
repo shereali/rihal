@@ -3,7 +3,7 @@
     <div class="page-header">
       <div class="header-left">
         <NuxtLink :to="`/students/${studentId}`" class="btn btn-outline btn-sm">
-          <icon name="arrow-left" /> প্রোফাইলে ফিরে যান
+          <Icon name="arrowLeft" /> প্রোফাইলে ফিরে যান
         </NuxtLink>
         <div class="title-group">
           <h1>শিক্ষার্থীর তথ্য সম্পাদনা</h1>
@@ -14,11 +14,11 @@
       </div>
       <div class="header-actions">
         <NuxtLink :to="`/students/${studentId}`" class="btn btn-ghost btn-sm">
-          <icon name="close" /> বাতিল
+          <Icon name="close" /> বাতিল
         </NuxtLink>
         <button class="btn btn-primary btn-sm" :disabled="saving || !isFormValid" @click="saveStudent">
-          <icon v-if="saving" name="loader" class="animate-spin" />
-          <icon v-else name="save" />
+          <Icon v-if="saving" name="loader" class="animate-spin" />
+          <Icon v-else name="save" />
           {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন' }}
         </button>
       </div>
@@ -26,11 +26,11 @@
 
     <!-- Alert Notifications -->
     <div v-if="error" class="alert alert-error animate-fade-in">
-      <icon name="alert-circle" />
+      <Icon name="alertCircle" />
       <span>{{ error }}</span>
     </div>
     <div v-if="success" class="alert alert-success animate-fade-in">
-      <icon name="check-circle" />
+      <Icon name="checkCircle" />
       <span>{{ success }}</span>
     </div>
 
@@ -47,7 +47,7 @@
           <!-- Personal Information -->
           <div class="form-section">
             <div class="section-header">
-              <div class="section-icon"><icon name="account" /></div>
+              <div class="section-icon"><Icon name="user" /></div>
               <div>
                 <h4 class="section-title">ব্যক্তিগত ও পরিচিতি তথ্য</h4>
                 <p class="section-desc">শিক্ষার্থীর মৌলিক তথ্যাবলী প্রদান করুন</p>
@@ -172,7 +172,7 @@
           <!-- Academic & Class Assignment -->
           <div class="form-section">
             <div class="section-header">
-              <div class="section-icon"><icon name="academic" /></div>
+              <div class="section-icon"><Icon name="academic" /></div>
               <div>
                 <h4 class="section-title">জামাত / শ্রেণি ও ভর্তি তথ্য</h4>
                 <p class="section-desc">বর্তমান শিক্ষাবর্ষ ও জামাতের বিবরণ</p>
@@ -213,7 +213,7 @@
           <!-- Parents & Guardians Information -->
           <div class="form-section">
             <div class="section-header">
-              <div class="section-icon"><icon name="users" /></div>
+              <div class="section-icon"><Icon name="users" /></div>
               <div>
                 <h4 class="section-title">পিতা-মাতা ও অভিভাবকের তথ্য</h4>
                 <p class="section-desc">অভিভাবকের নাম ও জরুরি যোগাযোগের তথ্য</p>
@@ -300,7 +300,7 @@
           <!-- Address & Additional Info -->
           <div class="form-section">
             <div class="section-header">
-              <div class="section-icon"><icon name="pin" /></div>
+              <div class="section-icon"><Icon name="pin" /></div>
               <div>
                 <h4 class="section-title">ঠিকানা ও স্বাস্থ্য সম্পর্কিত তথ্য</h4>
                 <p class="section-desc">স্থায়ী/বর্তমান ঠিকানা ও স্বাস্থ্য বিবরণ</p>
@@ -334,8 +334,8 @@
               বাতিল
             </NuxtLink>
             <button type="submit" class="btn btn-primary btn-lg" :disabled="saving || !isFormValid">
-              <icon v-if="saving" name="loader" class="animate-spin" />
-              <icon v-else name="save" />
+              <Icon v-if="saving" name="loader" class="animate-spin" />
+              <Icon v-else name="save" />
               {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'আপডেট সম্পন্ন করুন' }}
             </button>
           </div>

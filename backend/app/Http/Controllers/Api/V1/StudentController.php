@@ -248,13 +248,33 @@ class StudentController extends ApiController
             $studentPayload['status'] = $studentPayload['is_active'] ? 'active' : 'inactive';
             unset($studentPayload['is_active']);
         }
-        unset($studentPayload['roll_number']);
-        unset($studentPayload['phone']);
-        unset($studentPayload['class_id']);
-        unset($studentPayload['section_id']);
-        unset($studentPayload['guardian_id']);
 
-        $student->update($studentPayload);
+        if (array_key_exists('health_summary', $data)) {
+            if (is_string($data['health_summary']) && trim($data['health_summary']) !== '') {
+                $studentPayload['health_summary'] = ['notes' => trim($data['health_summary'])];
+            } else {
+                $studentPayload['health_summary'] = null;
+            }
+        }
+
+        if (array_key_exists('date_of_birth', $data)) {
+            $studentPayload['date_of_birth'] = !empty($data['date_of_birth']) ? $data['date_of_birth'] : null;
+        }
+        if (array_key_exists('admission_date', $data)) {
+            $studentPayload['admission_date'] = !empty($data['admission_date']) ? $data['admission_date'] : null;
+        }
+
+        $allowedStudentCols = [
+            'name_bn', 'name_en', 'admission_number', 'date_of_birth', 'gender',
+            'blood_group', 'photo_url', 'father_name', 'father_phone', 'mother_name',
+            'mother_phone', 'guardian_name', 'guardian_phone', 'guardian_relation',
+            'address_bn', 'email', 'emergency_contact_name', 'emergency_contact_phone',
+            'nationality', 'health_summary', 'status', 'admission_date', 'graduation_date',
+            'graduation_type', 'current_class', 'current_section',
+        ];
+        $filteredUpdates = array_intersect_key($studentPayload, array_flip($allowedStudentCols));
+
+        $student->update($filteredUpdates);
 
         // Sync name/email/phone with associated user if provided
         if ($student->user) {

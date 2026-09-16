@@ -24,6 +24,7 @@ class Student extends Model
         'admission_date' => 'date',
         'graduation_date' => 'date',
         'id_card_url' => 'string',
+        'health_summary' => 'array',
     ];
 
     public function getIsActiveAttribute(): bool
