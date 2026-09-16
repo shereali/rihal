@@ -255,7 +255,7 @@ class StudentController extends ApiController
 
         $student->update($studentPayload);
 
-        // Sync name/email with associated user if provided
+        // Sync name/email/phone with associated user if provided
         if ($student->user) {
             $userUpdates = [];
             if (!empty($data['name_bn'])) $userUpdates['name_bn'] = $data['name_bn'];
@@ -267,9 +267,37 @@ class StudentController extends ApiController
             }
         }
 
-        $student->load(['user', 'enrollments.class']);
+        // Sync or create enrollment record if class_id is provided
+        if (!empty($data['class_id'])) {
+            $enrollment = Enrollment::where('tenant_id', $user->tenant_id)
+                ->where('student_id', $student->user_id ?: $student->id)
+                ->latest()
+                ->first();
 
-        return $this->successResponse($student->fresh(), 'ছাত্র আপডেট সফল');
+            if ($enrollment) {
+                $enrollUpdates = ['class_id' => $data['class_id']];
+                if (array_key_exists('section_id', $data)) $enrollUpdates['section_id'] = $data['section_id'];
+                if (array_key_exists('roll_number', $data)) $enrollUpdates['roll_number'] = $data['roll_number'];
+                $enrollment->update($enrollUpdates);
+            } else {
+                $session = AcademicSession::where('tenant_id', $user->tenant_id)->first();
+                Enrollment::create([
+                    'tenant_id' => $user->tenant_id,
+                    'student_id' => $student->user_id ?: $student->id,
+                    'class_id' => $data['class_id'],
+                    'section_id' => $data['section_id'] ?? null,
+                    'roll_number' => $data['roll_number'] ?? null,
+                    'session_id' => $session?->id,
+                    'enrollment_number' => 'ENR-' . date('Y') . '-' . $student->id,
+                    'enrollment_date' => now(),
+                    'status' => 'enrolled',
+                ]);
+            }
+        }
+
+        $student->load(['user', 'enrollments.class', 'enrollments.section']);
+
+        return $this->successResponse($student->fresh(['user', 'enrollments.class', 'enrollments.section', 'guardian']), 'ছাত্র আপডেট সফল');
     }
 
     public function destroy(Request $request, int $id): JsonResponse
