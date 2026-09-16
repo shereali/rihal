@@ -51,10 +51,10 @@ class StudentController extends ApiController
 
     public function show(Request $request, int $id): JsonResponse
     {
-        $user = $request->user();
+        $tenantId = $request->user()?->tenant_id ?? $request->get('tenant')?->id;
 
         $student = Student::withTrashed()
-            ->where('tenant_id', $user->tenant_id)
+            ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
             ->where('id', $id)
             ->with(['user', 'guardian', 'enrollments.class', 'enrollments.section', 'enrollments.session'])
             ->first();

@@ -124,9 +124,11 @@
                 <label class="form-label">লিঙ্গ</label>
                 <select v-model="form.gender" class="form-control form-select">
                   <option value="">নির্বাচন করুন</option>
+                  <option value="male">ছাত্র / পুরুষ (Male)</option>
+                  <option value="female">ছাত্রী / মহিলা (Female)</option>
                   <option value="ছেলে">ছেলে</option>
                   <option value="মেয়ে">মেয়ে</option>
-                  <option value="অন্যান্য">অন্যান্য</option>
+                  <option value="other">অন্যান্য</option>
                 </select>
               </div>
 
@@ -346,7 +348,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useApiClient } from '~/utils/api'
 import Icon from '~/components/Icon.vue'
@@ -391,7 +393,7 @@ const form = reactive({
   health_summary: '',
 })
 
-const isFormValid = computed(() => form.name_bn && form.name_bn.trim().length >= 2)
+const isFormValid = computed(() => !!form.name_bn && form.name_bn.trim().length >= 1)
 
 function toBn(n: any) {
   if (n === null || n === undefined) return ''
@@ -553,8 +555,13 @@ async function saveStudent() {
 }
 
 onMounted(async () => {
-  await loadClassOptions()
-  await loadStudent()
+  await Promise.all([loadClassOptions(), loadStudent()])
+})
+
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    loadStudent()
+  }
 })
 </script>
 
