@@ -140,67 +140,71 @@
     </div>
 
     <!-- Application Detail Modal -->
-    <div v-if="selectedApp" class="modal-overlay" @click.self="selectedApp = null">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>আবেদনকারীর বিস্তারিত তথ্য</h3>
-          <button class="modal-close" @click="selectedApp = null">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="app-detail-grid">
-            <div class="detail-item">
-              <label class="form-label">নাম (বাংলা)</label>
-              <p><strong>{{ selectedApp.guest_name_bn || '—' }}</strong></p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="selectedApp" class="modal-overlay" @click.self="selectedApp = null">
+          <div class="modal-card animate-fade-in">
+            <div class="modal-header">
+              <h3>আবেদনকারীর বিস্তারিত তথ্য</h3>
+              <button class="modal-close" @click="selectedApp = null">×</button>
             </div>
-            <div class="detail-item">
-              <label class="form-label">নাম (ইংরেজি)</label>
-              <p>{{ selectedApp.guest_name_en || '—' }}</p>
-            </div>
-            <div class="detail-item">
-              <label class="form-label">ফোন নম্বর</label>
-              <p>{{ selectedApp.guest_phone || '—' }}</p>
-            </div>
-            <div class="detail-item">
-              <label class="form-label">ইমেইল</label>
-              <p>{{ selectedApp.guest_email || '—' }}</p>
-            </div>
-            <div class="detail-item">
-              <label class="form-label">জাতীয় পরিচয়পত্র নং</label>
-              <p>{{ selectedApp.nid_number || '—' }}</p>
-            </div>
-            <div class="detail-item">
-              <label class="form-label">বর্তমান অবস্থা</label>
-              <p>
-                <span class="status-badge" :class="statusClass(selectedApp.status)">
-                  {{ formatStatus(selectedApp.status) }}
-                </span>
-              </p>
-            </div>
-            <div class="detail-item full-width" v-if="selectedApp.guest_address_bn">
-              <label class="form-label">ঠিকানা</label>
-              <p>{{ selectedApp.guest_address_bn }}</p>
-            </div>
-            <div class="detail-item full-width" v-if="selectedApp.guest_bio_bn">
-              <label class="form-label">পরিচিতি / কারণ</label>
-              <p class="bio-text">{{ selectedApp.guest_bio_bn }}</p>
-            </div>
-          </div>
+            <div class="modal-body">
+              <div class="app-detail-grid">
+                <div class="detail-item">
+                  <label class="form-label">নাম (বাংলা)</label>
+                  <p><strong>{{ selectedApp.guest_name_bn || '—' }}</strong></p>
+                </div>
+                <div class="detail-item">
+                  <label class="form-label">নাম (ইংরেজি)</label>
+                  <p>{{ selectedApp.guest_name_en || '—' }}</p>
+                </div>
+                <div class="detail-item">
+                  <label class="form-label">ফোন নম্বর</label>
+                  <p>{{ selectedApp.guest_phone || '—' }}</p>
+                </div>
+                <div class="detail-item">
+                  <label class="form-label">ইমেইল</label>
+                  <p>{{ selectedApp.guest_email || '—' }}</p>
+                </div>
+                <div class="detail-item">
+                  <label class="form-label">জাতীয় পরিচয়পত্র নং</label>
+                  <p>{{ selectedApp.nid_number || '—' }}</p>
+                </div>
+                <div class="detail-item">
+                  <label class="form-label">বর্তমান অবস্থা</label>
+                  <p>
+                    <span class="status-badge" :class="statusClass(selectedApp.status)">
+                      {{ formatStatus(selectedApp.status) }}
+                    </span>
+                  </p>
+                </div>
+                <div class="detail-item full-width" v-if="selectedApp.guest_address_bn">
+                  <label class="form-label">ঠিকানা</label>
+                  <p>{{ selectedApp.guest_address_bn }}</p>
+                </div>
+                <div class="detail-item full-width" v-if="selectedApp.guest_bio_bn">
+                  <label class="form-label">পরিচিতি / কারণ</label>
+                  <p class="bio-text">{{ selectedApp.guest_bio_bn }}</p>
+                </div>
+              </div>
 
-          <div class="status-change-box">
-            <label class="form-label">অবস্থা পরিবর্তন করুন:</label>
-            <div class="status-buttons">
-              <button class="btn btn-sm btn-outline" @click="updateStatus(selectedApp, 'pending')">মুলতুবি</button>
-              <button class="btn btn-sm btn-outline" @click="updateStatus(selectedApp, 'reviewed')">পর্যালোচিত</button>
-              <button class="btn btn-sm btn-success" @click="updateStatus(selectedApp, 'accepted')">গ্রহণযোগ্য</button>
-              <button class="btn btn-sm btn-danger" @click="updateStatus(selectedApp, 'rejected')">প্রত্যাখ্যাত</button>
+              <div class="status-change-box">
+                <label class="form-label">অবস্থা পরিবর্তন করুন:</label>
+                <div class="status-buttons">
+                  <button class="btn btn-sm btn-outline" @click="updateStatus(selectedApp, 'pending')">মুলতুবি</button>
+                  <button class="btn btn-sm btn-outline" @click="updateStatus(selectedApp, 'reviewed')">পর্যালোচিত</button>
+                  <button class="btn btn-sm btn-success" @click="updateStatus(selectedApp, 'accepted')">গ্রহণযোগ্য</button>
+                  <button class="btn btn-sm btn-danger" @click="updateStatus(selectedApp, 'rejected')">প্রত্যাখ্যাত</button>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost" @click="selectedApp = null">বন্ধ করুন</button>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" @click="selectedApp = null">বন্ধ করুন</button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

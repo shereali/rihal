@@ -1,12 +1,26 @@
 <template>
   <div class="page-wrapper">
-    <div class="page-header-row">
+    <!-- Printable Header Block (Print Only) -->
+    <div class="print-header-block print-only">
+      <div class="print-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <div class="print-inst-name">মারকাযুল উলূম আল-ইসলামিয়া</div>
+      <div class="print-inst-sub">হোস্টেল ও বোর্ডিং বিভাগ · বোর্ডিং দৈনিক বাজার ও খরচ রেজিস্টার</div>
+      <div class="print-meta-row">
+        <span>তারিখ: {{ new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
+        <span>মুদ্রণ সময়: {{ new Date().toLocaleTimeString('bn-BD') }}</span>
+      </div>
+    </div>
+
+    <div class="page-header-row no-print">
       <div class="header-title-block">
         <NuxtLink to="/hostel" class="back-link"><icon name="arrow-left" /> হোস্টেল ও বোর্ডিং ড্যাশবোর্ড</NuxtLink>
         <h1>বোর্ডিং দৈনিক বাজার ও খরচের হিসাব</h1>
         <p class="page-subtitle">বোর্ডিং রান্নাঘরের জন্য চাল, ডাল, তেল, মাছ, মাংস ও শাকসবজি ক্রয়ের দৈনিক খরচের ভাউচার</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline" @click="printBazaar">
+          <icon name="printer" /> ভাউচার প্রিন্ট
+        </button>
         <NuxtLink to="/hostel/boarding-meals" class="btn btn-outline">
           <icon name="calendar" /> দৈনিক মিল হিসাব
         </NuxtLink>
@@ -94,46 +108,50 @@
       </div>
     </div>
 
-    <!-- Add Bazaar Modal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>নতুন বোর্ডিং বাজার এন্ট্রি</h3>
-            <p>বোর্ডিং বাবুর্চিখানার ক্রয়ের রশিদ ও টাকার পরিমাণ রেকর্ড করুন</p>
+    <!-- Add Bazaar Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>নতুন বোর্ডিং বাজার এন্ট্রি</h3>
+                <p>বোর্ডিং বাবুর্চিখানার ক্রয়ের রশিদ ও টাকার পরিমাণ রেকর্ড করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveBazaar" class="modal-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">বাজারের তারিখ *</label>
+                  <input v-model="form.date" type="date" class="form-input" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বাজারকারীর নাম *</label>
+                  <input v-model="form.buyer_name" class="form-input" placeholder="মাওলানা রফিকুল ইসলাম (তত্ত্বাবধায়ক)" required />
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">পণ্য ও পরিমাণের বিবরণ *</label>
+                  <textarea v-model="form.items_summary" class="form-textarea" rows="3" placeholder="যেমন: মিনিকেট চাল ৫০ কেজি, রুই মাছ ১০ কেজি, সয়াবিন তেল ৫ লিটার, আলু ও পেঁয়াজ" required></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মোট পরিমাণ</label>
+                  <input v-model="form.total_qty" class="form-input" placeholder="যেমন: ৬৫ কেজি" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মোট বাজার খরচ (৳) *</label>
+                  <input v-model.number="form.amount" type="number" class="form-input" placeholder="৳ ৫,৪০০" required />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary">বাজার ভাউচার সংরক্ষণ করুন</button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showModal = false">×</button>
         </div>
-        <form @submit.prevent="saveBazaar" class="modal-form">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">বাজারের তারিখ *</label>
-              <input v-model="form.date" type="date" class="form-input" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">বাজারকারীর নাম *</label>
-              <input v-model="form.buyer_name" class="form-input" placeholder="মাওলানা রফিকুল ইসলাম (তত্ত্বাবধায়ক)" required />
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">পণ্য ও পরিমাণের বিবরণ *</label>
-              <textarea v-model="form.items_summary" class="form-textarea" rows="3" placeholder="যেমন: মিনিকেট চাল ৫০ কেজি, রুই মাছ ১০ কেজি, সয়াবিন তেল ৫ লিটার, আলু ও পেঁয়াজ" required></textarea>
-            </div>
-            <div class="form-group">
-              <label class="form-label">মোট পরিমাণ</label>
-              <input v-model="form.total_qty" class="form-input" placeholder="যেমন: ৬৫ কেজি" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">মোট বাজার খরচ (৳) *</label>
-              <input v-model.number="form.amount" type="number" class="form-input" placeholder="৳ ৫,৪০০" required />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary">বাজার ভাউচার সংরক্ষণ করুন</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
@@ -222,6 +240,10 @@ async function deleteEntry(id: number) {
   }
 }
 
+function printBazaar() {
+  window.print()
+}
+
 onMounted(loadBazaars)
 
 const colorPalette = ['#145032', '#1e40af', '#b45309', '#6b21a8', '#047857', '#be185d', '#0369a1']
@@ -266,4 +288,24 @@ function getAvatarColor(name: string) {
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
 .form-group.wide { grid-column: 1 / -1; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--color-border-light); }
+
+/* Printable header styling */
+.print-header-block { text-align: center; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px double #000; }
+.print-bismillah { font-family: 'Traditional Arabic', serif; font-size: 1.25rem; margin-bottom: 0.35rem; }
+.print-inst-name { font-size: 1.75rem; font-weight: 800; }
+.print-inst-sub { font-size: 0.95rem; color: #444; margin-top: 0.2rem; }
+.print-meta-row { display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.85rem; }
+
+@media screen {
+  .print-only { display: none !important; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  .page-wrapper { max-width: 100% !important; padding: 0 !important; }
+  .table-card { border: none !important; box-shadow: none !important; }
+  .premium-table { width: 100% !important; border-collapse: collapse !important; }
+  .premium-table th, .premium-table td { border: 1px solid #ddd !important; padding: 6px !important; }
+}
 </style>

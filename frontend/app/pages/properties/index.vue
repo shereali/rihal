@@ -1,12 +1,23 @@
 <template>
   <div class="page-wrapper">
-    <div class="page-header-row">
+    <!-- Printable Header -->
+    <div class="print-header-block print-only">
+      <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <h2>মারকাযুল উলূম আল-ইসলামিয়া</h2>
+      <p class="print-sub">স্থাবর ও অস্থাবর সম্পত্তি ও সম্পদ রেজিস্টার (Property & Asset Registry)</p>
+      <p class="print-date">মুদ্রণের তারিখ: {{ new Date().toLocaleDateString('bn-BD') }}</p>
+    </div>
+
+    <div class="page-header-row no-print">
       <div class="header-title-block">
         <span class="eyebrow">সম্পদ ও অবকাঠামো</span>
         <h1>সম্পত্তি ও সম্পদ ব্যবস্থাপনা</h1>
         <p class="page-subtitle">মাদ্রাসার জমি, ভবন, যানবাহন, সরঞ্জাম — তালিকা, মূল্য ও অবস্থান</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline" @click="printPage">
+          <icon name="printer" /> রেজিস্টার প্রিন্ট
+        </button>
         <button class="btn btn-primary" @click="openCreate">
           <icon name="plus" /> নতুন সম্পত্তি
         </button>
@@ -17,7 +28,7 @@
     </div>
 
     <!-- Stats summary -->
-    <div class="stats-grid" v-if="properties.length">
+    <div class="stats-grid no-print" v-if="properties.length">
       <div class="stat-card">
         <div class="stat-icon-wrap blue"><icon name="building" /></div>
         <div class="stat-content">
@@ -49,7 +60,7 @@
     </div>
 
     <!-- Search & Filter Toolbar -->
-    <div class="toolbar card">
+    <div class="toolbar card no-print">
       <div class="search-box">
         <icon name="search" class="search-icon" />
         <input v-model="search" placeholder="সম্পত্তির নাম বা ঠিকানা খুঁজুন..." @keyup.enter="loadProperties" />
@@ -75,95 +86,103 @@
     </div>
 
     <!-- Create / Edit Property Modal -->
-    <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>{{ editingId ? 'সম্পত্তি সম্পাদনা' : 'নতুন সম্পত্তি যুক্ত করুন' }}</h3>
-            <p>সম্পত্তির বিবরণ, ধরন, অবস্থান ও আর্থিক তথ্য লিখুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>{{ editingId ? 'সম্পত্তি সম্পাদনা' : 'নতুন সম্পত্তি যুক্ত করুন' }}</h3>
+                <p>সম্পত্তির বিবরণ, ধরন, অবস্থান ও আর্থিক তথ্য লিখুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showForm = false">×</button>
+            </div>
+
+            <form @submit.prevent="saveProperty" class="modal-form">
+              <div v-if="error" class="alert alert-error">{{ error }}</div>
+
+              <div class="form-grid">
+                <div class="form-group wide">
+                  <label class="form-label">সম্পত্তির নাম (বাংলা) *</label>
+                  <input v-model="form.property_name_bn" class="form-input" required placeholder="যেমন: প্রধান ক্যাম্পাস ভবন" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">সম্পত্তির নাম (ইংরেজি)</label>
+                  <input v-model="form.property_name_en" class="form-input" placeholder="e.g. Main Campus Building" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">সম্পত্তির ধরন *</label>
+                  <select v-model="form.property_type" class="form-select" required>
+                    <option value="ভবন">ভবন (Building)</option>
+                    <option value="জমি">জমি (Land)</option>
+                    <option value="যানবাহন">যানবাহন (Vehicle)</option>
+                    <option value="সরঞ্জাম">সরঞ্জাম (Equipment)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মালিকানার অবস্থা *</label>
+                  <select v-model="form.ownership_type" class="form-select">
+                    <option value="owned">নিজস্ব (Owned)</option>
+                    <option value="rented">ভাড়া (Rented)</option>
+                    <option value="leased">লিজ (Leased)</option>
+                    <option value="waqf">ওয়াকফ (Waqf)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বর্তমান বাজারমূল্য (টাকা)</label>
+                  <input v-model.number="form.current_market_value" type="number" min="0" class="form-input" placeholder="০" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">জমির পরিমাণ / আয়তন (বর্গফুট)</label>
+                  <input v-model.number="form.land_area_sqft" type="number" min="0" class="form-input" placeholder="যেমন: ১২০০" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">দলিল / রেজিস্ট্রেশন নম্বর</label>
+                  <input v-model="form.registration_number" class="form-input" placeholder="রেজিস্ট্রেশন নম্বর" />
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">অবস্থান / ঠিকানা (বাংলা)</label>
+                  <input v-model="form.location_address_bn" class="form-input" placeholder="পূর্ণ ঠিকানা..." />
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingId ? 'আপডেট করুন' : 'সম্পত্তি যোগ করুন') }}
+                </button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showForm = false">×</button>
         </div>
-
-        <form @submit.prevent="saveProperty" class="modal-form">
-          <div v-if="error" class="alert alert-error">{{ error }}</div>
-
-          <div class="form-grid">
-            <div class="form-group wide">
-              <label class="form-label">সম্পত্তির নাম (বাংলা) *</label>
-              <input v-model="form.property_name_bn" class="form-input" required placeholder="যেমন: প্রধান ক্যাম্পাস ভবন" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">সম্পত্তির নাম (ইংরেজি)</label>
-              <input v-model="form.property_name_en" class="form-input" placeholder="e.g. Main Campus Building" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">সম্পত্তির ধরন *</label>
-              <select v-model="form.property_type" class="form-select" required>
-                <option value="ভবন">ভবন (Building)</option>
-                <option value="জমি">জমি (Land)</option>
-                <option value="যানবাহন">যানবাহন (Vehicle)</option>
-                <option value="সরঞ্জাম">সরঞ্জাম (Equipment)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">মালিকানার অবস্থা *</label>
-              <select v-model="form.ownership_type" class="form-select">
-                <option value="owned">নিজস্ব (Owned)</option>
-                <option value="rented">ভাড়া (Rented)</option>
-                <option value="leased">লিজ (Leased)</option>
-                <option value="waqf">ওয়াকফ (Waqf)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">বর্তমান বাজারমূল্য (টাকা)</label>
-              <input v-model.number="form.current_market_value" type="number" min="0" class="form-input" placeholder="০" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">জমির পরিমাণ / আয়তন (বর্গফুট)</label>
-              <input v-model.number="form.land_area_sqft" type="number" min="0" class="form-input" placeholder="যেমন: ১২০০" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">দলিল / রেজিস্ট্রেশন নম্বর</label>
-              <input v-model="form.registration_number" class="form-input" placeholder="রেজিস্ট্রেশন নম্বর" />
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">অবস্থান / ঠিকানা (বাংলা)</label>
-              <input v-model="form.location_address_bn" class="form-input" placeholder="পূর্ণ ঠিকানা..." />
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingId ? 'আপডেট করুন' : 'সম্পত্তি যোগ করুন') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- In-App Delete Confirmation Modal -->
-    <div v-if="showDeleteModal && deleteTarget" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="modal-card" style="max-width: 440px;">
-        <div class="modal-header">
-          <h3>সম্পত্তি মুছে ফেলা নিশ্চিতকরণ</h3>
-          <button class="close-btn" @click="showDeleteModal = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDeleteModal && deleteTarget" class="modal-overlay" @click.self="showDeleteModal = false">
+          <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+              <h3>সম্পত্তি মুছে ফেলা নিশ্চিতকরণ</h3>
+              <button class="close-btn" @click="showDeleteModal = false">×</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem;">
+              <p>
+                আপনি কি নিশ্চিত যে <strong>"{{ deleteTarget.property_name_bn || deleteTarget.property_name_en }}"</strong> সম্পত্তিটি মুছে ফেলতে চান?
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">বাতিল</button>
+              <button type="button" class="btn btn-danger" @click="executeDelete" :disabled="deleting">
+                <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
+                <span v-else>মুছে ফেলুন</span>
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body" style="padding: 1.25rem;">
-          <p>
-            আপনি কি নিশ্চিত যে <strong>"{{ deleteTarget.property_name_bn || deleteTarget.property_name_en }}"</strong> সম্পত্তিটি মুছে ফেলতে চান?
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">বাতিল</button>
-          <button type="button" class="btn btn-danger" @click="executeDelete" :disabled="deleting">
-            <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
-            <span v-else>মুছে ফেলুন</span>
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
 
     <div v-if="loading" class="loading-state card">
@@ -353,6 +372,12 @@ async function executeDelete() {
 function formatCurrency(val: number) {
   if (!val) return '০'
   return val.toLocaleString('bn-BD')
+}
+
+function printPage() {
+  if (import.meta.client) {
+    window.print()
+  }
 }
 
 function typeIcon(t: string) {
@@ -649,4 +674,46 @@ onMounted(loadProperties)
 }
 .empty-state h3 { font-size: 1.2rem; margin: 0 0 0.35rem; color: var(--color-text); }
 .empty-state p { font-size: 0.88rem; margin: 0 0 1.25rem; }
+
+.print-only { display: none; }
+
+@media print {
+  .no-print, header, aside, .sidebar, .app-top-bar, .toolbar, .header-actions, .property-actions, button {
+    display: none !important;
+  }
+  .page-wrapper {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-header-block {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.75rem;
+  }
+  .print-header-block .bismillah {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+  }
+  .print-header-block h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+  }
+  .print-header-block .print-sub {
+    font-size: 0.9rem;
+    color: #444;
+    margin: 0;
+  }
+  .print-header-block .print-date {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.25rem;
+  }
+}
 </style>

@@ -188,65 +188,70 @@
       </div>
     </div>
 
-    <!-- Quick Receipt Modal -->
-    <div v-if="showReceiptModal" class="modal-overlay" @click.self="showReceiptModal = false">
-      <div class="modal-card modal-md animate-fade-in">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>অনুদান রসিদ (Donation Receipt)</h3>
+    <!-- Quick Receipt Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showReceiptModal" class="modal-overlay" @click.self="showReceiptModal = false">
+          <div class="modal-card modal-md animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>অনুদান রসিদ (Donation Receipt)</h3>
+              </div>
+              <button class="modal-close-btn" @click="showReceiptModal = false">×</button>
+            </div>
+            <div class="modal-body receipt-modal-body" id="printable-receipt">
+              <div class="receipt-box">
+                <div class="receipt-header">
+                  <div class="receipt-bismillah" style="font-family: 'Traditional Arabic', serif; font-size: 1.1rem; color: #145032; text-align: center;">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+                  <h2>মারকাযুল উলূম আল-ইসলামিয়া</h2>
+                  <p>অফিসিয়াল অনুদান ও দান রসিদ</p>
+                  <div class="receipt-no">রসিদ নং: #DON-{{ selectedDonation?.id }}</div>
+                </div>
+                <hr class="receipt-divider" />
+                <div class="receipt-grid">
+                  <div class="receipt-row">
+                    <span class="lbl">দাতার নাম:</span>
+                    <span class="val">{{ selectedDonation?.is_anonymous ? 'গোপনীয় দাতা' : (selectedDonation?.donor?.name_bn || selectedDonation?.donor?.name_en || 'সাধারণ দাতা') }}</span>
+                  </div>
+                  <div class="receipt-row">
+                    <span class="lbl">ফান্ডের নাম:</span>
+                    <span class="val">{{ selectedDonation?.fund?.name_bn || 'সাধারণ ফান্ড' }}</span>
+                  </div>
+                  <div class="receipt-row">
+                    <span class="lbl">অনুদানের পরিমাণ:</span>
+                    <span class="val highlight-amount">{{ formatCurrency(selectedDonation?.amount) }} ৳</span>
+                  </div>
+                  <div class="receipt-row">
+                    <span class="lbl">পরিশোধ পদ্ধতি:</span>
+                    <span class="val">{{ selectedDonation?.payment_method || 'নগদ' }}</span>
+                  </div>
+                  <div class="receipt-row">
+                    <span class="lbl">তারিখ:</span>
+                    <span class="val">{{ formatDate(selectedDonation?.donation_date || selectedDonation?.created_at) }}</span>
+                  </div>
+                  <div class="receipt-row" v-if="selectedDonation?.notes">
+                    <span class="lbl">মন্তব্য:</span>
+                    <span class="val">{{ selectedDonation?.notes }}</span>
+                  </div>
+                </div>
+                <div class="receipt-footer">
+                  <p class="gratitude">"আল্লাহ তাআলা আপনার এই নেক দান কবুল করুন। আমিন।"</p>
+                  <div class="signature-line">
+                    <span>হিসাবরক্ষক / অনুমোদিত স্বাক্ষর</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-ghost" @click="showReceiptModal = false">বন্ধ করুন</button>
+              <button type="button" class="btn btn-primary" @click="printReceipt">
+                <icon name="printer" /> প্রিন্ট করুন
+              </button>
+            </div>
           </div>
-          <button class="modal-close-btn" @click="showReceiptModal = false">×</button>
         </div>
-        <div class="modal-body receipt-modal-body" id="printable-receipt">
-          <div class="receipt-box">
-            <div class="receipt-header">
-              <h2>দারুল কিরাত মজিদিয়া ফুলতলী ট্রাস্ট</h2>
-              <p>অফিসিয়াল অনুদান ও দান রসিদ</p>
-              <div class="receipt-no">রসিদ নং: #DON-{{ selectedDonation?.id }}</div>
-            </div>
-            <hr class="receipt-divider" />
-            <div class="receipt-grid">
-              <div class="receipt-row">
-                <span class="lbl">দাতার নাম:</span>
-                <span class="val">{{ selectedDonation?.is_anonymous ? 'গোপনীয় দাতা' : (selectedDonation?.donor?.name_bn || selectedDonation?.donor?.name_en || 'সাধারণ দাতা') }}</span>
-              </div>
-              <div class="receipt-row">
-                <span class="lbl">ফান্ডের নাম:</span>
-                <span class="val">{{ selectedDonation?.fund?.name_bn || 'সাধারণ ফান্ড' }}</span>
-              </div>
-              <div class="receipt-row">
-                <span class="lbl">অনুদানের পরিমাণ:</span>
-                <span class="val highlight-amount">{{ formatCurrency(selectedDonation?.amount) }} ৳</span>
-              </div>
-              <div class="receipt-row">
-                <span class="lbl">পরিশোধ পদ্ধতি:</span>
-                <span class="val">{{ selectedDonation?.payment_method || 'নগদ' }}</span>
-              </div>
-              <div class="receipt-row">
-                <span class="lbl">তারিখ:</span>
-                <span class="val">{{ formatDate(selectedDonation?.donation_date || selectedDonation?.created_at) }}</span>
-              </div>
-              <div class="receipt-row" v-if="selectedDonation?.notes">
-                <span class="lbl">মন্তব্য:</span>
-                <span class="val">{{ selectedDonation?.notes }}</span>
-              </div>
-            </div>
-            <div class="receipt-footer">
-              <p class="gratitude">"আল্লাহ তাআলা আপনার এই নেক দান কবুল করুন। আমিন।"</p>
-              <div class="signature-line">
-                <span>হিসাবরক্ষক / অনুমোদিত স্বাক্ষর</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" @click="showReceiptModal = false">বন্ধ করুন</button>
-          <button type="button" class="btn btn-primary" @click="printReceipt">
-            <icon name="printer" /> প্রিন্ট করুন
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

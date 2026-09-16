@@ -61,68 +61,72 @@
       </div>
     </div>
 
-    <!-- Create / Edit Holiday Modal -->
-    <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>{{ editingId ? 'ছুটির দিন সম্পাদনা' : 'নতুন ছুটির দিন যোগ করুন' }}</h3>
-            <p>ছুটির নাম, তারিখ, প্রকার ও বিবরণ নির্ধারণ করুন</p>
+    <!-- Create / Edit Holiday Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>{{ editingId ? 'ছুটির দিন সম্পাদনা' : 'নতুন ছুটির দিন যোগ করুন' }}</h3>
+                <p>ছুটির নাম, তারিখ, প্রকার ও বিবরণ নির্ধারণ করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showForm = false">×</button>
+            </div>
+
+            <form @submit.prevent="saveHoliday" class="modal-form">
+              <div v-if="error" class="alert alert-error">{{ error }}</div>
+
+              <div class="form-grid">
+                <div class="form-group wide">
+                  <label class="form-label">ছুটির নাম (বাংলা) *</label>
+                  <input v-model="form.name_bn" class="form-input" required placeholder="যেমন: ঈদুল ফিতর" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ছুটির নাম (ইংরেজি)</label>
+                  <input v-model="form.name_en" class="form-input" placeholder="e.g. Eid-ul-Fitr" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ছুটির প্রকার *</label>
+                  <select v-model="form.type" class="form-select" required>
+                    <option value="ধর্মীয়">ধর্মীয়</option>
+                    <option value="রাষ্ট্রীয়">রাষ্ট্রীয়</option>
+                    <option value="অনুষ্ঠানিক">অনুষ্ঠানিক</option>
+                    <option value="বিশেষ">বিশেষ</option>
+                    <option value="অন্যান্য">অন্যান্য</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শুরুর তারিখ *</label>
+                  <input v-model="form.start_date" type="date" class="form-input" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শেষ তারিখ (ঐচ্ছিক)</label>
+                  <input v-model="form.end_date" type="date" class="form-input" />
+                </div>
+                <div class="form-group wide">
+                  <label class="custom-checkbox">
+                    <input type="checkbox" v-model="form.is_recurring" />
+                    <span class="checkbox-text">প্রতি বছর পুনরাবৃত্তি হবে (Recurring Holiday)</span>
+                  </label>
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">বিবরণ</label>
+                  <textarea v-model="form.description_bn" class="form-textarea" rows="2" placeholder="ছুটি সংক্রান্ত বিবরণ..."></textarea>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingId ? 'আপডেট করুন' : 'ছুটি যোগ করুন') }}
+                </button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showForm = false">×</button>
         </div>
-
-        <form @submit.prevent="saveHoliday" class="modal-form">
-          <div v-if="error" class="alert alert-error">{{ error }}</div>
-
-          <div class="form-grid">
-            <div class="form-group wide">
-              <label class="form-label">ছুটির নাম (বাংলা) *</label>
-              <input v-model="form.name_bn" class="form-input" required placeholder="যেমন: ঈদুল ফিতর" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ছুটির নাম (ইংরেজি)</label>
-              <input v-model="form.name_en" class="form-input" placeholder="e.g. Eid-ul-Fitr" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ছুটির প্রকার *</label>
-              <select v-model="form.type" class="form-select" required>
-                <option value="ধর্মীয়">ধর্মীয়</option>
-                <option value="রাষ্ট্রীয়">রাষ্ট্রীয়</option>
-                <option value="অনুষ্ঠানিক">অনুষ্ঠানিক</option>
-                <option value="বিশেষ">বিশেষ</option>
-                <option value="অন্যান্য">অন্যান্য</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">শুরুর তারিখ *</label>
-              <input v-model="form.start_date" type="date" class="form-input" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">শেষ তারিখ (ঐচ্ছিক)</label>
-              <input v-model="form.end_date" type="date" class="form-input" />
-            </div>
-            <div class="form-group wide">
-              <label class="custom-checkbox">
-                <input type="checkbox" v-model="form.is_recurring" />
-                <span class="checkbox-text">প্রতি বছর পুনরাবৃত্তি হবে (Recurring Holiday)</span>
-              </label>
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">বিবরণ</label>
-              <textarea v-model="form.description_bn" class="form-textarea" rows="2" placeholder="ছুটি সংক্রান্ত বিবরণ..."></textarea>
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingId ? 'আপডেট করুন' : 'ছুটি যোগ করুন') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <div v-if="loading" class="loading-state card">
       <div class="spinner" />

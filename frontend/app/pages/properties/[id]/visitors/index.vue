@@ -63,73 +63,77 @@
     </div>
 
     <!-- Add visitor modal -->
-    <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h2>নতুন ভিজিটর যোগ করুন</h2>
-          <button class="modal-close" @click="showForm = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div class="modal-overlay" v-if="showForm" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2>নতুন ভিজিটর যোগ করুন</h2>
+              <button class="modal-close" @click="showForm = false">×</button>
+            </div>
+            <div class="modal-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">নাম (বাংলা) <span class="required-star">*</span></label>
+                  <input v-model="form.name_bn" class="form-control" placeholder="ভিজিটরের পূর্ণ নাম (বাংলা)" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">নাম (ইংরেজি)</label>
+                  <input v-model="form.name_en" class="form-control" placeholder="Visitor's full name" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">ফোন <span class="required-star">*</span></label>
+                  <input v-model="form.phone" class="form-control" placeholder="০১৭১২৩৪৫৬৭৮" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ইমেইল</label>
+                  <input v-model="form.email" type="email" class="form-control" placeholder="email@example.com" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">আগমনের তারিখ</label>
+                  <input v-model="form.arrival_date" type="date" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অবস্থা</label>
+                  <select v-model="form.status" class="form-control form-select">
+                    <option value="pending">মুলতুবি</option>
+                    <option value="arrived">আসয়ন</option>
+                    <option value="departed">যাওয়া</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">উদ্দেশ্য (বাংলা)</label>
+                <input v-model="form.purpose_bn" class="form-control" placeholder="ভিজিটের উদ্দেশ্য (বাংলা)" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">উদ্দেশ্য (ইংরেজি)</label>
+                <input v-model="form.purpose_en" class="form-control" placeholder="Purpose of visit" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">ছবি</label>
+                <input v-model="form.photo_url" class="form-control" placeholder="ছবির URL (যদি থাকে)" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">অতিরিক্ত নোট</label>
+                <textarea v-model="form.notes_bn" class="form-control" rows="2" placeholder="অতিরিক্ত তথ্য, নোট..."></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+              <button class="btn btn-primary" @click="saveVisitor" :disabled="saving">
+                <icon v-if="saving" name="loader" class="animate-spin" />
+                {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'ভিজিটর যোগ করুন' }}
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">নাম (বাংলা) <span class="required-star">*</span></label>
-              <input v-model="form.name_bn" class="form-control" placeholder="ভিজিটরের পূর্ণ নাম (বাংলা)" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">নাম (ইংরেজি)</label>
-              <input v-model="form.name_en" class="form-control" placeholder="Visitor's full name" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">ফোন <span class="required-star">*</span></label>
-              <input v-model="form.phone" class="form-control" placeholder="০১৭১২৩৪৫৬৭৮" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ইমেইল</label>
-              <input v-model="form.email" type="email" class="form-control" placeholder="email@example.com" />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">আগমনের তারিখ</label>
-              <input v-model="form.arrival_date" type="date" class="form-control" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">অবস্থা</label>
-              <select v-model="form.status" class="form-control form-select">
-                <option value="pending">মুলতুবি</option>
-                <option value="arrived">আসয়ন</option>
-                <option value="departed">যাওয়া</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">উদ্দেশ্য (বাংলা)</label>
-            <input v-model="form.purpose_bn" class="form-control" placeholder="ভিজিটের উদ্দেশ্য (বাংলা)" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">উদ্দেশ্য (ইংরেজি)</label>
-            <input v-model="form.purpose_en" class="form-control" placeholder="Purpose of visit" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">ছবি</label>
-            <input v-model="form.photo_url" class="form-control" placeholder="ছবির URL (যদি থাকে)" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">অতিরিক্ত নোট</label>
-            <textarea v-model="form.notes_bn" class="form-control" rows="2" placeholder="অতিরিক্ত তথ্য, নোট..."></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-          <button class="btn btn-primary" @click="saveVisitor" :disabled="saving">
-            <icon v-if="saving" name="loader" class="animate-spin" />
-            {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'ভিজিটর যোগ করুন' }}
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

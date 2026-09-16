@@ -144,103 +144,115 @@
     </div>
 
     <!-- Document Modal -->
-    <div v-if="showDocModal" class="modal-overlay" @click.self="showDocModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>ডকুমেন্ট যোগ করুন</h3>
-          <button class="modal-close" @click="showDocModal = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDocModal" class="modal-overlay" @click.self="showDocModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>ডকুমেন্ট যোগ করুন</h3>
+              <button class="modal-close" @click="showDocModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveDoc">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">ডকুমেন্টের নাম <span class="required-star">*</span></label>
+                  <input v-model="docForm.document_title" class="form-control" required placeholder="যেমন: জমি ক্রয় চুক্তিপত্র" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ডকুমেন্টের ধরণ</label>
+                  <input v-model="docForm.document_type" class="form-control" placeholder="যেমন: চুক্তি / দলিল" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ফাইল লিংক / URL</label>
+                  <input v-model="docForm.file_url" class="form-control" placeholder="https://..." />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showDocModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  <icon v-if="saving" name="loader" class="animate-spin" />
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form @submit.prevent="saveDoc">
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label">ডকুমেন্টের নাম <span class="required-star">*</span></label>
-              <input v-model="docForm.document_title" class="form-control" required placeholder="যেমন: জমি ক্রয় চুক্তিপত্র" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ডকুমেন্টের ধরণ</label>
-              <input v-model="docForm.document_type" class="form-control" placeholder="যেমন: চুক্তি / দলিল" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ফাইল লিংক / URL</label>
-              <input v-model="docForm.file_url" class="form-control" placeholder="https://..." />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showDocModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              <icon v-if="saving" name="loader" class="animate-spin" />
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Maintenance Modal -->
-    <div v-if="showMaintModal" class="modal-overlay" @click.self="showMaintModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>রক্ষণাবেক্ষণ এন্ট্রি</h3>
-          <button class="modal-close" @click="showMaintModal = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showMaintModal" class="modal-overlay" @click.self="showMaintModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>রক্ষণাবেক্ষণ এন্ট্রি</h3>
+              <button class="modal-close" @click="showMaintModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveMaint">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">কাজের বিবরণ <span class="required-star">*</span></label>
+                  <input v-model="maintForm.title_bn" class="form-control" required placeholder="যেমন: ভবন রং করা ও ছাদ মেরামত" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ব্যয় (টাকা)</label>
+                  <input v-model.number="maintForm.cost" type="number" min="0" class="form-control" placeholder="০" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">তারিখ</label>
+                  <input v-model="maintForm.maintenance_date" type="date" class="form-control" />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showMaintModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  <icon v-if="saving" name="loader" class="animate-spin" />
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form @submit.prevent="saveMaint">
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label">কাজের বিবরণ <span class="required-star">*</span></label>
-              <input v-model="maintForm.title_bn" class="form-control" required placeholder="যেমন: ভবন রং করা ও ছাদ মেরামত" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ব্যয় (টাকা)</label>
-              <input v-model.number="maintForm.cost" type="number" min="0" class="form-control" placeholder="০" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">তারিখ</label>
-              <input v-model="maintForm.maintenance_date" type="date" class="form-control" />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showMaintModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              <icon v-if="saving" name="loader" class="animate-spin" />
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Visitor Modal -->
-    <div v-if="showVisitorModal" class="modal-overlay" @click.self="showVisitorModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>ভিজিটর এন্ট্রি</h3>
-          <button class="modal-close" @click="showVisitorModal = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showVisitorModal" class="modal-overlay" @click.self="showVisitorModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>ভিজিটর এন্ট্রি</h3>
+              <button class="modal-close" @click="showVisitorModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveVisitor">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">ভিজিটরের নাম <span class="required-star">*</span></label>
+                  <input v-model="visitorForm.visitor_name" class="form-control" required placeholder="ভিজিটরের নাম" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">পরিদর্শনের উদ্দেশ্য</label>
+                  <input v-model="visitorForm.purpose" class="form-control" placeholder="যেমন: জমি পরিদর্শন" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ফোন নম্বর</label>
+                  <input v-model="visitorForm.phone" class="form-control" placeholder="০১৭XXXXXXXX" />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showVisitorModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  <icon v-if="saving" name="loader" class="animate-spin" />
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form @submit.prevent="saveVisitor">
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label">ভিজিটরের নাম <span class="required-star">*</span></label>
-              <input v-model="visitorForm.visitor_name" class="form-control" required placeholder="ভিজিটরের নাম" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">পরিদর্শনের উদ্দেশ্য</label>
-              <input v-model="visitorForm.purpose" class="form-control" placeholder="যেমন: জমি পরিদর্শন" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ফোন নম্বর</label>
-              <input v-model="visitorForm.phone" class="form-control" placeholder="০১৭XXXXXXXX" />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showVisitorModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              <icon v-if="saving" name="loader" class="animate-spin" />
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

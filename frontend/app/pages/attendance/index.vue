@@ -1,6 +1,13 @@
 <template>
   <div class="attendance-page">
-    <div class="page-header">
+    <!-- Print Header -->
+    <div class="print-header-block print-only">
+      <div class="print-bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</div>
+      <h2 class="text-center font-bold">দৈনিক শ্রেণি হাজিরা বিবরণী</h2>
+      <p class="text-center text-sm text-muted">তারিখ: {{ formatDate(filter.dateFilter === 'today' ? todayDate : new Date().toISOString().split('T')[0]) }}</p>
+    </div>
+
+    <div class="page-header no-print">
       <div class="header-left">
         <h1>হাজিরা রেকর্ড</h1>
         <p class="text-muted">
@@ -11,6 +18,7 @@
         </p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline btn-sm" @click="() => window.print()"><icon name="printer" /> প্রিন্ট</button>
         <NuxtLink to="/attendance/bulk" class="btn btn-secondary btn-sm"><icon name="account-group" /> বাল্ক হাজিরা</NuxtLink>
         <NuxtLink to="/attendance/create" class="btn btn-primary btn-sm"><icon name="plus" /> নতুন হাজিরা</NuxtLink>
         <select v-model="filter.dateFilter" class="form-select form-select-sm mr-2" @change="applyFilter">
@@ -101,27 +109,35 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>হাজিরা রেকর্ড মুছে ফেলা</h3>
-          <button class="action-btn" @click="showDeleteModal = false"><icon name="close" /></button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-wrap">
+                <span class="modal-eyebrow">হাজিরা ব্যবস্থাপনা</span>
+                <h3>হাজিরা রেকর্ড মুছে ফেলা</h3>
+                <p class="modal-subtitle">এই শিক্ষার্থীর হাজিরা রেকর্ড স্থায়ীভাবে মুছে যাবে</p>
+              </div>
+              <button class="modal-close" @click="showDeleteModal = false">×</button>
+            </div>
+            <div class="modal-body">
+              <p>আপনি কি নিশ্চিতভাবে এই শিক্ষার্থীর হাজিরা রেকর্ড মুছে ফেলতে চান?</p>
+              <p v-if="deleteTarget" class="text-muted text-sm mt-2">
+                শিক্ষার্থী: <strong>{{ deleteTarget.student?.name_bn || deleteTarget.student?.name_en }}</strong> (তারিখ: {{ formatDate(deleteTarget.date) }})
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost" @click="showDeleteModal = false">বাতিল</button>
+              <button class="btn btn-danger" @click="executeDelete" :disabled="deleting">
+                <span v-if="deleting" class="spinner-sm"></span>
+                {{ deleting ? 'মুছে ফেলা হচ্ছে...' : 'মুছে ফেলুন' }}
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <p>আপনি কি নিশ্চিতভাবে এই শিক্ষার্থীর হাজিরা রেকর্ড মুছে ফেলতে চান?</p>
-          <p v-if="deleteTarget" class="text-muted text-sm mt-1">
-            শিক্ষার্থী: <strong>{{ deleteTarget.student?.name_bn || deleteTarget.student?.name_en }}</strong> (তারিখ: {{ formatDate(deleteTarget.date) }})
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-outline" @click="showDeleteModal = false">বাতিল</button>
-          <button class="btn btn-danger" @click="executeDelete" :disabled="deleting">
-            <span v-if="deleting" class="spinner-sm"></span>
-            {{ deleting ? 'মুছে ফেলা হচ্ছে...' : 'মুছে ফেলুন' }}
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

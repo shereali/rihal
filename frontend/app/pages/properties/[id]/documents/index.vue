@@ -52,50 +52,54 @@
     </div>
 
     <!-- Upload Modal -->
-    <div class="modal-overlay" v-if="showUpload" @click.self="showUpload = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h2>ডকুমেন্ট আপলোড</h2>
-          <button class="modal-close" @click="showUpload = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div class="modal-overlay" v-if="showUpload" @click.self="showUpload = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h2>ডকুমেন্ট আপলোড</h2>
+              <button class="modal-close" @click="showUpload = false">×</button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label class="form-label">ডকুমেন্টের নাম <span class="required-star">*</span></label>
+                <input v-model="uploadForm.name" class="form-control" placeholder="যেমন: জমির খতিয়ান" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label">ধরন</label>
+                <select v-model="uploadForm.type" class="form-control form-select">
+                  <option value="deed">খতিয়ান / জমিনামা</option>
+                  <option value="ownership">অধিকার প্রমাণপত্র</option>
+                  <option value="tax">কর ভাড়া রসিদ</option>
+                  <option value="utility">সেবা রসিদ (বিদ্যুৎ, পানি, গ্যাস)</option>
+                  <option value="approval">অনুমোদন পত্র</option>
+                  <option value="other">অন্যান্য</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">লিংক ইউআরএল</label>
+                <input v-model="uploadForm.url" type="url" class="form-control" placeholder="ডকুমেন্টের URL (গুগল ড্রাইভ, এক্সেল, পিডিএফ ইত্যাদি)" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">মেয়াদ শেষ (যদি থাকে)</label>
+                <input v-model="uploadForm.expiry_date" type="date" class="form-control" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">বিবরণ</label>
+                <textarea v-model="uploadForm.description" class="form-control" rows="2" placeholder="তথ্য, সম্পত্তির বিবরণ..."></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost" @click="showUpload = false">বাতিল</button>
+              <button class="btn btn-primary" @click="uploadDocument" :disabled="uploading">
+                <icon v-if="uploading" name="loader" class="animate-spin" />
+                {{ uploading ? 'আপলোড হচ্ছে...' : 'ডকুমেন্ট যোগ করুন' }}
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <div class="form-group">
-            <label class="form-label">ডকুমেন্টের নাম <span class="required-star">*</span></label>
-            <input v-model="uploadForm.name" class="form-control" placeholder="যেমন: জমির খতিয়ান" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label">ধরন</label>
-            <select v-model="uploadForm.type" class="form-control form-select">
-              <option value="deed">খতিয়ান / জমিনামা</option>
-              <option value="ownership">অধিকার প্রমাণপত্র</option>
-              <option value="tax">কর ভাড়া রসিদ</option>
-              <option value="utility">সেবা রসিদ (বিদ্যুৎ, পানি, গ্যাস)</option>
-              <option value="approval">অনুমোদন পত্র</option>
-              <option value="other">অন্যান্য</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">লিংক ইউআরএল</label>
-            <input v-model="uploadForm.url" type="url" class="form-control" placeholder="ডকুমেন্টের URL (গুগল ড্রাইভ, এক্সেল, পিডিএফ ইত্যাদি)" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">মেয়াদ শেষ (যদি থাকে)</label>
-            <input v-model="uploadForm.expiry_date" type="date" class="form-control" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">বিবরণ</label>
-            <textarea v-model="uploadForm.description" class="form-control" rows="2" placeholder="তথ্য, সম্পত্তির বিবরণ..."></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" @click="showUpload = false">বাতিল</button>
-          <button class="btn btn-primary" @click="uploadDocument" :disabled="uploading">
-            <icon v-if="uploading" name="loader" class="animate-spin" />
-            {{ uploading ? 'আপলোড হচ্ছে...' : 'ডকুমেন্ট যোগ করুন' }}
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

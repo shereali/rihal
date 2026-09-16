@@ -1,19 +1,28 @@
 <template>
   <div class="page-wrapper">
-    <div class="page-header-row">
+    <!-- Printable Header -->
+    <div class="print-header-block print-only">
+      <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <h2>মারকাযুল উলূম আল-ইসলামিয়া</h2>
+      <p class="print-sub">রিমাইন্ডার ও টাস্ক শিডিউল রেজিস্টার</p>
+      <p class="print-date">মুদ্রণের তারিখ: {{ new Date().toLocaleDateString('bn-BD') }}</p>
+    </div>
+
+    <div class="page-header-row no-print">
       <div class="header-title-block">
         <span class="eyebrow">প্রশাসনিক বিভাগ</span>
         <h1>রিমাইন্ডার টাস্ক</h1>
         <p class="page-subtitle">শিক্ষার্থী, অভিভাবক ও কর্মকর্তা-কর্মচারীদের জন্য স্মরণী বার্তা ও অটোমেটেড নোটিফিকেশন পরিচালনা</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline" @click="printPage"><icon name="printer" /> টাস্ক প্রিন্ট</button>
         <button class="btn btn-primary" @click="openCreate"><icon name="plus" /> নতুন টাস্ক তৈরি</button>
         <button class="btn btn-outline" @click="load"><icon name="refresh" /> রিফ্রেশ</button>
       </div>
     </div>
 
     <!-- Stats Row -->
-    <div class="stats-grid" v-if="stats">
+    <div class="stats-grid no-print" v-if="stats">
       <div class="stat-card">
         <div class="stat-icon-wrap amber"><icon name="clock" /></div>
         <div class="stat-content">
@@ -45,7 +54,7 @@
     </div>
 
     <!-- Toolbar -->
-    <div class="toolbar card">
+    <div class="toolbar card no-print">
       <div class="search-box">
         <icon name="search" class="search-icon" />
         <input v-model="filters.search" placeholder="টাস্কের নাম বা বার্তা খুঁজুন..." @keyup.enter="load" />
@@ -99,7 +108,7 @@
               <th>নির্ধারিত সময়</th>
               <th>পুনরাবৃত্তি</th>
               <th>কর্তা / কর্মকর্তা</th>
-              <th class="text-right">কর্ম</th>
+              <th class="text-right no-print">কর্ম</th>
             </tr>
           </thead>
           <tbody>
@@ -139,7 +148,7 @@
                 </div>
                 <span v-else class="dimmed-date">সিস্টেম</span>
               </td>
-              <td class="text-right">
+              <td class="text-right no-print">
                 <div class="row-actions">
                   <NuxtLink :to="`/reminder-tasks/${task.id}`" class="action-btn view-btn" title="বিস্তারিত দেখুন">
                     <icon name="eye" />
@@ -157,7 +166,7 @@
         </table>
       </div>
 
-      <div v-if="pagination && pagination.last_page > 1" class="pagination-footer">
+      <div v-if="pagination && pagination.last_page > 1" class="pagination-footer no-print">
         <button class="btn btn-outline btn-sm" :disabled="filters.page <= 1" @click="goPage(filters.page - 1)">পূর্ববর্তী</button>
         <span class="page-indicator">পৃষ্ঠা {{ filters.page.toLocaleString('bn-BD') }} / {{ pagination.last_page.toLocaleString('bn-BD') }}</span>
         <button class="btn btn-outline btn-sm" :disabled="filters.page >= pagination.last_page" @click="goPage(filters.page + 1)">পরবর্তী</button>
@@ -165,83 +174,87 @@
     </div>
 
     <!-- Create / Edit Modal -->
-    <div v-if="showCreate" class="modal-overlay" @click.self="closeCreate">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>{{ editingTask ? 'টাস্ক সম্পাদনা' : 'নতুন রিমাইন্ডার টাস্ক তৈরি' }}</h3>
-            <p>শিরোনাম, মাধ্যম, সময়সূচী ও বিবরণ নির্ধারণ করুন</p>
-          </div>
-          <button class="modal-close-btn" @click="closeCreate">×</button>
-        </div>
-
-        <form @submit.prevent="saveTask" class="modal-form">
-          <div class="form-grid">
-            <div class="form-group wide">
-              <label class="form-label">টাস্কের শিরোনাম (বাংলা) *</label>
-              <input v-model="form.title_bn" type="text" class="form-input" required placeholder="যেমন: পরীক্ষার ফি জমা স্মরণী" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">পাঠানোর মাধ্যম *</label>
-              <select v-model="form.type" class="form-select" required>
-                <option value="sms">SMS</option>
-                <option value="email">ইমেইল</option>
-                <option value="push">পুশ নোটিফিকেশন</option>
-                <option value="whatsapp">হোয়াটসঅ্যাপ</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">প্রাধান্য</label>
-              <select v-model="form.priority" class="form-select">
-                <option value="low">নিম্ন</option>
-                <option value="medium">মধ্যম</option>
-                <option value="high">উচ্চ</option>
-                <option value="urgent">জরুরি</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">নির্ধারিত সময়</label>
-              <input v-model="form.scheduled_for" type="datetime-local" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">কত ঘণ্টা আগে স্মরণ করাবে?</label>
-              <input v-model.number="form.reminder_before_hours" type="number" class="form-input" min="1" placeholder="24" />
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">বার্তার বিবরণ (বাংলা)</label>
-              <textarea v-model="form.description_bn" class="form-textarea" rows="3" placeholder="রিমাইন্ডার বার্তার মূল অংশ..."></textarea>
-            </div>
-            <div class="form-group wide">
-              <div class="checkboxes-row">
-                <label class="custom-checkbox">
-                  <input type="checkbox" v-model="form.is_recurring" />
-                  <span class="checkbox-text">পুনরাবৃত্তিমূলক টাস্ক (Recurring)</span>
-                </label>
-                <label class="custom-checkbox">
-                  <input type="checkbox" v-model="form.is_active" />
-                  <span class="checkbox-text">সক্রিয় রাখুন</span>
-                </label>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showCreate" class="modal-overlay" @click.self="closeCreate">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>{{ editingTask ? 'টাস্ক সম্পাদনা' : 'নতুন রিমাইন্ডার টাস্ক তৈরি' }}</h3>
+                <p>শিরোনাম, মাধ্যম, সময়সূচী ও বিবরণ নির্ধারণ করুন</p>
               </div>
+              <button class="modal-close-btn" @click="closeCreate">×</button>
             </div>
-            <div class="form-group wide" v-if="form.is_recurring">
-              <label class="form-label">পুনরাবৃত্তির ব্যবধান</label>
-              <select v-model="form.recurring_interval" class="form-select">
-                <option value="daily">প্রতিদিন (Daily)</option>
-                <option value="weekly">প্রতি সপ্তাহে (Weekly)</option>
-                <option value="monthly">প্রতি মাসে (Monthly)</option>
-              </select>
-            </div>
-          </div>
 
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="closeCreate">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingTask ? 'আপডেট করুন' : 'টাস্ক তৈরি করুন') }}
-            </button>
+            <form @submit.prevent="saveTask" class="modal-form">
+              <div class="form-grid">
+                <div class="form-group wide">
+                  <label class="form-label">টাস্কের শিরোনাম (বাংলা) *</label>
+                  <input v-model="form.title_bn" type="text" class="form-input" required placeholder="যেমন: পরীক্ষার ফি জমা স্মরণী" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">পাঠানোর মাধ্যম *</label>
+                  <select v-model="form.type" class="form-select" required>
+                    <option value="sms">SMS</option>
+                    <option value="email">ইমেইল</option>
+                    <option value="push">পুশ নোটিফিকেশন</option>
+                    <option value="whatsapp">হোয়াটসঅ্যাপ</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">প্রাধান্য</label>
+                  <select v-model="form.priority" class="form-select">
+                    <option value="low">নিম্ন</option>
+                    <option value="medium">মধ্যম</option>
+                    <option value="high">উচ্চ</option>
+                    <option value="urgent">জরুরি</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">নির্ধারিত সময়</label>
+                  <input v-model="form.scheduled_for" type="datetime-local" class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">কত ঘণ্টা আগে স্মরণ করাবে?</label>
+                  <input v-model.number="form.reminder_before_hours" type="number" class="form-input" min="1" placeholder="24" />
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">বার্তার বিবরণ (বাংলা)</label>
+                  <textarea v-model="form.description_bn" class="form-textarea" rows="3" placeholder="রিমাইন্ডার বার্তার মূল অংশ..."></textarea>
+                </div>
+                <div class="form-group wide">
+                  <div class="checkboxes-row">
+                    <label class="custom-checkbox">
+                      <input type="checkbox" v-model="form.is_recurring" />
+                      <span class="checkbox-text">পুনরাবৃত্তিমূলক টাস্ক (Recurring)</span>
+                    </label>
+                    <label class="custom-checkbox">
+                      <input type="checkbox" v-model="form.is_active" />
+                      <span class="checkbox-text">সক্রিয় রাখুন</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group wide" v-if="form.is_recurring">
+                  <label class="form-label">পুনরাবৃত্তির ব্যবধান</label>
+                  <select v-model="form.recurring_interval" class="form-select">
+                    <option value="daily">প্রতিদিন (Daily)</option>
+                    <option value="weekly">প্রতি সপ্তাহে (Weekly)</option>
+                    <option value="monthly">প্রতি মাসে (Monthly)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="closeCreate">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingTask ? 'আপডেট করুন' : 'টাস্ক তৈরি করুন') }}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
@@ -411,6 +424,12 @@ function userColor(name: string) {
   let hash = 0
   for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return colors[Math.abs(hash) % colors.length]
+}
+
+function printPage() {
+  if (import.meta.client) {
+    window.print()
+  }
 }
 
 onMounted(() => {
@@ -656,4 +675,46 @@ onMounted(() => {
 }
 .empty-state h3 { font-size: 1.2rem; margin: 0 0 0.35rem; color: var(--color-text); }
 .empty-state p { font-size: 0.88rem; margin: 0 0 1.25rem; }
+
+.print-only { display: none; }
+
+@media print {
+  .no-print, header, aside, .sidebar, .app-top-bar, .toolbar, .header-actions, .row-actions, .pagination-footer, button {
+    display: none !important;
+  }
+  .page-wrapper {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-header-block {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.75rem;
+  }
+  .print-header-block .bismillah {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+  }
+  .print-header-block h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+  }
+  .print-header-block .print-sub {
+    font-size: 0.9rem;
+    color: #444;
+    margin: 0;
+  }
+  .print-header-block .print-date {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.25rem;
+  }
+}
 </style>

@@ -1,5 +1,16 @@
 <template>
   <div class="page-wrapper">
+    <!-- Printable Header Block (Print Only) -->
+    <div class="print-header-block print-only">
+      <div class="print-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <div class="print-inst-name">মারকাযুল উলূম আল-ইসলামিয়া</div>
+      <div class="print-inst-sub">হিসাব ও অর্থায়ন বিভাগ · সার্বিক আর্থিক ও ফান্ড বিবরণী</div>
+      <div class="print-meta-row">
+        <span>তারিখ: {{ new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
+        <span>মুদ্রণ সময়: {{ new Date().toLocaleTimeString('bn-BD') }}</span>
+      </div>
+    </div>
+
     <div class="page-header-row no-print">
       <div class="header-title-block">
         <span class="eyebrow">হিসাব ও অর্থায়ন</span>
@@ -10,6 +21,9 @@
         <NuxtLink to="/finance/audit" class="btn btn-outline">
           <icon name="shield-check" /> অডিট ট্রেইল
         </NuxtLink>
+        <button class="btn btn-outline" @click="printPage">
+          <icon name="printer" /> রিপোর্ট প্রিন্ট
+        </button>
         <button class="btn btn-primary" @click="openCreateModal">
           <icon name="plus" /> {{ createButtonLabel }}
         </button>
@@ -354,9 +368,10 @@
     </div>
 
     <!-- ================= MODALS ================= -->
-
-    <!-- Create/Edit Fund Modal -->
-    <div v-if="showFundModal" class="modal-overlay" @click.self="showFundModal = false">
+    <ClientOnly>
+      <Teleport to="body">
+        <!-- Create/Edit Fund Modal -->
+        <div v-if="showFundModal" class="modal-overlay" @click.self="showFundModal = false">
       <div class="modal-card">
         <div class="modal-header">
           <div class="modal-title-group">
@@ -606,6 +621,8 @@
         </form>
       </div>
     </div>
+      </Teleport>
+    </ClientOnly>
 
   </div>
 </template>
@@ -615,6 +632,10 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useApiClient } from '~/utils/api'
 
 const api = useApiClient()
+
+function printPage() {
+  window.print()
+}
 
 const activeTab = ref('funds')
 const loading = ref(true)

@@ -67,68 +67,72 @@
     </div>
 
     <!-- Create / Edit Room Modal -->
-    <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>{{ editingId ? 'কক্ষ সম্পাদনা' : 'নতুন কক্ষ যুক্ত করুন' }}</h3>
-            <p>কক্ষ নম্বর, ব্লক, ধারণক্ষমতা ও মাসিক ভাড়া নির্ধারণ করুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>{{ editingId ? 'কক্ষ সম্পাদনা' : 'নতুন কক্ষ যুক্ত করুন' }}</h3>
+                <p>কক্ষ নম্বর, ব্লক, ধারণক্ষমতা ও মাসিক ভাড়া নির্ধারণ করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showForm = false">×</button>
+            </div>
+
+            <form @submit.prevent="saveRoom" class="modal-form">
+              <div v-if="error" class="alert alert-error">{{ error }}</div>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">কক্ষ নম্বর *</label>
+                  <input v-model="form.room_number" class="form-input" required placeholder="যেমন: ১০১ / A-202" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ভবন / ব্লক</label>
+                  <input v-model="form.block_building" class="form-input" placeholder="যেমন: ব্লক-এ / মূল হোস্টেল" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ধারণক্ষমতা (সিট সংখ্যা) *</label>
+                  <input v-model.number="form.capacity" type="number" min="1" class="form-input" required placeholder="৪" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মাসিক সিট ভাড়া (টাকা)</label>
+                  <input v-model.number="form.monthly_rent" type="number" min="0" class="form-input" placeholder="১০০০" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ওয়ার্ডেন / দায়িত্বশীল শিক্ষক</label>
+                  <select v-model="form.warden_id" class="form-select">
+                    <option value="">ওয়ার্ডেন নির্বাচন করুন</option>
+                    <option v-for="s in staffList" :key="s.id" :value="s.id">
+                      {{ s.name_bn || s.name_en }} ({{ s.designation || 'শিক্ষক' }})
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বর্তমান অবস্থা</label>
+                  <select v-model="form.status" class="form-select">
+                    <option value="available">খালি (Available)</option>
+                    <option value="occupied">পূর্ণ (Occupied)</option>
+                    <option value="maintenance">মেরামতধীন (Maintenance)</option>
+                  </select>
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">কক্ষের সুযোগ-সুবিধা</label>
+                  <input v-model="form.amenities" class="form-input" placeholder="যেমন: ফ্যান, খাট, পড়ার টেবিল, সংযুক্ত বাথরুম" />
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingId ? 'আপডেট করুন' : 'কক্ষ যোগ করুন') }}
+                </button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showForm = false">×</button>
         </div>
-
-        <form @submit.prevent="saveRoom" class="modal-form">
-          <div v-if="error" class="alert alert-error">{{ error }}</div>
-
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">কক্ষ নম্বর *</label>
-              <input v-model="form.room_number" class="form-input" required placeholder="যেমন: ১০১ / A-202" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ভবন / ব্লক</label>
-              <input v-model="form.block_building" class="form-input" placeholder="যেমন: ব্লক-এ / মূল হোস্টেল" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ধারণক্ষমতা (সিট সংখ্যা) *</label>
-              <input v-model.number="form.capacity" type="number" min="1" class="form-input" required placeholder="৪" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">মাসিক সিট ভাড়া (টাকা)</label>
-              <input v-model.number="form.monthly_rent" type="number" min="0" class="form-input" placeholder="১০০০" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ওয়ার্ডেন / দায়িত্বশীল শিক্ষক</label>
-              <select v-model="form.warden_id" class="form-select">
-                <option value="">ওয়ার্ডেন নির্বাচন করুন</option>
-                <option v-for="s in staffList" :key="s.id" :value="s.id">
-                  {{ s.name_bn || s.name_en }} ({{ s.designation || 'শিক্ষক' }})
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">বর্তমান অবস্থা</label>
-              <select v-model="form.status" class="form-select">
-                <option value="available">খালি (Available)</option>
-                <option value="occupied">পূর্ণ (Occupied)</option>
-                <option value="maintenance">মেরামতধীন (Maintenance)</option>
-              </select>
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">কক্ষের সুযোগ-সুবিধা</label>
-              <input v-model="form.amenities" class="form-input" placeholder="যেমন: ফ্যান, খাট, পড়ার টেবিল, সংযুক্ত বাথরুম" />
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingId ? 'আপডেট করুন' : 'কক্ষ যোগ করুন') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <div v-if="loading" class="loading-state card">
       <div class="spinner" />
@@ -200,30 +204,34 @@
     </div>
 
     <!-- In-App Delete Room Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="modal-card modal-sm animate-fade-in">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>কক্ষ মুছে ফেলার নিশ্চিতকরণ</h3>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+          <div class="modal-card modal-sm animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>কক্ষ মুছে ফেলার নিশ্চিতকরণ</h3>
+              </div>
+              <button class="modal-close-btn" @click="showDeleteModal = false">×</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+              <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
+                আপনি কি নিশ্চিত যে <strong>"কক্ষ {{ deleteTarget?.room_number }}"</strong> মুছে ফেলতে চান?
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">
+                বাতিল
+              </button>
+              <button type="button" class="btn btn-danger" @click="executeDeleteRoom" :disabled="deleting" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
+                <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
+                <span v-else>নিশ্চিত মুছুন</span>
+              </button>
+            </div>
           </div>
-          <button class="modal-close-btn" @click="showDeleteModal = false">×</button>
         </div>
-        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
-          <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
-            আপনি কি নিশ্চিত যে <strong>"কক্ষ {{ deleteTarget?.room_number }}"</strong> মুছে ফেলতে চান?
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">
-            বাতিল
-          </button>
-          <button type="button" class="btn btn-danger" @click="executeDeleteRoom" :disabled="deleting" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
-            <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
-            <span v-else>নিশ্চিত মুছুন</span>
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

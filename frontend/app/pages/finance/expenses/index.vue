@@ -1,12 +1,26 @@
 <template>
   <div class="page-wrapper">
-    <div class="page-header-row">
+    <!-- Printable Header Block (Print Only) -->
+    <div class="print-header-block print-only">
+      <div class="print-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <div class="print-inst-name">মারকাযুল উলূম আল-ইসলামিয়া</div>
+      <div class="print-inst-sub">হিসাব ও অর্থায়ন বিভাগ · প্রাতিষ্ঠানিক ব্যয় ও খরচ ভাউচার রেজিস্টার</div>
+      <div class="print-meta-row">
+        <span>তারিখ: {{ new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
+        <span>মুদ্রণ সময়: {{ new Date().toLocaleTimeString('bn-BD') }}</span>
+      </div>
+    </div>
+
+    <div class="page-header-row no-print">
       <div class="header-title-block">
         <NuxtLink to="/finance" class="back-link"><icon name="arrow-left" /> অর্থায়ন ড্যাশবোর্ড</NuxtLink>
         <h1>ব্যয় ও খরচের হিসাব</h1>
         <p class="page-subtitle">প্রাতিষ্ঠানিক যাবতীয় ব্যয়, বিল পরিশোধ ও ভাউচার পরিচালনা</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline" @click="printExpenses">
+          <icon name="printer" /> রেজিস্টার প্রিন্ট
+        </button>
         <button class="btn btn-primary" @click="showForm = true">
           <icon name="plus" /> নতুন ব্যয় ভাউচার
         </button>
@@ -17,14 +31,14 @@
     </div>
 
     <!-- Search & Filter Toolbar -->
-    <div class="toolbar card">
+    <div class="toolbar card no-print">
       <div class="search-box">
         <icon name="search" class="search-icon" />
         <input v-model="search" placeholder="ব্যয়ের বিবরণ, ভেন্ডর বা নোট খুঁজুন..." @keyup.enter="loadExpenses(1)" />
         <button v-if="search" class="clear-search-btn" @click="search = ''; loadExpenses(1)">×</button>
       </div>
       <select v-model="categoryFilter" class="form-select" @change="loadExpenses(1)">
-        <option value="">সব খাত (All Categories)</option>
+        <option value="">সকল খাতের ব্যয়</option>
         <option value="বেতন">শিক্ষক/কর্মী বেতন</option>
         <option value="ইউটিলিটি">বিদ্যুৎ / গ্যাস / পানি</option>
         <option value="মেরামত">মেরামত ও রক্ষণাবেক্ষণ</option>
@@ -37,73 +51,77 @@
       </div>
     </div>
 
-    <!-- Create Expense Modal -->
-    <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>নতুন ব্যয় / ভাউচার এন্ট্রি</h3>
-            <p>ব্যয়ের বিবরণ, খাত, ভেন্ডর ও পরিশোধের তথ্য নির্ধারণ করুন</p>
+    <!-- Create Expense Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>নতুন ব্যয় / ভাউচার এন্ট্রি</h3>
+                <p>ব্যয়ের বিবরণ, খাত, ভেন্ডর ও পরিশোধের তথ্য নির্ধারণ করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showForm = false">×</button>
+            </div>
+            <form @submit.prevent="saveExpense" class="modal-form">
+              <div v-if="error" class="alert alert-error">{{ error }}</div>
+              <div class="form-grid">
+                <div class="form-group wide">
+                  <label class="form-label">ব্যয়ের বিবরণ (বাংলা) *</label>
+                  <input v-model="form.description_bn" class="form-input" required placeholder="যেমন: মে মাসের বিদ্যুৎ বিল পরিশোধ" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ব্যয়ের খাত / ক্যাটাগরি *</label>
+                  <select v-model="form.category" class="form-select" required>
+                    <option value="বেতন">শিক্ষক/কর্মী বেতন</option>
+                    <option value="ইউটিলিটি">বিদ্যুৎ / গ্যাস / পানি</option>
+                    <option value="মেরামত">মেরামত ও রক্ষণাবেক্ষণ</option>
+                    <option value="খাদ্য">হোস্টেল খাদ্য সামগ্রী</option>
+                    <option value="স্টেশনারি">বই ও স্টেশনারি</option>
+                    <option value="অন্যান্য">অন্যান্য প্রশাসনিক</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">পরিমাণ (টাকা) *</label>
+                  <input v-model.number="form.amount" type="number" min="1" class="form-input" required placeholder="৩০০০" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">প্রাপক / ভেন্ডরের নাম</label>
+                  <input v-model="form.payee_name" class="form-input" placeholder="যেমন: ডেসকো / স্থানীয় বিক্রেতা" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">পরিশোধ পদ্ধতি *</label>
+                  <select v-model="form.method" class="form-select" required>
+                    <option value="নগদ">নগদ (Cash)</option>
+                    <option value="ব্যাংক">ব্যাংক ট্রান্সফার</option>
+                    <option value="বিকাশ">বিকাশ / নগদ</option>
+                    <option value="চেক">চেক</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">লেনদেনের তারিখ *</label>
+                  <input v-model="form.transaction_date" type="date" class="form-input" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ভাউচার নম্বর</label>
+                  <input v-model="form.voucher_number" class="form-input" placeholder="VOUCH-01" />
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">অতিরিক্ত নোট</label>
+                  <input v-model="form.notes" class="form-input" placeholder="অনুমোদনের রেফারেন্স বা নোট..." />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'ব্যয় সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showForm = false">×</button>
         </div>
-        <form @submit.prevent="saveExpense" class="modal-form">
-          <div v-if="error" class="alert alert-error">{{ error }}</div>
-          <div class="form-grid">
-            <div class="form-group wide">
-              <label class="form-label">ব্যয়ের বিবরণ (বাংলা) *</label>
-              <input v-model="form.description_bn" class="form-input" required placeholder="যেমন: মে মাসের বিদ্যুৎ বিল পরিশোধ" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ব্যয়ের খাত / ক্যাটাগরি *</label>
-              <select v-model="form.category" class="form-select" required>
-                <option value="বেতন">শিক্ষক/কর্মী বেতন</option>
-                <option value="ইউটিলিটি">বিদ্যুৎ / গ্যাস / পানি</option>
-                <option value="মেরামত">মেরামত ও রক্ষণাবেক্ষণ</option>
-                <option value="খাদ্য">হোস্টেল খাদ্য সামগ্রী</option>
-                <option value="স্টেশনারি">বই ও স্টেশনারি</option>
-                <option value="অন্যান্য">অন্যান্য প্রশাসনিক</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">পরিমাণ (টাকা) *</label>
-              <input v-model.number="form.amount" type="number" min="1" class="form-input" required placeholder="৩০০০" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">প্রাপক / ভেন্ডরের নাম</label>
-              <input v-model="form.payee_name" class="form-input" placeholder="যেমন: ডেসকো / স্থানীয় বিক্রেতা" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">পরিশোধ পদ্ধতি *</label>
-              <select v-model="form.method" class="form-select" required>
-                <option value="নগদ">নগদ (Cash)</option>
-                <option value="ব্যাংক">ব্যাংক ট্রান্সফার</option>
-                <option value="বিকাশ">বিকাশ / নগদ</option>
-                <option value="চেক">চেক</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">লেনদেনের তারিখ *</label>
-              <input v-model="form.transaction_date" type="date" class="form-input" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ভাউচার নম্বর</label>
-              <input v-model="form.voucher_number" class="form-input" placeholder="VOUCH-01" />
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">অতিরিক্ত নোট</label>
-              <input v-model="form.notes" class="form-input" placeholder="অনুমোদনের রেফারেন্স বা নোট..." />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'ব্যয় সংরক্ষণ করুন' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Expenses Table -->
     <div v-if="loading" class="loading-state card"><div class="spinner" /><p>ব্যয় তালিকা লোড হচ্ছে...</p></div>
@@ -200,6 +218,10 @@ async function loadExpenses(page = 1) {
   }
 }
 
+function printExpenses() {
+  window.print()
+}
+
 async function saveExpense() {
   saving.value = true
   error.value = ''
@@ -234,7 +256,7 @@ function formatDate(dateStr: string) {
   } catch { return dateStr }
 }
 
-onMounted(() => loadExpenses())
+onMounted(() => loadExpenses(1))
 </script>
 
 <style scoped>
@@ -281,4 +303,24 @@ onMounted(() => loadExpenses())
 .empty-state { padding: 3rem 1.5rem; text-align: center; }
 .empty-state h3 { font-size: 1.2rem; margin: 0 0 0.35rem; color: var(--color-text); }
 .empty-state p { font-size: 0.88rem; margin: 0 0 1.25rem; }
+
+/* Printable header styling */
+.print-header-block { text-align: center; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px double #000; }
+.print-bismillah { font-family: 'Traditional Arabic', serif; font-size: 1.25rem; margin-bottom: 0.35rem; }
+.print-inst-name { font-size: 1.75rem; font-weight: 800; }
+.print-inst-sub { font-size: 0.95rem; color: #444; margin-top: 0.2rem; }
+.print-meta-row { display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.85rem; }
+
+@media screen {
+  .print-only { display: none !important; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  .page-wrapper { max-width: 100% !important; padding: 0 !important; }
+  .table-card { border: none !important; box-shadow: none !important; }
+  .premium-table { width: 100% !important; border-collapse: collapse !important; }
+  .premium-table th, .premium-table td { border: 1px solid #ddd !important; padding: 6px !important; }
+}
 </style>

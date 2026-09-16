@@ -111,52 +111,56 @@
     </div>
 
     <!-- Edit Modal -->
-    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>কক্ষ তথ্য সম্পাদনা</h3>
-          <button class="modal-close" @click="showEditModal = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
+          <div class="modal-card animate-fade-in">
+            <div class="modal-header">
+              <h3>কক্ষ তথ্য সম্পাদনা</h3>
+              <button class="modal-close" @click="showEditModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveEdit">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">কক্ষ নম্বর <span class="required-star">*</span></label>
+                  <input v-model="editForm.room_number" class="form-control" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বিল্ডিং / ব্লক</label>
+                  <input v-model="editForm.block" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">তলা</label>
+                  <input v-model="editForm.floor" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ধারণক্ষমতা (জন) <span class="required-star">*</span></label>
+                  <input v-model.number="editForm.capacity" type="number" class="form-control" min="1" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মাসিক ভাড়া (টাকা)</label>
+                  <input v-model.number="editForm.monthly_rent" type="number" class="form-control" min="0" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ওয়ার্ডেন</label>
+                  <select v-model="editForm.warden_id" class="form-control form-select">
+                    <option value="">ওয়ার্ডেন নির্বাচন করুন</option>
+                    <option v-for="w in wardenOptions" :key="w.id" :value="w.id">{{ w.name_bn || w.name_en }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showEditModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  <icon v-if="saving" name="loader" class="animate-spin" />
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'আপডেট করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form @submit.prevent="saveEdit">
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label">কক্ষ নম্বর <span class="required-star">*</span></label>
-              <input v-model="editForm.room_number" class="form-control" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">বিল্ডিং / ব্লক</label>
-              <input v-model="editForm.block" class="form-control" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">তলা</label>
-              <input v-model="editForm.floor" class="form-control" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ধারণক্ষমতা (জন) <span class="required-star">*</span></label>
-              <input v-model.number="editForm.capacity" type="number" class="form-control" min="1" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">মাসিক ভাড়া (টাকা)</label>
-              <input v-model.number="editForm.monthly_rent" type="number" class="form-control" min="0" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ওয়ার্ডেন</label>
-              <select v-model="editForm.warden_id" class="form-control form-select">
-                <option value="">ওয়ার্ডেন নির্বাচন করুন</option>
-                <option v-for="w in wardenOptions" :key="w.id" :value="w.id">{{ w.name_bn || w.name_en }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showEditModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              <icon v-if="saving" name="loader" class="animate-spin" />
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'আপডেট করুন' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

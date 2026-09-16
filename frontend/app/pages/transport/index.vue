@@ -1,12 +1,23 @@
 <template>
   <div class="page-wrapper">
-    <div class="page-header-row">
+    <!-- Printable Header for Route Schedule / Register -->
+    <div class="print-header-block print-only">
+      <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <h2>মারকাযুল উলূম আল-ইসলামিয়া</h2>
+      <p class="print-sub">যাতায়াত ও পরিবহন রুট রেজিস্টার ও সময়সূচী</p>
+      <p class="print-date">মুদ্রণের তারিখ: {{ new Date().toLocaleDateString('bn-BD') }}</p>
+    </div>
+
+    <div class="page-header-row no-print">
       <div class="header-title-block">
         <span class="eyebrow">যাতায়াত ও পরিবহন</span>
         <h1>পরিবহন রুট ব্যবস্থাপনা</h1>
         <p class="page-subtitle">মাদ্রাসার বাস রুট, স্টপেজ, দূরত্ব, ভাড়া ও সময়সূচী পরিচালনা</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline" @click="printPage">
+          <icon name="printer" /> রুট প্রিন্ট
+        </button>
         <button class="btn btn-primary" @click="openCreate">
           <icon name="plus" /> নতুন রুট যোগ করুন
         </button>
@@ -17,7 +28,7 @@
     </div>
 
     <!-- Stats summary -->
-    <div class="stats-grid" v-if="routes.length">
+    <div class="stats-grid no-print" v-if="routes.length">
       <div class="stat-card">
         <div class="stat-icon-wrap blue"><icon name="bus" /></div>
         <div class="stat-content">
@@ -42,7 +53,7 @@
     </div>
 
     <!-- Toolbar -->
-    <div class="toolbar card">
+    <div class="toolbar card no-print">
       <div class="search-box">
         <icon name="search" class="search-icon" />
         <input v-model="search" placeholder="রুটের নাম, শুরু বা গন্তব্য খুঁজুন..." @keyup.enter="loadRoutes" />
@@ -59,69 +70,73 @@
     </div>
 
     <!-- Create / Edit Route Modal -->
-    <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>{{ editingId ? 'রুট সম্পাদনা' : 'নতুন রুট যোগ করুন' }}</h3>
-            <p>রুটের নাম, প্রারম্ভিক ও শেষ স্থান, দূরত্ব এবং সময়সূচী নির্ধারণ করুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>{{ editingId ? 'রুট সম্পাদনা' : 'নতুন রুট যোগ করুন' }}</h3>
+                <p>রুটের নাম, প্রারম্ভিক ও শেষ স্থান, দূরত্ব এবং সময়সূচী নির্ধারণ করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showForm = false">×</button>
+            </div>
+
+            <form @submit.prevent="saveRoute" class="modal-form">
+              <div v-if="error" class="alert alert-error">{{ error }}</div>
+
+              <div class="form-grid">
+                <div class="form-group wide">
+                  <label class="form-label">রুটের নাম (বাংলা) *</label>
+                  <input v-model="form.route_name_bn" class="form-input" required placeholder="যেমন: মিরপুর ১০ - মাদ্রাসা ক্যাম্পাস" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">রুটের নাম (ইংরেজি)</label>
+                  <input v-model="form.route_name_en" class="form-input" placeholder="e.g. Mirpur 10 - Campus" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শুরুর স্থান *</label>
+                  <input v-model="form.start_point" class="form-input" required placeholder="যেমন: মিরপুর ১০ গোলচত্বর" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">গন্তব্য / শেষ স্থান *</label>
+                  <input v-model="form.end_point" class="form-input" required placeholder="যেমন: মাদ্রাসা মূল ফটক" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">দূরত্ব (কিলোমিটার)</label>
+                  <input v-model.number="form.distance_km" type="number" step="0.1" min="0" class="form-input" placeholder="৮.৫" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মাসিক যাতায়াত ভাড়া (টাকা)</label>
+                  <input v-model.number="form.fare" type="number" min="0" class="form-input" placeholder="১৫০০" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ছাড়ার সময়</label>
+                  <input v-model="form.departure_time" type="time" class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">পৌঁছানোর সময়</label>
+                  <input v-model="form.arrival_time" type="time" class="form-input" />
+                </div>
+                <div class="form-group wide">
+                  <label class="custom-checkbox">
+                    <input type="checkbox" v-model="form.is_active" />
+                    <span class="checkbox-text">সক্রিয় রুট হিসেবে পরিচালনা করুন</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingId ? 'আপডেট করুন' : 'রুট যোগ করুন') }}
+                </button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showForm = false">×</button>
         </div>
-
-        <form @submit.prevent="saveRoute" class="modal-form">
-          <div v-if="error" class="alert alert-error">{{ error }}</div>
-
-          <div class="form-grid">
-            <div class="form-group wide">
-              <label class="form-label">রুটের নাম (বাংলা) *</label>
-              <input v-model="form.route_name_bn" class="form-input" required placeholder="যেমন: মিরপুর ১০ - মাদ্রাসা ক্যাম্পাস" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">রুটের নাম (ইংরেজি)</label>
-              <input v-model="form.route_name_en" class="form-input" placeholder="e.g. Mirpur 10 - Campus" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">শুরুর স্থান *</label>
-              <input v-model="form.start_point" class="form-input" required placeholder="যেমন: মিরপুর ১০ গোলচত্বর" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">গন্তব্য / শেষ স্থান *</label>
-              <input v-model="form.end_point" class="form-input" required placeholder="যেমন: মাদ্রাসা মূল ফটক" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">দূরত্ব (কিলোমিটার)</label>
-              <input v-model.number="form.distance_km" type="number" step="0.1" min="0" class="form-input" placeholder="৮.৫" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">মাসিক যাতায়াত ভাড়া (টাকা)</label>
-              <input v-model.number="form.fare" type="number" min="0" class="form-input" placeholder="১৫০০" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ছাড়ার সময়</label>
-              <input v-model="form.departure_time" type="time" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">পৌঁছানোর সময়</label>
-              <input v-model="form.arrival_time" type="time" class="form-input" />
-            </div>
-            <div class="form-group wide">
-              <label class="custom-checkbox">
-                <input type="checkbox" v-model="form.is_active" />
-                <span class="checkbox-text">সক্রিয় রুট হিসেবে পরিচালনা করুন</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingId ? 'আপডেট করুন' : 'রুট যোগ করুন') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <div v-if="loading" class="loading-state card">
       <div class="spinner" />
@@ -296,6 +311,12 @@ async function deleteRoute(id: number) {
 function formatCurrency(val: number) {
   if (!val) return '০'
   return val.toLocaleString('bn-BD')
+}
+
+function printPage() {
+  if (import.meta.client) {
+    window.print()
+  }
 }
 
 onMounted(loadRoutes)
@@ -566,4 +587,46 @@ onMounted(loadRoutes)
 }
 .empty-state h3 { font-size: 1.2rem; margin: 0 0 0.35rem; color: var(--color-text); }
 .empty-state p { font-size: 0.88rem; margin: 0 0 1.25rem; }
+
+.print-only { display: none; }
+
+@media print {
+  .no-print, header, aside, .sidebar, .app-top-bar, .toolbar, .header-actions, .route-actions, button {
+    display: none !important;
+  }
+  .page-wrapper {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-header-block {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.75rem;
+  }
+  .print-header-block .bismillah {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+  }
+  .print-header-block h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+  }
+  .print-header-block .print-sub {
+    font-size: 0.9rem;
+    color: #444;
+    margin: 0;
+  }
+  .print-header-block .print-date {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.25rem;
+  }
+}
 </style>

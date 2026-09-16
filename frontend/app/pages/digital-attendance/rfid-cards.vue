@@ -99,49 +99,53 @@
     </div>
 
     <!-- Assign Card Modal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>নতুন RFID কার্ড বরাদ্দকরণ</h3>
-            <p>কার্ড রিডারে কার্ড ছুঁইয়ে UID কোড প্রবেশ করান এবং ইউজার নির্বাচন করুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+          <div class="modal-card animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>নতুন RFID কার্ড বরাদ্দকরণ</h3>
+                <p>কার্ড রিডারে কার্ড ছুঁইয়ে UID কোড প্রবেশ করান এবং ইউজার নির্বাচন করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveCard" class="modal-form">
+              <div class="form-grid">
+                <div class="form-group wide">
+                  <label class="form-label">RFID কার্ড UID / হেক্স কোড *</label>
+                  <input v-model="form.card_uid" class="form-input mono" placeholder="e.g. 04A3B2C19E" required autofocus />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ইউজার ধরন *</label>
+                  <select v-model="form.role" class="form-select" required>
+                    <option value="student">শিক্ষার্থী</option>
+                    <option value="teacher">শিক্ষক</option>
+                    <option value="staff">স্টাফ</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ব্যক্তির নাম *</label>
+                  <input v-model="form.holder_name" class="form-input" placeholder="পূর্ণ নাম লিখুন" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">শ্রেণি / পদবী</label>
+                  <input v-model="form.designation" class="form-input" placeholder="যেমন: মিজান জামাত / মুহাদ্দিস" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ইস্যুর তারিখ</label>
+                  <input v-model="form.issue_date" type="date" class="form-input" />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary">কার্ড বরাদ্দ সম্পন্ন করুন</button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showModal = false">×</button>
         </div>
-        <form @submit.prevent="saveCard" class="modal-form">
-          <div class="form-grid">
-            <div class="form-group wide">
-              <label class="form-label">RFID কার্ড UID / হেক্স কোড *</label>
-              <input v-model="form.card_uid" class="form-input mono" placeholder="e.g. 04A3B2C19E" required autofocus />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ইউজার ধরন *</label>
-              <select v-model="form.role" class="form-select" required>
-                <option value="student">শিক্ষার্থী</option>
-                <option value="teacher">শিক্ষক</option>
-                <option value="staff">স্টাফ</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">ব্যক্তির নাম *</label>
-              <input v-model="form.holder_name" class="form-input" placeholder="পূর্ণ নাম লিখুন" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">শ্রেণি / পদবী</label>
-              <input v-model="form.designation" class="form-input" placeholder="যেমন: মিজান জামাত / মুহাদ্দিস" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ইস্যুর তারিখ</label>
-              <input v-model="form.issue_date" type="date" class="form-input" />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary">কার্ড বরাদ্দ সম্পন্ন করুন</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

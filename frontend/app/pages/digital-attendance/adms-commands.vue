@@ -52,45 +52,49 @@
     </div>
 
     <!-- Send Command Modal -->
-    <div v-if="showNewCommandModal" class="modal-overlay" @click.self="showNewCommandModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>নতুন ADMS কমান্ড প্রেরণ</h3>
-            <p>ডিভাইসে অবিলম্বে এক্সিকিউশনের জন্য কমান্ড কিউতে যোগ করুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showNewCommandModal" class="modal-overlay" @click.self="showNewCommandModal = false">
+          <div class="modal-card animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>নতুন ADMS কমান্ড প্রেরণ</h3>
+                <p>ডিভাইসে অবিলম্বে এক্সিকিউশনের জন্য কমান্ড কিউতে যোগ করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showNewCommandModal = false">×</button>
+            </div>
+            <form @submit.prevent="sendCommand" class="modal-form">
+              <div class="form-group wide">
+                <label class="form-label">ডিভাইস নির্বাচন করুন *</label>
+                <select v-model="newCmd.device_sn" class="form-select" required>
+                  <option value="ZK9821448102">প্রধান ফটক বায়োমেট্রিক মেশিন (ZK9821448102)</option>
+                  <option value="RT66391024">হোস্টেল ও বোর্ডিং ডিভাইস (RT66391024)</option>
+                  <option value="ALL">সকল ডিভাইস (ALL Connected Devices)</option>
+                </select>
+              </div>
+              <div class="form-group wide">
+                <label class="form-label">কমান্ড টাইপ / টেমপ্লেট *</label>
+                <select v-model="newCmd.command_type" class="form-select" @change="onCmdTypeChange" required>
+                  <option value="CHECK">CHECK (ডিভাইস সংযোগ যাচাই ও পিং)</option>
+                  <option value="DATA UPDATE USERINFO">DATA UPDATE USERINFO (ইউজার ডেটা পুশ)</option>
+                  <option value="CLEAR LOG">CLEAR LOG (পাঞ্চ লগ মেমোরি ক্লিয়ার)</option>
+                  <option value="REBOOT">REBOOT (ডিভাইস রিস্টার্ট)</option>
+                  <option value="CUSTOM">Custom Command (কাস্টম ADMS স্ট্রিং)</option>
+                </select>
+              </div>
+              <div class="form-group wide">
+                <label class="form-label">কমান্ড স্ট্রিং *</label>
+                <input v-model="newCmd.command_text" class="form-input mono" placeholder="e.g. C:120:CHECK" required />
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showNewCommandModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary">কমান্ড কিউতে পাঠান</button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showNewCommandModal = false">×</button>
         </div>
-        <form @submit.prevent="sendCommand" class="modal-form">
-          <div class="form-group wide">
-            <label class="form-label">ডিভাইস নির্বাচন করুন *</label>
-            <select v-model="newCmd.device_sn" class="form-select" required>
-              <option value="ZK9821448102">প্রধান ফটক বায়োমেট্রিক মেশিন (ZK9821448102)</option>
-              <option value="RT66391024">হোস্টেল ও বোর্ডিং ডিভাইস (RT66391024)</option>
-              <option value="ALL">সকল ডিভাইস (ALL Connected Devices)</option>
-            </select>
-          </div>
-          <div class="form-group wide">
-            <label class="form-label">কমান্ড টাইপ / টেমপ্লেট *</label>
-            <select v-model="newCmd.command_type" class="form-select" @change="onCmdTypeChange" required>
-              <option value="CHECK">CHECK (ডিভাইস সংযোগ যাচাই ও পিং)</option>
-              <option value="DATA UPDATE USERINFO">DATA UPDATE USERINFO (ইউজার ডেটা পুশ)</option>
-              <option value="CLEAR LOG">CLEAR LOG (পাঞ্চ লগ মেমোরি ক্লিয়ার)</option>
-              <option value="REBOOT">REBOOT (ডিভাইস রিস্টার্ট)</option>
-              <option value="CUSTOM">Custom Command (কাস্টম ADMS স্ট্রিং)</option>
-            </select>
-          </div>
-          <div class="form-group wide">
-            <label class="form-label">কমান্ড স্ট্রিং *</label>
-            <input v-model="newCmd.command_text" class="form-input mono" placeholder="e.g. C:120:CHECK" required />
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showNewCommandModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary">কমান্ড কিউতে পাঠান</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

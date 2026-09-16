@@ -110,31 +110,35 @@
     </div>
 
     <!-- In-App Delete Confirmation Modal -->
-    <div v-if="showDeleteModal && deleteTarget" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>{{ currentLabel }} মুছে ফেলা নিশ্চিতকরণ</h3>
-          <button class="modal-close-btn" @click="showDeleteModal = false">
-            <Icon name="mdi:close" />
-          </button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDeleteModal && deleteTarget" class="modal-overlay" @click.self="showDeleteModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>{{ currentLabel }} মুছে ফেলা নিশ্চিতকরণ</h3>
+              <button class="modal-close-btn" @click="showDeleteModal = false">
+                <Icon name="mdi:close" />
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>
+                আপনি কি নিশ্চিত যে <strong>"{{ deleteTarget.name_bn }}"</strong> {{ currentLabel }}টি মুছে ফেলতে চান?
+                এই ক্রিয়াটি পূর্বাবস্থায় ফিরিয়ে আনা যাবে না।
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" @click="showDeleteModal = false" :disabled="deleting">
+                বাতিল
+              </button>
+              <button class="btn btn-danger" @click="executeDelete" :disabled="deleting">
+                <Icon v-if="deleting" name="mdi:loading" class="animate-spin mr-1" />
+                মুছে ফেলুন
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <p>
-            আপনি কি নিশ্চিত যে <strong>"{{ deleteTarget.name_bn }}"</strong> {{ currentLabel }}টি মুছে ফেলতে চান?
-            এই ক্রিয়াটি পূর্বাবস্থায় ফিরিয়ে আনা যাবে না।
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" @click="showDeleteModal = false" :disabled="deleting">
-            বাতিল
-          </button>
-          <button class="btn btn-danger" @click="executeDelete" :disabled="deleting">
-            <Icon v-if="deleting" name="mdi:loading" class="animate-spin mr-1" />
-            মুছে ফেলুন
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

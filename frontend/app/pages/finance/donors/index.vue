@@ -1,12 +1,26 @@
 <template>
   <div class="page-wrapper">
-    <div class="page-header-row">
+    <!-- Printable Header Block (Print Only) -->
+    <div class="print-header-block print-only">
+      <div class="print-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <div class="print-inst-name">মারকাযুল উলূম আল-ইসলামিয়া</div>
+      <div class="print-inst-sub">হিসাব ও অর্থায়ন বিভাগ · সম্মানিত দাতাবৃন্দ ও পৃষ্ঠপোষক তালিকা</div>
+      <div class="print-meta-row">
+        <span>তারিখ: {{ new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
+        <span>মুদ্রণ সময়: {{ new Date().toLocaleTimeString('bn-BD') }}</span>
+      </div>
+    </div>
+
+    <div class="page-header-row no-print">
       <div class="header-title-block">
         <NuxtLink to="/finance" class="back-link"><icon name="arrow-left" /> অর্থায়ন ড্যাশবোর্ড</NuxtLink>
         <h1>দাতাবৃন্দ ও পৃষ্ঠপোষক</h1>
         <p class="page-subtitle">মাদ্রাসার সম্মানিত দাতা ও নিয়মিত পৃষ্ঠপোষকদের যোগাযোগের তালিকা</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline" @click="printDonors">
+          <icon name="printer" /> তালিকা প্রিন্ট
+        </button>
         <button class="btn btn-primary" @click="showForm = true">
           <icon name="plus" /> নতুন দাতা যোগ করুন
         </button>
@@ -17,7 +31,7 @@
     </div>
 
     <!-- Search & Filter Toolbar -->
-    <div class="toolbar card">
+    <div class="toolbar card no-print">
       <div class="search-box">
         <icon name="search" class="search-icon" />
         <input v-model="search" placeholder="দাতার নাম, মোবাইল বা প্রতিষ্ঠান খুঁজুন..." @keyup.enter="loadDonors" />
@@ -28,67 +42,71 @@
       </div>
     </div>
 
-    <!-- Create Donor Modal -->
-    <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>নতুন দাতা নিবন্ধন</h3>
-            <p>দাতার নাম, মোবাইল নম্বর, প্রতিষ্ঠান ও যোগাযোগের ঠিকানা যোগ করুন</p>
+    <!-- Create Donor Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>নতুন দাতা নিবন্ধন</h3>
+                <p>দাতার নাম, মোবাইল নম্বর, প্রতিষ্ঠান ও যোগাযোগের ঠিকানা যোগ করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showForm = false">×</button>
+            </div>
+            <form @submit.prevent="handleSubmit" class="modal-form">
+              <div v-if="error" class="alert alert-error">{{ error }}</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">দাতার নাম (বাংলা) *</label>
+                  <input v-model="form.name_bn" class="form-input" required placeholder="দাতার পূর্ণ নাম" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">দাতার নাম (ইংরেজি)</label>
+                  <input v-model="form.name_en" class="form-input" placeholder="Donor's English Name" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">মোবাইল নম্বর *</label>
+                  <input v-model="form.phone" class="form-input" required placeholder="০১৭১১..." />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ইমেইল</label>
+                  <input v-model="form.email" type="email" class="form-input" placeholder="donor@example.com" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">প্রতিষ্ঠান / পদবী</label>
+                  <input v-model="form.organization" class="form-input" placeholder="কোম্পানি বা ব্যবসার নাম" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">রক্তের গ্রুপ</label>
+                  <select v-model="form.blood_group" class="form-select">
+                    <option value="">নির্বাচন করুন</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                  </select>
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">ঠিকানা</label>
+                  <input v-model="form.address_bn" class="form-input" placeholder="বাসা/অফিসের ঠিকানা..." />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="loading">
+                  {{ loading ? 'সংরক্ষণ হচ্ছে...' : 'দাতা সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showForm = false">×</button>
         </div>
-        <form @submit.prevent="handleSubmit" class="modal-form">
-          <div v-if="error" class="alert alert-error">{{ error }}</div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">দাতার নাম (বাংলা) *</label>
-              <input v-model="form.name_bn" class="form-input" required placeholder="দাতার পূর্ণ নাম" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">দাতার নাম (ইংরেজি)</label>
-              <input v-model="form.name_en" class="form-input" placeholder="Donor's English Name" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">মোবাইল নম্বর *</label>
-              <input v-model="form.phone" class="form-input" required placeholder="০১৭১১..." />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ইমেইল</label>
-              <input v-model="form.email" type="email" class="form-input" placeholder="donor@example.com" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">প্রতিষ্ঠান / পদবী</label>
-              <input v-model="form.organization" class="form-input" placeholder="কোম্পানি বা ব্যবসার নাম" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">রক্তের গ্রুপ</label>
-              <select v-model="form.blood_group" class="form-select">
-                <option value="">নির্বাচন করুন</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-              </select>
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">ঠিকানা</label>
-              <input v-model="form.address_bn" class="form-input" placeholder="বাসা/অফিসের ঠিকানা..." />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showForm = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="loading">
-              {{ loading ? 'সংরক্ষণ হচ্ছে...' : 'দাতা সংরক্ষণ করুন' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Donors Table -->
     <div v-if="loading" class="loading-state card"><div class="spinner" /><p>দাতা তালিকা লোড হচ্ছে...</p></div>
@@ -198,6 +216,10 @@ async function handleSubmit() {
   }
 }
 
+function printDonors() {
+  window.print()
+}
+
 const colorPalette = ['#145032', '#1e40af', '#b45309', '#6b21a8', '#047857', '#be185d', '#0369a1']
 function getAvatarColor(name: string) {
   if (!name) return colorPalette[0]
@@ -250,4 +272,24 @@ onMounted(loadDonors)
 .empty-state { padding: 3rem 1.5rem; text-align: center; }
 .empty-state h3 { font-size: 1.2rem; margin: 0 0 0.35rem; color: var(--color-text); }
 .empty-state p { font-size: 0.88rem; margin: 0 0 1.25rem; }
+
+/* Printable header styling */
+.print-header-block { text-align: center; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px double #000; }
+.print-bismillah { font-family: 'Traditional Arabic', serif; font-size: 1.25rem; margin-bottom: 0.35rem; }
+.print-inst-name { font-size: 1.75rem; font-weight: 800; }
+.print-inst-sub { font-size: 0.95rem; color: #444; margin-top: 0.2rem; }
+.print-meta-row { display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.85rem; }
+
+@media screen {
+  .print-only { display: none !important; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  .page-wrapper { max-width: 100% !important; padding: 0 !important; }
+  .table-card { border: none !important; box-shadow: none !important; }
+  .premium-table { width: 100% !important; border-collapse: collapse !important; }
+  .premium-table th, .premium-table td { border: 1px solid #ddd !important; padding: 6px !important; }
+}
 </style>

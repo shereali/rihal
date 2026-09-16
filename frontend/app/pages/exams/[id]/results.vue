@@ -94,21 +94,25 @@
         </tbody>
       </table>
     </div>
-    <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
-      <div class="modal-card modal-sm">
-        <div class="modal-header">
-          <h3 class="font-bold text-lg">ফলাফল মুছবেন?</h3>
-          <button class="modal-close" @click="deleteTarget = null">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="deleteTarget" class="modal-overlay" @click.self="deleteTarget = null">
+          <div class="modal-card modal-sm animate-fade-in">
+            <div class="modal-header">
+              <h3 class="font-bold text-lg">ফলাফল মুছবেন?</h3>
+              <button class="modal-close" @click="deleteTarget = null">×</button>
+            </div>
+            <div class="modal-body">
+              <p class="text-secondary">{{ deleteTarget.student?.name_bn }} — {{ deleteTarget.exam?.name_bn }}</p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost" @click="deleteTarget = null">বাতিল</button>
+              <button class="btn btn-outline-danger" @click="deleteResult()">হ্যাঁ, মুছুন</button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <p class="text-secondary">{{ deleteTarget.student?.name_bn }} — {{ deleteTarget.exam?.name_bn }}</p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" @click="deleteTarget = null">বাতিল</button>
-          <button class="btn btn-outline-danger" @click="deleteResult()">হ্যাঁ, মুছুন</button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

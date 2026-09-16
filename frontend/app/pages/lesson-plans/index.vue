@@ -92,30 +92,34 @@
     </div>
 
     <!-- In-App Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="modal-card modal-sm animate-fade-in">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>পাঠ পরিকল্পনা মুছে ফেলা</h3>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+          <div class="modal-card modal-sm animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>পাঠ পরিকল্পনা মুছে ফেলা</h3>
+              </div>
+              <button class="close-btn" @click="showDeleteModal = false">×</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+              <p style="color: var(--color-text-light, #4b5563); font-size: 0.95rem; line-height: 1.5;">
+                আপনি কি নিশ্চিত যে <strong>"{{ deleteTarget?.topic_bn || 'এই পাঠ পরিকল্পনা' }}"</strong> মুছে ফেলতে চান?
+              </p>
+            </div>
+            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.5rem; border-top: 1px solid var(--color-border-light, #e5e7eb);">
+              <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">
+                বাতিল
+              </button>
+              <button type="button" class="btn btn-danger" @click="executeDelete" :disabled="deleting" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
+                <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
+                <span v-else>নিশ্চিত মুছুন</span>
+              </button>
+            </div>
           </div>
-          <button class="close-btn" @click="showDeleteModal = false">×</button>
         </div>
-        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
-          <p style="color: var(--color-text-light, #4b5563); font-size: 0.95rem; line-height: 1.5;">
-            আপনি কি নিশ্চিত যে <strong>"{{ deleteTarget?.topic_bn || 'এই পাঠ পরিকল্পনা' }}"</strong> মুছে ফেলতে চান?
-          </p>
-        </div>
-        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.75rem; padding: 1rem 1.5rem; border-top: 1px solid var(--color-border-light, #e5e7eb);">
-          <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">
-            বাতিল
-          </button>
-          <button type="button" class="btn btn-danger" @click="executeDelete" :disabled="deleting" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
-            <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
-            <span v-else>নিশ্চিত মুছুন</span>
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

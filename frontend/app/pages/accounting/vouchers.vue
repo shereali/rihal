@@ -1,12 +1,26 @@
 <template>
   <div class="page-wrapper">
-    <div class="page-header-row">
+    <!-- Printable Header Block (Print Only) -->
+    <div class="print-header-block print-only">
+      <div class="print-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <div class="print-inst-name">মারকাযুল উলূম আল-ইসলামিয়া</div>
+      <div class="print-inst-sub">হিসাব ও অর্থায়ন বিভাগ · দৈনিক ও মাসিক ভাউচার রেজিস্টার</div>
+      <div class="print-meta-row">
+        <span>তারিখ: {{ new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
+        <span>মুদ্রণ সময়: {{ new Date().toLocaleTimeString('bn-BD') }}</span>
+      </div>
+    </div>
+
+    <div class="page-header-row no-print">
       <div class="header-title-block">
         <NuxtLink to="/accounting" class="back-link"><icon name="arrow-left" /> অ্যাকাউন্টিং ড্যাশবোর্ড</NuxtLink>
         <h1>হিসাব ভাউচার ও খতিয়ান ভুক্তি (Voucher Management)</h1>
         <p class="page-subtitle">জার্নাল ভাউচার (JV), পেমেন্ট ভাউচার (PV), রিসিট ভাউচার (RV) ও কন্ট্রা ভাউচার (CV) তৈরি ও অনুমোদন</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline" @click="printRegister">
+          <icon name="printer" /> রেজিস্টার প্রিন্ট
+        </button>
         <button class="btn btn-primary" @click="openCreateVoucherModal">
           <icon name="plus" /> নতুন ভাউচার তৈরি করুন
         </button>
@@ -14,7 +28,7 @@
     </div>
 
     <!-- Search & Filter Toolbar -->
-    <div class="toolbar card">
+    <div class="toolbar card no-print">
       <div class="search-box">
         <icon name="search" class="search-icon" />
         <input v-model="search" placeholder="ভাউচার নং, বিবরণ বা হিসাব খাত খুঁজুন..." />
@@ -47,7 +61,7 @@
               <th>ক্রেডিট হিসাব খাত</th>
               <th class="text-right">টাকার পরিমাণ (৳)</th>
               <th class="text-center">অনুমোদন অবস্থা</th>
-              <th class="text-right">অ্যাকশন</th>
+              <th class="text-right no-print">অ্যাকশন</th>
             </tr>
           </thead>
           <tbody>
@@ -66,8 +80,8 @@
                   {{ v.status === 'approved' ? 'অনুমোদিত' : 'অপেক্ষমান' }}
                 </span>
               </td>
-              <td class="text-right">
-                <button class="action-btn" title="প্রিন্ট ও বিস্তারিত"><icon name="printer" /></button>
+              <td class="text-right no-print">
+                <button class="action-btn" title="ভাউচার রসিদ প্রিন্ট" @click="openReceiptModal(v)"><icon name="printer" /></button>
               </td>
             </tr>
           </tbody>
@@ -75,65 +89,139 @@
       </div>
     </div>
 
-    <!-- Create Voucher Modal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal-card lg">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>নতুন ডাবল-এন্ট্রি ভাউচার এন্ট্রি</h3>
-            <p>ডেবিট ও ক্রেডিট হিসাব খাতের সমন্বয়ে লেনদেন রেকর্ড করুন</p>
+    <!-- Create Voucher Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+          <div class="modal-card lg">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>নতুন ডাবল-এন্ট্রি ভাউচার এন্ট্রি</h3>
+                <p>ডেবিট ও ক্রেডিট হিসাব খাতের সমন্বয়ে লেনদেন রেকর্ড করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveVoucher" class="modal-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">ভাউচারের ধরন *</label>
+                  <select v-model="form.type" class="form-select" required>
+                    <option value="PV">পেমেন্ট ভাউচার (PV - নগদ/ব্যাংক প্রদান)</option>
+                    <option value="RV">রিসিট ভাউচার (RV - নগদ/ব্যাংক গ্রহণ)</option>
+                    <option value="JV">জার্নাল ভাউচার (JV - সমন্বয় দাখিলা)</option>
+                    <option value="CV">কন্ট্রা ভাউচার (CV - ব্যাংক ও ক্যাশ স্থানান্তর)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">তারিখ *</label>
+                  <input v-model="form.date" type="date" class="form-input" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ডেবিট হিসাব খাত (Dr) *</label>
+                  <select v-model="form.debit_account" class="form-select" required>
+                    <option v-for="acc in chartAccounts" :key="'dr-'+acc.id" :value="acc.name + ' (' + acc.code + ')'">
+                      {{ acc.name }} ({{ acc.code }}) - {{ acc.type }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ক্রেডিট হিসাব খাত (Cr) *</label>
+                  <select v-model="form.credit_account" class="form-select" required>
+                    <option v-for="acc in chartAccounts" :key="'cr-'+acc.id" :value="acc.name + ' (' + acc.code + ')'">
+                      {{ acc.name }} ({{ acc.code }}) - {{ acc.type }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">টাকার পরিমাণ (৳) *</label>
+                  <input v-model.number="form.amount" type="number" class="form-input" placeholder="৳ ২৫,০০০" required min="1" />
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">লেনদেনের সংক্ষিপ্ত বিবরণ / ন্যারেশন (Narration) *</label>
+                  <input v-model="form.narration" class="form-input" placeholder="যেমন: আগস্ট মাসের শিক্ষক বেতন ভাতা প্রদান" required />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  <span v-if="saving">সংরক্ষণ হচ্ছে...</span>
+                  <span v-else>ভাউচার তৈরি সম্পন্ন করুন</span>
+                </button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showModal = false">×</button>
         </div>
-        <form @submit.prevent="saveVoucher" class="modal-form">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">ভাউচারের ধরন *</label>
-              <select v-model="form.type" class="form-select" required>
-                <option value="PV">পেমেন্ট ভাউচার (PV - নগদ/ব্যাংক প্রদান)</option>
-                <option value="RV">রিসিট ভাউচার (RV - নগদ/ব্যাংক গ্রহণ)</option>
-                <option value="JV">জার্নাল ভাউচার (JV - সমন্বয় দাখিলা)</option>
-                <option value="CV">কন্ট্রা ভাউচার (CV - ব্যাংক ও ক্যাশ স্থানান্তর)</option>
-              </select>
+
+        <!-- Voucher Receipt Modal -->
+        <div v-if="showReceiptModal && receiptVoucher" class="modal-overlay" @click.self="showReceiptModal = false">
+          <div class="modal-card receipt-modal">
+            <div class="modal-header no-print">
+              <div class="modal-title-group">
+                <h3>অফিসিয়াল ভাউচার স্লিপ</h3>
+                <p>ভাউচার নং: {{ receiptVoucher.voucher_no }}</p>
+              </div>
+              <button class="modal-close-btn" @click="showReceiptModal = false">×</button>
             </div>
-            <div class="form-group">
-              <label class="form-label">তারিখ *</label>
-              <input v-model="form.date" type="date" class="form-input" required />
+            <div class="receipt-body">
+              <div class="receipt-brand">
+                <div class="receipt-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+                <h2>মারকাযুল উলূম আল-ইসলামিয়া</h2>
+                <p class="receipt-subtitle">হিসাব ও অর্থায়ন বিভাগ · ভাউচার কপি</p>
+              </div>
+              <div class="receipt-meta-grid">
+                <div><strong>ভাউচার নম্বর:</strong> <span class="mono-font">{{ receiptVoucher.voucher_no }}</span></div>
+                <div><strong>তারিখ:</strong> {{ receiptVoucher.date }}</div>
+                <div><strong>ভাউচার ধরন:</strong> {{ receiptVoucher.type_label }}</div>
+                <div><strong>অবস্থা:</strong> অনুমোদিত</div>
+              </div>
+              <table class="receipt-table">
+                <thead>
+                  <tr>
+                    <th>বিবরণ ও হিসাব খাত</th>
+                    <th class="text-right">টাকার পরিমাণ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div><strong>ডেবিট (Dr):</strong> {{ receiptVoucher.debit_account }}</div>
+                      <div class="sub-text">ক্রেডিট (Cr): {{ receiptVoucher.credit_account }}</div>
+                    </td>
+                    <td class="text-right font-bold">৳ {{ Number(receiptVoucher.amount || 0).toLocaleString('bn-BD') }}</td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td><strong>মোট পরিমাণ (Total):</strong></td>
+                    <td class="text-right font-bold text-success">৳ {{ Number(receiptVoucher.amount || 0).toLocaleString('bn-BD') }}</td>
+                  </tr>
+                </tfoot>
+              </table>
+              <div class="receipt-signatures">
+                <div class="sig-box">
+                  <div class="sig-line"></div>
+                  <span>প্রস্তুতকারক</span>
+                </div>
+                <div class="sig-box">
+                  <div class="sig-line"></div>
+                  <span>যাচাইকারী হিসাবরক্ষক</span>
+                </div>
+                <div class="sig-box">
+                  <div class="sig-line"></div>
+                  <span>মুহতামিম / অধ্যক্ষ</span>
+                </div>
+              </div>
             </div>
-            <div class="form-group">
-              <label class="form-label">ডেবিট হিসাব খাত (Dr) *</label>
-              <select v-model="form.debit_account" class="form-select" required>
-                <option value="শিক্ষক ও স্টাফ বেতন ভাতা (5000)">শিক্ষক ও স্টাফ বেতন ভাতা (5000)</option>
-                <option value="বোর্ডিং খাদ্য ও বাজার খরচ (5010)">বোর্ডিং খাদ্য ও বাজার খরচ (5010)</option>
-                <option value="ইসলামী ব্যাংক চলতি হিসাব (1010)">ইসলামী ব্যাংক চলতি হিসাব (1010)</option>
-                <option value="প্রধান ক্যাশ ইন হ্যান্ড (1000)">প্রধান ক্যাশ ইন হ্যান্ড (1000)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">ক্রেডিট হিসাব খাত (Cr) *</label>
-              <select v-model="form.credit_account" class="form-select" required>
-                <option value="প্রধান ক্যাশ ইন হ্যান্ড (1000)">প্রধান ক্যাশ ইন হ্যান্ড (1000)</option>
-                <option value="ইসলামী ব্যাংক চলতি হিসাব (1010)">ইসলামী ব্যাংক চলতি হিসাব (1010)</option>
-                <option value="শিক্ষার্থী মাসিক বেতন ও ভর্তি ফি (4000)">শিক্ষার্থী মাসিক বেতন ও ভর্তি ফি (4000)</option>
-                <option value="সাধারণ দান ও অনুদান (4010)">সাধারণ দান ও অনুদান (4010)</option>
-              </select>
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">টাকার পরিমাণ (৳) *</label>
-              <input v-model.number="form.amount" type="number" class="form-input" placeholder="৳ ২৫,০০০" required />
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">লেনদেনের সংক্ষিপ্ত বিবরণ / ন্যারেশন (Narration) *</label>
-              <input v-model="form.narration" class="form-input" placeholder="যেমন: আগস্ট মাসের শিক্ষক বেতন ভাতা প্রদান" required />
+            <div class="modal-footer no-print">
+              <button type="button" class="btn btn-ghost" @click="showReceiptModal = false">বন্ধ করুন</button>
+              <button type="button" class="btn btn-primary" @click="printReceipt">
+                <icon name="printer" /> প্রিন্ট করুন
+              </button>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary">ভাউচার তৈরি সম্পন্ন করুন</button>
-          </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
@@ -146,6 +234,19 @@ const search = ref('')
 const voucherTypeFilter = ref('')
 const statusFilter = ref('')
 const showModal = ref(false)
+const saving = ref(false)
+const showReceiptModal = ref(false)
+const receiptVoucher = ref<any>(null)
+
+const chartAccounts = ref<any[]>([
+  { id: 1, code: '1000', name: 'প্রধান ক্যাশ ইন হ্যান্ড', type: 'asset' },
+  { id: 2, code: '1010', name: 'ইসলামী ব্যাংক চলতি হিসাব', type: 'asset' },
+  { id: 3, code: '4000', name: 'শিক্ষার্থী মাসিক বেতন ও ভর্তি ফি', type: 'revenue' },
+  { id: 4, code: '4010', name: 'সাধারণ দান ও অনুদান', type: 'revenue' },
+  { id: 5, code: '5000', name: 'শিক্ষক ও স্টাফ বেতন ভাতা', type: 'expense' },
+  { id: 6, code: '5010', name: 'বোর্ডিং খাদ্য ও বাজার খরচ', type: 'expense' },
+  { id: 7, code: '5020', name: 'বিদ্যুৎ, গ্যাস ও ইউটিলিটি বিল', type: 'expense' }
+])
 
 const vouchersList = ref<any[]>([
   {
@@ -157,6 +258,17 @@ const vouchersList = ref<any[]>([
     debit_account: 'বোর্ডিং খাদ্য ও বাজার খরচ (5010)',
     credit_account: 'প্রধান ক্যাশ ইন হ্যান্ড (1000)',
     amount: 4850,
+    status: 'approved'
+  },
+  {
+    id: 2,
+    voucher_no: 'RV-2026-089',
+    date: '২৫ আগস্ট, ২০২৬',
+    type: 'RV',
+    type_label: 'রিসিট (RV)',
+    debit_account: 'প্রধান ক্যাশ ইন হ্যান্ড (1000)',
+    credit_account: 'শিক্ষার্থী মাসিক বেতন ও ভর্তি ফি (4000)',
+    amount: 18500,
     status: 'approved'
   }
 ])
@@ -170,6 +282,23 @@ const form = reactive({
   narration: ''
 })
 
+async function loadAccounts() {
+  try {
+    const res = await api.get('/accounting/chart').catch(() => null)
+    const fetched = res?.data?.data || []
+    if (fetched.length > 0) {
+      chartAccounts.value = fetched.map((a: any) => ({
+        id: a.id,
+        code: a.code || a.account_code || 'ACC',
+        name: a.name || a.account_name_bn || 'অ্যাকাউন্ট',
+        type: a.account_type || a.type || 'সাধারণ'
+      }))
+    }
+  } catch (e) {
+    console.error('Failed to load chart of accounts:', e)
+  }
+}
+
 async function loadVouchers() {
   try {
     const res = await api.get('/accounting/vouchers').catch(() => ({ data: { data: [] } }))
@@ -177,11 +306,11 @@ async function loadVouchers() {
     if (fetched.length > 0) {
       vouchersList.value = fetched.map((v: any) => ({
         id: v.id,
-        voucher_no: v.entry_number || 'JV-' + v.id,
-        date: v.date,
+        voucher_no: v.reference_no || v.entry_number || 'JV-' + v.id,
+        date: v.transaction_date || v.date,
         type: v.entry_type || 'PV',
         type_label: v.entry_type === 'PV' ? 'পেমেন্ট (PV)' : v.entry_type === 'RV' ? 'রিসিট (RV)' : v.entry_type === 'CV' ? 'কন্ট্রা (CV)' : 'জার্নাল (JV)',
-        debit_account: v.description || 'বোর্ডিং ও সাধারণ ব্যয়',
+        debit_account: v.description_bn || v.description || 'বোর্ডিং ও সাধারণ ব্যয়',
         credit_account: 'প্রধান ক্যাশ ইন হ্যান্ড (1000)',
         amount: v.total_debit || v.amount || 0,
         status: v.status || 'approved'
@@ -205,10 +334,28 @@ const filteredVouchers = computed(() => {
 function openCreateVoucherModal() {
   form.amount = 0
   form.narration = ''
+  if (chartAccounts.value.length > 0) {
+    form.debit_account = chartAccounts.value[0].name + ' (' + chartAccounts.value[0].code + ')'
+    form.credit_account = chartAccounts.value[1] ? (chartAccounts.value[1].name + ' (' + chartAccounts.value[1].code + ')') : form.debit_account
+  }
   showModal.value = true
 }
 
+function openReceiptModal(v: any) {
+  receiptVoucher.value = v
+  showReceiptModal.value = true
+}
+
+function printRegister() {
+  window.print()
+}
+
+function printReceipt() {
+  window.print()
+}
+
 async function saveVoucher() {
+  saving.value = true
   try {
     const res = await api.post('/accounting/vouchers', {
       entry_type: form.type,
@@ -218,27 +365,30 @@ async function saveVoucher() {
     })
 
     const saved = res?.data?.data
-    if (saved) {
-      vouchersList.value.unshift({
-        id: saved.id,
-        voucher_no: saved.entry_number,
-        date: saved.date,
-        type: form.type,
-        type_label: form.type === 'PV' ? 'পেমেন্ট (PV)' : form.type === 'RV' ? 'রিসিট (RV)' : form.type === 'CV' ? 'কন্ট্রা (CV)' : 'জার্নাল (JV)',
-        debit_account: form.debit_account,
-        credit_account: form.credit_account,
-        amount: saved.total_debit || form.amount,
-        status: 'approved'
-      })
-      showModal.value = false
-    }
+    vouchersList.value.unshift({
+      id: saved?.id || Date.now(),
+      voucher_no: saved?.reference_no || saved?.entry_number || (form.type + '-' + Date.now().toString().slice(-4)),
+      date: form.date,
+      type: form.type,
+      type_label: form.type === 'PV' ? 'পেমেন্ট (PV)' : form.type === 'RV' ? 'রিসিট (RV)' : form.type === 'CV' ? 'কন্ট্রা (CV)' : 'জার্নাল (JV)',
+      debit_account: form.debit_account,
+      credit_account: form.credit_account,
+      amount: form.amount,
+      status: 'approved'
+    })
+    showModal.value = false
   } catch (e: any) {
     console.error('Failed to save voucher:', e)
     alert(e?.response?.data?.message || 'ভাউচার সংরক্ষণে ত্রুটি দেখা দিয়েছে।')
+  } finally {
+    saving.value = false
   }
 }
 
-onMounted(loadVouchers)
+onMounted(() => {
+  loadVouchers()
+  loadAccounts()
+})
 </script>
 
 <style scoped>
@@ -263,14 +413,30 @@ onMounted(loadVouchers)
 .type-tag.CV { background: #eff6ff; color: #2563eb; }
 .type-tag.JV { background: #f3e8ff; color: #7e22ce; }
 
-.action-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--color-border-light); background: var(--color-bg); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--color-text-light); transition: all 0.15s ease; }
-.action-btn:hover { background: rgba(0, 0, 0, 0.05); color: var(--color-text); }
+.action-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--color-border-light); background: var(--color-bg); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--color-text-light); transition: all 0.15s ease; }
+.action-btn:hover { background: rgba(0, 0, 0, 0.05); color: var(--color-primary); }
 
 .btn { padding: 0.6rem 1.15rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease; text-decoration: none; }
 .btn-primary { background: linear-gradient(135deg, #145032 0%, #1a6b43 100%); color: #fff; box-shadow: 0 3px 10px rgba(20, 80, 50, 0.25); }
+.btn-outline { background: transparent; border: 1px solid var(--color-border); color: var(--color-text); }
+.btn-outline:hover { border-color: var(--color-primary); color: var(--color-primary); }
 .btn-ghost { background: transparent; color: var(--color-text); }
 
 .modal-card.lg { max-width: 680px; }
+.receipt-modal { max-width: 600px; }
+.receipt-body { padding: 1.5rem; }
+.receipt-brand { text-align: center; margin-bottom: 1.5rem; border-bottom: 2px dashed var(--color-border); padding-bottom: 1rem; }
+.receipt-bismillah { font-family: 'Traditional Arabic', serif; font-size: 1.1rem; color: var(--color-primary); margin-bottom: 0.25rem; }
+.receipt-brand h2 { font-size: 1.4rem; font-weight: 800; margin: 0 0 0.2rem; }
+.receipt-subtitle { font-size: 0.82rem; color: var(--color-text-light); margin: 0; }
+.receipt-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem; margin-bottom: 1.25rem; background: var(--color-surface); padding: 0.85rem; border-radius: 8px; }
+.receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.85rem; }
+.receipt-table th, .receipt-table td { padding: 0.65rem 0.75rem; border: 1px solid var(--color-border); }
+.receipt-table th { background: var(--color-surface); }
+.receipt-signatures { display: flex; justify-content: space-between; margin-top: 2.5rem; padding-top: 1rem; text-align: center; font-size: 0.8rem; }
+.sig-box { width: 28%; }
+.sig-line { border-bottom: 1px dashed var(--color-text-light); margin-bottom: 0.35rem; }
+
 .modal-title-group h3 { font-size: 1.2rem; font-weight: 800; margin: 0 0 0.2rem; }
 .modal-title-group p { font-size: 0.82rem; color: var(--color-text-light); margin: 0; }
 .modal-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--color-text-light); line-height: 1; }
@@ -278,4 +444,24 @@ onMounted(loadVouchers)
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
 .form-group.wide { grid-column: 1 / -1; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--color-border-light); }
+
+/* Printable header styling */
+.print-header-block { text-align: center; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px double #000; }
+.print-bismillah { font-family: 'Traditional Arabic', serif; font-size: 1.25rem; margin-bottom: 0.35rem; }
+.print-inst-name { font-size: 1.75rem; font-weight: 800; }
+.print-inst-sub { font-size: 0.95rem; color: #444; margin-top: 0.2rem; }
+.print-meta-row { display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.85rem; }
+
+@media screen {
+  .print-only { display: none !important; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  .page-wrapper { max-width: 100% !important; padding: 0 !important; }
+  .table-card { border: none !important; box-shadow: none !important; }
+  .premium-table { width: 100% !important; border-collapse: collapse !important; }
+  .premium-table th, .premium-table td { border: 1px solid #ddd !important; padding: 6px !important; }
+}
 </style>

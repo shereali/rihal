@@ -100,63 +100,67 @@
     </div>
 
     <!-- Add/Edit Device Modal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>{{ editingId ? 'ডিভাইস তথ্য সম্পাদনা' : 'নতুন বায়োমেট্রিক মেশিন যুক্ত করুন' }}</h3>
-            <p>মেশিনের নাম, মডেল, আইপি ও প্রোটোকল কনফিগার করুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+          <div class="modal-card animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>{{ editingId ? 'ডিভাইস তথ্য সম্পাদনা' : 'নতুন বায়োমেট্রিক মেশিন যুক্ত করুন' }}</h3>
+                <p>মেশিনের নাম, মডেল, আইপি ও প্রোটোকল কনফিগার করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveDevice" class="modal-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">ডিভাইসের নাম *</label>
+                  <input v-model="form.name" class="form-input" placeholder="যেমন: প্রধান গেট হাজিরা মেশিন" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ব্র্যান্ড ও মডেল *</label>
+                  <select v-model="form.model" class="form-select" required>
+                    <option value="ZKTeco K40 / MB20">ZKTeco K40 / MB20</option>
+                    <option value="ZKTeco iFace Series">ZKTeco iFace (Face + Finger)</option>
+                    <option value="Realtime T502">Realtime T502 (WiFi/LAN)</option>
+                    <option value="Hikvision DS-K1T Series">Hikvision Biometric</option>
+                    <option value="Generic ADMS Push">অন্যান্য ক্লাউড ADMS ডিভাইস</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">প্রোটোকল ধরন *</label>
+                  <select v-model="form.protocol" class="form-select" required>
+                    <option value="ADMS (Cloud Push)">ADMS (Cloud Server Push)</option>
+                    <option value="Direct TCP/IP">Direct Local TCP/IP (Port 4370)</option>
+                    <option value="Standalone Pull">Standalone USB / Pull Log</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">সিরিয়াল নম্বর (SN) *</label>
+                  <input v-model="form.serial_number" class="form-input" placeholder="e.g. BKT62100098" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">IP ঠিকানা</label>
+                  <input v-model="form.ip" class="form-input" placeholder="192.168.1.201" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">পোর্ট (Port)</label>
+                  <input v-model.number="form.port" type="number" class="form-input" placeholder="4370" />
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">অবস্থান / ব্যবহারের স্থান</label>
+                  <input v-model="form.location" class="form-input" placeholder="যেমন: মূল প্রশাসনিক ফটক / শিক্ষক লাউঞ্জ" />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary">ডিভাইস সংরক্ষণ করুন</button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showModal = false">×</button>
         </div>
-        <form @submit.prevent="saveDevice" class="modal-form">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">ডিভাইসের নাম *</label>
-              <input v-model="form.name" class="form-input" placeholder="যেমন: প্রধান গেট হাজিরা মেশিন" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ব্র্যান্ড ও মডেল *</label>
-              <select v-model="form.model" class="form-select" required>
-                <option value="ZKTeco K40 / MB20">ZKTeco K40 / MB20</option>
-                <option value="ZKTeco iFace Series">ZKTeco iFace (Face + Finger)</option>
-                <option value="Realtime T502">Realtime T502 (WiFi/LAN)</option>
-                <option value="Hikvision DS-K1T Series">Hikvision Biometric</option>
-                <option value="Generic ADMS Push">অন্যান্য ক্লাউড ADMS ডিভাইস</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">প্রোটোকল ধরন *</label>
-              <select v-model="form.protocol" class="form-select" required>
-                <option value="ADMS (Cloud Push)">ADMS (Cloud Server Push)</option>
-                <option value="Direct TCP/IP">Direct Local TCP/IP (Port 4370)</option>
-                <option value="Standalone Pull">Standalone USB / Pull Log</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">সিরিয়াল নম্বর (SN) *</label>
-              <input v-model="form.serial_number" class="form-input" placeholder="e.g. BKT62100098" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">IP ঠিকানা</label>
-              <input v-model="form.ip" class="form-input" placeholder="192.168.1.201" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">পোর্ট (Port)</label>
-              <input v-model.number="form.port" type="number" class="form-input" placeholder="4370" />
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">অবস্থান / ব্যবহারের স্থান</label>
-              <input v-model="form.location" class="form-input" placeholder="যেমন: মূল প্রশাসনিক ফটক / শিক্ষক লাউঞ্জ" />
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary">ডিভাইস সংরক্ষণ করুন</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

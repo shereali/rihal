@@ -119,54 +119,58 @@
       </div>
     </div>
 
-    <!-- Visitor Detail Modal -->
-    <div v-if="selectedVisitor" class="modal-overlay" @click.self="selectedVisitor = null">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>দর্শনার্থীর তথ্য</h3>
-          <button class="modal-close" @click="selectedVisitor = null">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="visitor-detail-grid">
-            <div class="detail-item">
-              <label class="form-label">নাম (বাংলা)</label>
-              <p><strong>{{ selectedVisitor.name_bn || '—' }}</strong></p>
+    <!-- Visitor Detail Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="selectedVisitor" class="modal-overlay" @click.self="selectedVisitor = null">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>দর্শনার্থীর তথ্য</h3>
+              <button class="modal-close" @click="selectedVisitor = null">×</button>
             </div>
-            <div class="detail-item">
-              <label class="form-label">নাম (ইংরেজি)</label>
-              <p>{{ selectedVisitor.name_en || '—' }}</p>
+            <div class="modal-body">
+              <div class="visitor-detail-grid">
+                <div class="detail-item">
+                  <label class="form-label">নাম (বাংলা)</label>
+                  <p><strong>{{ selectedVisitor.name_bn || '—' }}</strong></p>
+                </div>
+                <div class="detail-item">
+                  <label class="form-label">নাম (ইংরেজি)</label>
+                  <p>{{ selectedVisitor.name_en || '—' }}</p>
+                </div>
+                <div class="detail-item">
+                  <label class="form-label">ফোন নম্বর</label>
+                  <p>{{ selectedVisitor.phone || '—' }}</p>
+                </div>
+                <div class="detail-item">
+                  <label class="form-label">ইমেইল</label>
+                  <p>{{ selectedVisitor.email || '—' }}</p>
+                </div>
+                <div class="detail-item">
+                  <label class="form-label">আসার তারিখ</label>
+                  <p>{{ selectedVisitor.expected_date ? formatDate(selectedVisitor.expected_date) : '—' }}</p>
+                </div>
+                <div class="detail-item">
+                  <label class="form-label">দর্শনার্থী সংখ্যা</label>
+                  <p>{{ selectedVisitor.guest_count || 1 }} জন</p>
+                </div>
+                <div class="detail-item full-width" v-if="selectedVisitor.address_bn">
+                  <label class="form-label">ঠিকানা</label>
+                  <p>{{ selectedVisitor.address_bn }}</p>
+                </div>
+                <div class="detail-item full-width" v-if="selectedVisitor.notes_bn">
+                  <label class="form-label">বিশেষ নোট / উদ্দেশ্য</label>
+                  <p class="notes-text">{{ selectedVisitor.notes_bn }}</p>
+                </div>
+              </div>
             </div>
-            <div class="detail-item">
-              <label class="form-label">ফোন নম্বর</label>
-              <p>{{ selectedVisitor.phone || '—' }}</p>
-            </div>
-            <div class="detail-item">
-              <label class="form-label">ইমেইল</label>
-              <p>{{ selectedVisitor.email || '—' }}</p>
-            </div>
-            <div class="detail-item">
-              <label class="form-label">আসার তারিখ</label>
-              <p>{{ selectedVisitor.expected_date ? formatDate(selectedVisitor.expected_date) : '—' }}</p>
-            </div>
-            <div class="detail-item">
-              <label class="form-label">দর্শনার্থী সংখ্যা</label>
-              <p>{{ selectedVisitor.guest_count || 1 }} জন</p>
-            </div>
-            <div class="detail-item full-width" v-if="selectedVisitor.address_bn">
-              <label class="form-label">ঠিকানা</label>
-              <p>{{ selectedVisitor.address_bn }}</p>
-            </div>
-            <div class="detail-item full-width" v-if="selectedVisitor.notes_bn">
-              <label class="form-label">বিশেষ নোট / উদ্দেশ্য</label>
-              <p class="notes-text">{{ selectedVisitor.notes_bn }}</p>
+            <div class="modal-footer">
+              <button class="btn btn-ghost" @click="selectedVisitor = null">বন্ধ করুন</button>
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" @click="selectedVisitor = null">বন্ধ করুন</button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

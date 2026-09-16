@@ -37,60 +37,64 @@
     </div>
 
     <!-- Create / Edit Fund Modal -->
-    <div v-if="showFundModal" class="modal-overlay" @click.self="showFundModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>{{ editingId ? 'ফান্ড সম্পাদনা' : 'নতুন ফান্ড তৈরি করুন' }}</h3>
-            <p>ফান্ডের নাম, ধরন, লক্ষ্যমাত্রা ও বিবরণ লিখুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showFundModal" class="modal-overlay" @click.self="showFundModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>{{ editingId ? 'ফান্ড সম্পাদনা' : 'নতুন ফান্ড তৈরি করুন' }}</h3>
+                <p>ফান্ডের নাম, ধরন, লক্ষ্যমাত্রা ও বিবরণ লিখুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showFundModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveFund" class="modal-form">
+              <div v-if="error" class="alert alert-error">{{ error }}</div>
+              <div class="form-grid">
+                <div class="form-group wide">
+                  <label class="form-label">ফান্ডের নাম (বাংলা) *</label>
+                  <input v-model="form.name_bn" class="form-input" required placeholder="যেমন: নতুন মসজিদ নির্মাণ ফান্ড" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ফান্ডের নাম (ইংরেজি)</label>
+                  <input v-model="form.name_en" class="form-input" placeholder="e.g. Mosque Construction Fund" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ফান্ডের ধরন *</label>
+                  <select v-model="form.type" class="form-select" required>
+                    <option value="সাধারণ">সাধারণ ফান্ড</option>
+                    <option value="যাকাত">যাকাত ফান্ড</option>
+                    <option value="নির্মাণ">নির্মাণ / অবকাঠামো</option>
+                    <option value="এতিম">এতিম সহায়তা</option>
+                    <option value="বিশেষ">বিশেষ ফান্ড</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">লক্ষ্যমাত্রা (টাকা)</label>
+                  <input v-model.number="form.target_amount" type="number" min="0" class="form-input" placeholder="১০০০০০" />
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">বিবরণ</label>
+                  <textarea v-model="form.description_bn" class="form-textarea" rows="2" placeholder="ফান্ডের উদ্দেশ্য ও বিবরণ..."></textarea>
+                </div>
+                <div class="form-group wide">
+                  <label class="custom-checkbox">
+                    <input type="checkbox" v-model="form.is_active" />
+                    <span class="checkbox-text">ফান্ডটি সক্রিয় রাখুন</span>
+                  </label>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showFundModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingId ? 'আপডেট করুন' : 'ফান্ড সংরক্ষণ করুন') }}
+                </button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showFundModal = false">×</button>
         </div>
-        <form @submit.prevent="saveFund" class="modal-form">
-          <div v-if="error" class="alert alert-error">{{ error }}</div>
-          <div class="form-grid">
-            <div class="form-group wide">
-              <label class="form-label">ফান্ডের নাম (বাংলা) *</label>
-              <input v-model="form.name_bn" class="form-input" required placeholder="যেমন: নতুন মসজিদ নির্মাণ ফান্ড" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ফান্ডের নাম (ইংরেজি)</label>
-              <input v-model="form.name_en" class="form-input" placeholder="e.g. Mosque Construction Fund" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">ফান্ডের ধরন *</label>
-              <select v-model="form.type" class="form-select" required>
-                <option value="সাধারণ">সাধারণ ফান্ড</option>
-                <option value="যাকাত">যাকাত ফান্ড</option>
-                <option value="নির্মাণ">নির্মাণ / অবকাঠামো</option>
-                <option value="এতিম">এতিম সহায়তা</option>
-                <option value="বিশেষ">বিশেষ ফান্ড</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">লক্ষ্যমাত্রা (টাকা)</label>
-              <input v-model.number="form.target_amount" type="number" min="0" class="form-input" placeholder="১০০০০০" />
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">বিবরণ</label>
-              <textarea v-model="form.description_bn" class="form-textarea" rows="2" placeholder="ফান্ডের উদ্দেশ্য ও বিবরণ..."></textarea>
-            </div>
-            <div class="form-group wide">
-              <label class="custom-checkbox">
-                <input type="checkbox" v-model="form.is_active" />
-                <span class="checkbox-text">ফান্ডটি সক্রিয় রাখুন</span>
-              </label>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showFundModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : (editingId ? 'আপডেট করুন' : 'ফান্ড সংরক্ষণ করুন') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
 
     <!-- Funds Grid -->
     <div v-if="loading" class="loading-state card"><div class="spinner" /><p>ফান্ড লোড হচ্ছে...</p></div>

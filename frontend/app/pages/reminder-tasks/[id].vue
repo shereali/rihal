@@ -108,55 +108,59 @@
     </div>
 
     <!-- Edit Task Modal -->
-    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>টাস্ক সম্পাদনা</h3>
-          <button class="modal-close" @click="showEditModal = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <h3>টাস্ক সম্পাদনা</h3>
+              <button class="modal-close" @click="showEditModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveEdit">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label class="form-label">শিরোনাম (বাংলা) <span class="required-star">*</span></label>
+                  <input v-model="editForm.title_bn" class="form-control" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">পাঠানোর মাধ্যম</label>
+                  <select v-model="editForm.type" class="form-control form-select">
+                    <option value="sms">SMS</option>
+                    <option value="email">ইমেইল</option>
+                    <option value="push">পুশ নোটিফিকেশন</option>
+                    <option value="whatsapp">হোয়াটসঅ্যাপ</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">প্রাধান্য</label>
+                  <select v-model="editForm.priority" class="form-control form-select">
+                    <option value="low">নিম্ন</option>
+                    <option value="medium">মধ্যম</option>
+                    <option value="high">উচ্চ</option>
+                    <option value="urgent">জরুরি</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">নির্ধারিত সময়</label>
+                  <input v-model="editForm.scheduled_for" type="datetime-local" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বিবরণ</label>
+                  <textarea v-model="editForm.description_bn" class="form-control" rows="2"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showEditModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="saving">
+                  <icon v-if="saving" name="loader" class="animate-spin" />
+                  {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন' }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <form @submit.prevent="saveEdit">
-          <div class="modal-body">
-            <div class="form-group">
-              <label class="form-label">শিরোনাম (বাংলা) <span class="required-star">*</span></label>
-              <input v-model="editForm.title_bn" class="form-control" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">পাঠানোর মাধ্যম</label>
-              <select v-model="editForm.type" class="form-control form-select">
-                <option value="sms">SMS</option>
-                <option value="email">ইমেইল</option>
-                <option value="push">পুশ নোটিফিকেশন</option>
-                <option value="whatsapp">হোয়াটসঅ্যাপ</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">প্রাধান্য</label>
-              <select v-model="editForm.priority" class="form-control form-select">
-                <option value="low">নিম্ন</option>
-                <option value="medium">মধ্যম</option>
-                <option value="high">উচ্চ</option>
-                <option value="urgent">জরুরি</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">নির্ধারিত সময়</label>
-              <input v-model="editForm.scheduled_for" type="datetime-local" class="form-control" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">বিবরণ</label>
-              <textarea v-model="editForm.description_bn" class="form-control" rows="2"></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showEditModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="saving">
-              <icon v-if="saving" name="loader" class="animate-spin" />
-              {{ saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

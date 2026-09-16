@@ -66,9 +66,11 @@
       </div>
     </div>
 
-    <!-- Create / Edit Room Modal -->
-    <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
-      <div class="modal-card">
+    <!-- Create / Edit Room Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
+          <div class="modal-card">
         <div class="modal-header">
           <div class="modal-title-group">
             <h3>{{ editingId ? 'কক্ষ সম্পাদনা' : 'নতুন কক্ষ যুক্ত করুন' }}</h3>
@@ -129,6 +131,8 @@
         </form>
       </div>
     </div>
+      </Teleport>
+    </ClientOnly>
 
     <div v-if="loading" class="loading-state card">
       <div class="spinner" />
@@ -199,31 +203,35 @@
       </div>
     </div>
 
-    <!-- In-App Delete Room Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="modal-card modal-sm animate-fade-in">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>কক্ষ মুছে ফেলার নিশ্চিতকরণ</h3>
+    <!-- In-App Delete Room Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+          <div class="modal-card modal-sm animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>কক্ষ মুছে ফেলার নিশ্চিতকরণ</h3>
+              </div>
+              <button class="modal-close-btn" @click="showDeleteModal = false">×</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+              <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
+                আপনি কি নিশ্চিত যে <strong>"কক্ষ {{ deleteTarget?.room_number }}"</strong> মুছে ফেলতে চান?
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">
+                বাতিল
+              </button>
+              <button type="button" class="btn btn-danger" @click="executeDeleteRoom" :disabled="deleting" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
+                <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
+                <span v-else>নিশ্চিত মুছুন</span>
+              </button>
+            </div>
           </div>
-          <button class="modal-close-btn" @click="showDeleteModal = false">×</button>
         </div>
-        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
-          <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
-            আপনি কি নিশ্চিত যে <strong>"কক্ষ {{ deleteTarget?.room_number }}"</strong> মুছে ফেলতে চান?
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">
-            বাতিল
-          </button>
-          <button type="button" class="btn btn-danger" @click="executeDeleteRoom" :disabled="deleting" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
-            <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
-            <span v-else>নিশ্চিত মুছুন</span>
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

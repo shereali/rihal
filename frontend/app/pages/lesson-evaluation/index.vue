@@ -218,27 +218,31 @@
     </div>
 
     <!-- Add Book Modal -->
-    <div v-if="showAddBookModal" class="modal-overlay" @click.self="showAddBookModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>নতুন কিতাব / পাঠ্যবই যোগ করুন</h3>
-            <p>বর্তমান শ্রেণির জন্য নির্দিষ্ট সবক কিতাব যোগ করুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showAddBookModal" class="modal-overlay" @click.self="showAddBookModal = false">
+          <div class="modal-card animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>নতুন কিতাব / পাঠ্যবই যোগ করুন</h3>
+                <p>বর্তমান শ্রেণির জন্য নির্দিষ্ট সবক কিতাব যোগ করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showAddBookModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveNewBook" class="modal-form">
+              <div class="form-group">
+                <label class="form-label">কিতাব / বইয়ের নাম *</label>
+                <input v-model="newBookName" class="form-input" placeholder="যেমন: মিজানুস সরফ / নূরানী কায়দা / হেদায়া" required />
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showAddBookModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary" :disabled="!newBookName.trim()">সংরক্ষণ করুন</button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showAddBookModal = false">×</button>
         </div>
-        <form @submit.prevent="saveNewBook" class="modal-form">
-          <div class="form-group">
-            <label class="form-label">কিতাব / বইয়ের নাম *</label>
-            <input v-model="newBookName" class="form-input" placeholder="যেমন: মিজানুস সরফ / নূরানী কায়দা / হেদায়া" required />
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showAddBookModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary" :disabled="!newBookName.trim()">সংরক্ষণ করুন</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

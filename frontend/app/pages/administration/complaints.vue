@@ -1,12 +1,23 @@
 <template>
   <div class="page-wrapper">
-    <div class="page-header-row">
+    <!-- Printable Header -->
+    <div class="print-header-block print-only">
+      <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <h2>মারকাযুল উলূম আল-ইসলামিয়া</h2>
+      <p class="print-sub">পরামর্শ ও অভিযোগ রেজিস্টার (Complaints & Feedback Record)</p>
+      <p class="print-date">মুদ্রণের তারিখ: {{ new Date().toLocaleDateString('bn-BD') }}</p>
+    </div>
+
+    <div class="page-header-row no-print">
       <div class="header-title-block">
         <NuxtLink to="/administration" class="back-link"><icon name="arrow-left" /> প্রশাসনিক ড্যাশবোর্ড</NuxtLink>
         <h1>পরামর্শ ও অভিযোগ বাক্স (Complaints & Feedback)</h1>
         <p class="page-subtitle">অভিভাবক, শিক্ষার্থী ও শিক্ষকদের পরামর্শ, অভিযোগ গ্রহণ ও সমাধান ট্র্যাকিং</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline" @click="printPage">
+          <icon name="printer" /> অভিযোগ প্রিন্ট
+        </button>
         <button class="btn btn-primary" @click="openAddComplaintModal">
           <icon name="plus" /> নতুন অভিযোগ / পরামর্শ লিপিবদ্ধ করুন
         </button>
@@ -81,63 +92,67 @@
     </div>
 
     <!-- Add Modal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>নতুন অভিযোগ বা পরামর্শ এন্ট্রি</h3>
-            <p>অভিযোগকারীর বিবরণ ও বিষয়বস্তু লিপিবদ্ধ করুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>নতুন অভিযোগ বা পরামর্শ এন্ট্রি</h3>
+                <p>অভিযোগকারীর বিবরণ ও বিষয়বস্তু লিপিবদ্ধ করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveComplaint" class="modal-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">প্রেরকের নাম *</label>
+                  <input v-model="form.sender_name" class="form-input" placeholder="মুহাম্মদ আনোয়ার (অভিভাবক)" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">প্রেরকের ধরন *</label>
+                  <select v-model="form.sender_type" class="form-select" required>
+                    <option value="অভিভাবক">অভিভাবক</option>
+                    <option value="শিক্ষার্থী">শিক্ষার্থী</option>
+                    <option value="শিক্ষক / স্টাফ">শিক্ষক / স্টাফ</option>
+                    <option value="শুভাকাঙ্ক্ষী">শুভাকাঙ্ক্ষী</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ক্যাটাগরি *</label>
+                  <select v-model="form.category" class="form-select" required>
+                    <option value="academic">একাডেমিক ও পাঠদান</option>
+                    <option value="boarding">হোস্টেল ও খাবার</option>
+                    <option value="discipline">শৃঙ্খলা ও আচরণ</option>
+                    <option value="general">সাধারণ পরামর্শ</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অগ্রাধিকার *</label>
+                  <select v-model="form.priority" class="form-select" required>
+                    <option value="urgent">জরুরি (Urgent)</option>
+                    <option value="medium">সাধারণ (Medium)</option>
+                    <option value="low">কম (Low)</option>
+                  </select>
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">বিষয় *</label>
+                  <input v-model="form.subject" class="form-input" placeholder="যেমন: হোস্টেলের রাতের খাবারের মান উন্নয়ন প্রসঙ্গে" required />
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">বিস্তারিত বিবরণ</label>
+                  <textarea v-model="form.description" class="form-textarea" rows="3" placeholder="বিস্তারিত লিখুন..."></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary">সংরক্ষণ করুন</button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showModal = false">×</button>
         </div>
-        <form @submit.prevent="saveComplaint" class="modal-form">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">প্রেরকের নাম *</label>
-              <input v-model="form.sender_name" class="form-input" placeholder="মুহাম্মদ আনোয়ার (অভিভাবক)" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">প্রেরকের ধরন *</label>
-              <select v-model="form.sender_type" class="form-select" required>
-                <option value="অভিভাবক">অভিভাবক</option>
-                <option value="শিক্ষার্থী">শিক্ষার্থী</option>
-                <option value="শিক্ষক / স্টাফ">শিক্ষক / স্টাফ</option>
-                <option value="শুভাকাঙ্ক্ষী">শুভাকাঙ্ক্ষী</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">ক্যাটাগরি *</label>
-              <select v-model="form.category" class="form-select" required>
-                <option value="academic">একাডেমিক ও পাঠদান</option>
-                <option value="boarding">হোস্টেল ও খাবার</option>
-                <option value="discipline">শৃঙ্খলা ও আচরণ</option>
-                <option value="general">সাধারণ পরামর্শ</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">অগ্রাধিকার *</label>
-              <select v-model="form.priority" class="form-select" required>
-                <option value="urgent">জরুরি (Urgent)</option>
-                <option value="medium">সাধারণ (Medium)</option>
-                <option value="low">কম (Low)</option>
-              </select>
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">বিষয় *</label>
-              <input v-model="form.subject" class="form-input" placeholder="যেমন: হোস্টেলের রাতের খাবারের মান উন্নয়ন প্রসঙ্গে" required />
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">বিস্তারিত বিবরণ</label>
-              <textarea v-model="form.description" class="form-textarea" rows="3" placeholder="বিস্তারিত লিখুন..."></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary">সংরক্ষণ করুন</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
@@ -263,6 +278,12 @@ async function toggleResolve(c: any) {
   await api.patch(`/administration/complaints/${c.id}/toggle-resolve`).catch(() => {})
 }
 
+function printPage() {
+  if (import.meta.client) {
+    window.print()
+  }
+}
+
 onMounted(loadComplaints)
 </script>
 
@@ -293,6 +314,7 @@ onMounted(loadComplaints)
 
 .btn { padding: 0.6rem 1.15rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease; text-decoration: none; }
 .btn-primary { background: linear-gradient(135deg, #145032 0%, #1a6b43 100%); color: #fff; box-shadow: 0 3px 10px rgba(20, 80, 50, 0.25); }
+.btn-outline { background: #fff; border: 1px solid var(--color-border); color: var(--color-text); }
 .btn-ghost { background: transparent; color: var(--color-text); }
 
 .modal-title-group h3 { font-size: 1.2rem; font-weight: 800; margin: 0 0 0.2rem; }
@@ -302,4 +324,46 @@ onMounted(loadComplaints)
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
 .form-group.wide { grid-column: 1 / -1; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--color-border-light); }
+
+.print-only { display: none; }
+
+@media print {
+  .no-print, header, aside, .sidebar, .app-top-bar, .toolbar, .header-actions, .action-btn, button {
+    display: none !important;
+  }
+  .page-wrapper {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-header-block {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.75rem;
+  }
+  .print-header-block .bismillah {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+  }
+  .print-header-block h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+  }
+  .print-header-block .print-sub {
+    font-size: 0.9rem;
+    color: #444;
+    margin: 0;
+  }
+  .print-header-block .print-date {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.25rem;
+  }
+}
 </style>

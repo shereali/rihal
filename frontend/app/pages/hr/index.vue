@@ -1,12 +1,26 @@
 <template>
   <div class="page-wrapper">
-    <div class="page-header-row">
+    <!-- Printable Header Block (Print Only) -->
+    <div class="print-header-block print-only">
+      <div class="print-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <div class="print-inst-name">মারকাযুল উলূম আল-ইসলামিয়া</div>
+      <div class="print-inst-sub">প্রশাসন ও মানবসম্পদ বিভাগ · কর্মকর্তা, শিক্ষক ও কর্মচারীদের রেজিস্টার</div>
+      <div class="print-meta-row">
+        <span>তারিখ: {{ new Date().toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
+        <span>মুদ্রণ সময়: {{ new Date().toLocaleTimeString('bn-BD') }}</span>
+      </div>
+    </div>
+
+    <div class="page-header-row no-print">
       <div class="header-title-block">
         <span class="eyebrow">প্রশাসনিক বিভাগ</span>
         <h1>স্টাফ ও কর্মকর্তা ব্যবস্থাপনা</h1>
         <p class="page-subtitle">মাদ্রাসার কর্মকর্তা, শিক্ষক ও কর্মচারীদের তথ্য, পদবী, বিভাগ ও দায়িত্ব</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline" @click="printStaff">
+          <icon name="printer" /> তালিকা প্রিন্ট
+        </button>
         <button class="btn btn-primary" @click="openCreate">
           <icon name="plus" /> নতুন কর্মী যোগ করুন
         </button>
@@ -49,19 +63,19 @@
     </div>
 
     <!-- Search & Filter Toolbar -->
-    <div class="toolbar card">
+    <div class="toolbar card no-print">
       <div class="search-box">
         <icon name="search" class="search-icon" />
-        <input v-model="search" placeholder="নাম, পদবী, বিভাগ, ফোন বা ইমেইল খুঁজুন..." />
+        <input v-model="search" placeholder="নাম, পদবী বা ফোন নম্বর খুঁজুন..." />
         <button v-if="search" class="clear-search-btn" @click="search = ''">×</button>
       </div>
       <select v-model="departmentFilter" class="form-select">
-        <option value="">সব বিভাগ (All Departments)</option>
-        <option value="Academic">একাডেমিক (Academic)</option>
-        <option value="Administration">প্রশাসন (Administration)</option>
-        <option value="Finance">হিসাব ও অর্থ (Finance)</option>
-        <option value="IT">আইটি ও প্রযুক্তি (IT)</option>
-        <option value="Support">সহায়ক কর্মী (Support)</option>
+        <option value="">সব বিভাগ</option>
+        <option value="Academic">একাডেমিক</option>
+        <option value="Administration">প্রশাসন</option>
+        <option value="Finance">হিসাব ও অর্থ</option>
+        <option value="IT">আইটি</option>
+        <option value="Support">সহায়ক কর্মী</option>
       </select>
       <select v-model="statusFilter" class="form-select">
         <option value="">সব অবস্থা</option>
@@ -73,9 +87,11 @@
       </div>
     </div>
 
-    <!-- Create / Edit Staff Modal -->
-    <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
-      <div class="modal-card">
+    <!-- Create / Edit Staff Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showForm" class="modal-overlay" @click.self="showForm = false">
+          <div class="modal-card">
         <div class="modal-header">
           <div class="modal-title-group">
             <h3>{{ editingId ? 'কর্মী তথ্য সম্পাদনা' : 'নতুন কর্মী যোগ করুন' }}</h3>
@@ -149,6 +165,8 @@
         </form>
       </div>
     </div>
+      </Teleport>
+    </ClientOnly>
 
     <div v-if="loading" class="loading-state card">
       <div class="spinner" />
@@ -214,31 +232,35 @@
       </div>
     </div>
 
-    <!-- In-App Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
-      <div class="modal-card modal-sm animate-fade-in">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>কর্মী মুছে ফেলার নিশ্চিতকরণ</h3>
+    <!-- In-App Delete Confirmation Modal (Teleported) -->
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+          <div class="modal-card modal-sm animate-fade-in">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>কর্মী মুছে ফেলার নিশ্চিতকরণ</h3>
+              </div>
+              <button class="modal-close-btn" @click="showDeleteModal = false">×</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem 1.5rem;">
+              <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
+                আপনি কি নিশ্চিত যে <strong>"{{ deleteTarget?.name_bn || deleteTarget?.name_en }}"</strong> কর্মীর রেকর্ড মুছে ফেলতে চান?
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">
+                বাতিল
+              </button>
+              <button type="button" class="btn btn-danger" @click="executeDelete" :disabled="deleting" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
+                <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
+                <span v-else>নিশ্চিত মুছুন</span>
+              </button>
+            </div>
           </div>
-          <button class="modal-close-btn" @click="showDeleteModal = false">×</button>
         </div>
-        <div class="modal-body" style="padding: 1.25rem 1.5rem;">
-          <p style="color: var(--text-secondary, #4b5563); font-size: 0.95rem; line-height: 1.5;">
-            আপনি কি নিশ্চিত যে <strong>"{{ deleteTarget?.name_bn || deleteTarget?.name_en }}"</strong> কর্মীর রেকর্ড মুছে ফেলতে চান?
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" @click="showDeleteModal = false" :disabled="deleting">
-            বাতিল
-          </button>
-          <button type="button" class="btn btn-danger" @click="executeDelete" :disabled="deleting" style="background: #ef4444; color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 0.5rem; cursor: pointer;">
-            <span v-if="deleting">মুছে ফেলা হচ্ছে...</span>
-            <span v-else>নিশ্চিত মুছুন</span>
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
@@ -247,6 +269,11 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useApiClient } from '~/utils/api'
 
 const api = useApiClient()
+
+function printStaff() {
+  window.print()
+}
+
 const staff = ref<any[]>([])
 const filteredStaff = ref<any[]>([])
 const loading = ref(true)
@@ -694,4 +721,22 @@ onMounted(loadStaff)
 }
 .empty-state h3 { font-size: 1.2rem; margin: 0 0 0.35rem; color: var(--color-text); }
 .empty-state p { font-size: 0.88rem; margin: 0 0 1.25rem; }
+
+/* Printable header styling */
+.print-header-block { text-align: center; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px double #000; }
+.print-bismillah { font-family: 'Traditional Arabic', serif; font-size: 1.25rem; margin-bottom: 0.35rem; }
+.print-inst-name { font-size: 1.75rem; font-weight: 800; }
+.print-inst-sub { font-size: 0.95rem; color: #444; margin-top: 0.2rem; }
+.print-meta-row { display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.85rem; }
+
+@media screen {
+  .print-only { display: none !important; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  .page-wrapper { max-width: 100% !important; padding: 0 !important; }
+  .staff-card { break-inside: avoid; border: 1px solid #ddd !important; }
+}
 </style>

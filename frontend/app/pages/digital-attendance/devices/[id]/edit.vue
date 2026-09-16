@@ -75,89 +75,93 @@
     </div>
 
     <!-- Edit Modal -->
-    <div v-if="showEdit" class="modal-overlay" @click.self="showEdit = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>ডিভাইস সম্পাদনা</h3>
-          <button class="modal-close" @click="showEdit = false">×</button>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showEdit" class="modal-overlay" @click.self="showEdit = false">
+          <div class="modal-card animate-fade-in">
+            <div class="modal-header">
+              <h3>ডিভাইস সম্পাদনা</h3>
+              <button class="modal-close" @click="showEdit = false">×</button>
+            </div>
+            <div class="modal-body">
+              <form @submit.prevent="saveEdit">
+                <div class="form-group">
+                  <label class="form-label">ডিভাইসের নাম <span class="required-star">*</span></label>
+                  <input v-model="editForm.name" type="text" class="form-control" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">সিরিয়াল নম্বর <span class="required-star">*</span></label>
+                  <input v-model="editForm.serial_number" type="text" class="form-control" />
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">ধরন</label>
+                    <select v-model="editForm.device_type" class="form-select">
+                      <option value="biometric">বায়োমেট্রিক</option>
+                      <option value="rfid">RFID</option>
+                      <option value="scanner">স্ক্যানার</option>
+                      <option value="manual">ম্যানুয়াল</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">অবস্থা</label>
+                    <select v-model="editForm.status" class="form-select">
+                      <option value="active">সক্রিয়</option>
+                      <option value="inactive">নিষ্ক্রিয়</option>
+                      <option value="syncing">সিঙ্ক করছে</option>
+                      <option value="error">ত্রুটি</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">আইপি ঠিকানা</label>
+                    <input v-model="editForm.ip_address" type="text" class="form-control" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">পোর্ট</label>
+                    <input v-model="editForm.port" type="number" class="form-control" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">অবস্থান</label>
+                  <input v-model="editForm.location" type="text" class="form-control" />
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost" @click="showEdit = false">বাতিল</button>
+              <button class="btn btn-primary" @click="saveEdit" :disabled="saving">
+                <Icon name="spinner" v-if="saving" />
+                আপডেট করুন
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <form @submit.prevent="saveEdit">
-            <div class="form-group">
-              <label class="form-label">ডিভাইসের নাম <span class="required-star">*</span></label>
-              <input v-model="editForm.name" type="text" class="form-control" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">সিরিয়াল নম্বর <span class="required-star">*</span></label>
-              <input v-model="editForm.serial_number" type="text" class="form-control" />
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">ধরন</label>
-                <select v-model="editForm.device_type" class="form-select">
-                  <option value="biometric">বায়োমেট্রিক</option>
-                  <option value="rfid">RFID</option>
-                  <option value="scanner">স্ক্যানার</option>
-                  <option value="manual">ম্যানুয়াল</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">অবস্থা</label>
-                <select v-model="editForm.status" class="form-select">
-                  <option value="active">সক্রিয়</option>
-                  <option value="inactive">নিষ্ক্রিয়</option>
-                  <option value="syncing">সিঙ্ক করছে</option>
-                  <option value="error">ত্রুটি</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">আইপি ঠিকানা</label>
-                <input v-model="editForm.ip_address" type="text" class="form-control" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">পোর্ট</label>
-                <input v-model="editForm.port" type="number" class="form-control" />
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">অবস্থান</label>
-              <input v-model="editForm.location" type="text" class="form-control" />
-            </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" @click="showEdit = false">বাতিল</button>
-          <button class="btn btn-primary" @click="saveEdit" :disabled="saving">
-            <Icon name="spinner" v-if="saving" />
-            আপডেট করুন
-          </button>
-        </div>
-      </div>
-    </div>
 
-    <!-- Delete Confirm -->
-    <div v-if="showDelete" class="modal-overlay" @click.self="showDelete = false">
-      <div class="modal-card modal-sm">
-        <div class="modal-header">
-          <h3>আপনি কি নিশ্চিত?</h3>
-          <button class="modal-close" @click="showDelete = false">×</button>
+        <!-- Delete Confirm -->
+        <div v-if="showDelete" class="modal-overlay" @click.self="showDelete = false">
+          <div class="modal-card modal-sm animate-fade-in">
+            <div class="modal-header">
+              <h3>আপনি কি নিশ্চিত?</h3>
+              <button class="modal-close" @click="showDelete = false">×</button>
+            </div>
+            <div class="modal-body">
+              <p>
+                "{{ device?.name }}" ডিভাইসটি মুছে ফেলতে চান।
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-ghost" @click="showDelete = false">বাতিল</button>
+              <button class="btn btn-outline-danger" @click="doDelete" :disabled="deleting">
+                <Icon name="spinner" v-if="deleting" />
+                মুছে ফেলুন
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <p>
-            "{{ device?.name }}" ডিভাইসটি মুছে ফেলতে চান।
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" @click="showDelete = false">বাতিল</button>
-          <button class="btn btn-outline-danger" @click="doDelete" :disabled="deleting">
-            <Icon name="spinner" v-if="deleting" />
-            মুছে ফেলুন
-          </button>
-        </div>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 

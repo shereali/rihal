@@ -1,21 +1,51 @@
 <template>
   <div class="page-wrapper">
-    <div class="page-header-row">
+    <!-- Printable Header -->
+    <div class="print-header-block print-only">
+      <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+      <h2>মারকাযুল উলূম আল-ইসলামিয়া</h2>
+      <p class="print-sub">দায়িত্ব ও দায়িত্ব বণ্টন ম্যাট্রিক্স (Duty Assignments Matrix)</p>
+      <p class="print-date">মুদ্রণের তারিখ: {{ new Date().toLocaleDateString('bn-BD') }}</p>
+    </div>
+
+    <div class="page-header-row no-print">
       <div class="header-title-block">
         <NuxtLink to="/administration" class="back-link"><icon name="arrow-left" /> প্রশাসনিক ড্যাশবোর্ড</NuxtLink>
         <h1>দায়িত্ব ও দায়িত্ব বণ্টন ম্যাট্রিক্স (Duty Assignments)</h1>
         <p class="page-subtitle">শৃঙ্খলা শিক্ষক, বোর্ডিং তত্ত্বাবধায়ক, মসজিদ ইমাম ও পরীক্ষা কমিটির দায়িত্ব বণ্টন</p>
       </div>
       <div class="header-actions">
+        <button class="btn btn-outline" @click="printPage">
+          <icon name="printer" /> দায়িত্ব তালিকা প্রিন্ট
+        </button>
         <button class="btn btn-primary" @click="openAddDutyModal">
           <icon name="plus" /> নতুন দায়িত্ব অর্পণ
         </button>
       </div>
     </div>
 
+    <!-- Search & Department Filter Toolbar -->
+    <div class="toolbar card no-print">
+      <div class="search-box">
+        <icon name="search" class="search-icon" />
+        <input v-model="search" placeholder="দায়িত্ব, বিভাগ বা শিক্ষকের নাম খুঁজুন..." />
+        <button v-if="search" class="clear-search-btn" @click="search = ''">×</button>
+      </div>
+      <select v-model="deptFilter" class="form-select">
+        <option value="">সকল বিভাগ / দপ্তর</option>
+        <option value="তা'লীমাত (শিক্ষা বিভাগ)">তা'লীমাত (শিক্ষা বিভাগ)</option>
+        <option value="বোর্ডিং ও মেস ব্যবস্থাপনা">বোর্ডিং ও মেস ব্যবস্থাপনা</option>
+        <option value="শৃঙ্খলা ও দারুল ইকামা">শৃঙ্খলা ও দারুল ইকামা</option>
+        <option value="হিসাব ও অর্থায়ন">হিসাব ও অর্থায়ন</option>
+      </select>
+      <div class="pagination-info" v-if="filteredDuties.length">
+        মোট <span class="highlight">{{ filteredDuties.length.toLocaleString('bn-BD') }}</span> টি দায়িত্ব
+      </div>
+    </div>
+
     <!-- Responsibilities Grid -->
     <div class="responsibilities-grid">
-      <div v-for="d in dutiesList" :key="d.id" class="card duty-card">
+      <div v-for="d in filteredDuties" :key="d.id" class="card duty-card">
         <div class="duty-header">
           <div class="duty-icon-box" :class="d.color">
             <icon :name="d.icon" />
@@ -48,7 +78,7 @@
           <span class="status-pill badge-approved">
             <span class="status-dot" /> সক্রিয় দায়িত্ব
           </span>
-          <div class="actions-group">
+          <div class="actions-group no-print">
             <button class="action-btn" title="সম্পাদনা"><icon name="pencil" /></button>
             <button class="action-btn delete" @click="deleteDuty(d.id)" title="মুছুন"><icon name="trash" /></button>
           </div>
@@ -57,55 +87,61 @@
     </div>
 
     <!-- Add Modal -->
-    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal-card">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <h3>নতুন প্রাতিষ্ঠানিক দায়িত্ব অর্পণ</h3>
-            <p>শিক্ষক বা কর্মকর্তাকে দায়িত্বের পদ ও বিবরণ অর্পণ করুন</p>
+    <ClientOnly>
+      <Teleport to="body">
+        <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+          <div class="modal-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <h3>নতুন প্রাতিষ্ঠানিক দায়িত্ব অর্পণ</h3>
+                <p>শিক্ষক বা কর্মকর্তাকে দায়িত্বের পদ ও বিবরণ অর্পণ করুন</p>
+              </div>
+              <button class="modal-close-btn" @click="showModal = false">×</button>
+            </div>
+            <form @submit.prevent="saveDuty" class="modal-form">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">দায়িত্বের নাম / পদবী *</label>
+                  <input v-model="form.title" class="form-input" placeholder="যেমন: প্রধান নাজেমে তা'লীমাত" required />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">বিভাগ / দপ্তর *</label>
+                  <select v-model="form.department" class="form-select" required>
+                    <option value="তা'লীমাত (শিক্ষা বিভাগ)">তা'লীমাত (শিক্ষা বিভাগ)</option>
+                    <option value="বোর্ডিং ও মেস ব্যবস্থাপনা">বোর্ডিং ও মেস ব্যবস্থাপনা</option>
+                    <option value="শৃঙ্খলা ও দারুল ইকামা">শৃঙ্খলা ও দারুল ইকামা</option>
+                    <option value="হিসাব ও অর্থায়ন">হিসাব ও অর্থায়ন</option>
+                  </select>
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">দায়িত্বপ্রাপ্ত শিক্ষক / ব্যক্তি *</label>
+                  <input v-model="form.person_name" class="form-input" placeholder="মাওলানা মাহমুদ হাসান" required />
+                </div>
+                <div class="form-group wide">
+                  <label class="form-label">দায়িত্বের বিস্তারিত পরিধি</label>
+                  <textarea v-model="form.description" class="form-textarea" rows="3" placeholder="দায়িত্বের করণীয় বিষয়সমূহ লিখুন..."></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
+                <button type="submit" class="btn btn-primary">দায়িত্ব সংরক্ষণ করুন</button>
+              </div>
+            </form>
           </div>
-          <button class="modal-close-btn" @click="showModal = false">×</button>
         </div>
-        <form @submit.prevent="saveDuty" class="modal-form">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">দায়িত্বের নাম / পদবী *</label>
-              <input v-model="form.title" class="form-input" placeholder="যেমন: প্রধান নাজেমে তা'লীমাত" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label">বিভাগ / দপ্তর *</label>
-              <select v-model="form.department" class="form-select" required>
-                <option value="তা'লীমাত (শিক্ষা বিভাগ)">তা'লীমাত (শিক্ষা বিভাগ)</option>
-                <option value="বোর্ডিং ও মেস ব্যবস্থাপনা">বোর্ডিং ও মেস ব্যবস্থাপনা</option>
-                <option value="শৃঙ্খলা ও দারুল ইকামা">শৃঙ্খলা ও দারুল ইকামা</option>
-                <option value="হিসাব ও অর্থায়ন">হিসাব ও অর্থায়ন</option>
-              </select>
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">দায়িত্বপ্রাপ্ত শিক্ষক / ব্যক্তি *</label>
-              <input v-model="form.person_name" class="form-input" placeholder="মাওলানা মাহমুদ হাসান" required />
-            </div>
-            <div class="form-group wide">
-              <label class="form-label">দায়িত্বের বিস্তারিত পরিধি</label>
-              <textarea v-model="form.description" class="form-textarea" rows="3" placeholder="দায়িত্বের করণীয় বিষয়সমূহ লিখুন..."></textarea>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-ghost" @click="showModal = false">বাতিল</button>
-            <button type="submit" class="btn btn-primary">দায়িত্ব সংরক্ষণ করুন</button>
-          </div>
-        </form>
-      </div>
-    </div>
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useApiClient } from '~/utils/api'
 
 const api = useApiClient()
 const showModal = ref(false)
+const search = ref('')
+const deptFilter = ref('')
 
 const dutiesList = ref<any[]>([
   {
@@ -131,6 +167,15 @@ const dutiesList = ref<any[]>([
     color: 'green'
   }
 ])
+
+const filteredDuties = computed(() => {
+  return dutiesList.value.filter(d => {
+    const text = (d.title + ' ' + d.department + ' ' + d.person_name + ' ' + (d.description || '')).toLowerCase()
+    const matchesSearch = !search.value || text.includes(search.value.toLowerCase())
+    const matchesDept = !deptFilter.value || d.department === deptFilter.value
+    return matchesSearch && matchesDept
+  })
+})
 
 const form = reactive({
   title: '',
@@ -206,6 +251,12 @@ async function deleteDuty(id: number) {
   }
 }
 
+function printPage() {
+  if (import.meta.client) {
+    window.print()
+  }
+}
+
 onMounted(loadDuties)
 
 const colorPalette = ['#145032', '#1e40af', '#b45309', '#6b21a8', '#047857', '#be185d', '#0369a1']
@@ -225,6 +276,14 @@ function getAvatarColor(name: string) {
 .header-title-block h1 { font-size: 1.6rem; font-weight: 800; margin: 0.2rem 0 0.35rem; color: var(--color-text); }
 .page-subtitle { color: var(--color-text-light); font-size: 0.88rem; margin: 0; }
 .header-actions { display: flex; gap: 0.6rem; align-items: center; }
+
+.toolbar { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1.15rem; margin-bottom: 1.25rem; border-radius: 12px; }
+.search-box { position: relative; flex: 1; min-width: 260px; }
+.search-box input { width: 100%; padding: 0.55rem 2.2rem 0.55rem 2.2rem; border-radius: 8px; border: 1px solid var(--color-border); font-size: 0.88rem; }
+.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); font-size: 0.95rem; }
+.clear-search-btn { position: absolute; right: 0.65rem; top: 50%; transform: translateY(-50%); background: none; border: none; font-size: 1.1rem; color: var(--color-text-muted); cursor: pointer; }
+.pagination-info { font-size: 0.84rem; color: var(--color-text-muted); }
+.pagination-info .highlight { font-weight: 700; color: var(--color-primary); }
 
 .responsibilities-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem; }
 .duty-card { border-radius: 14px; padding: 1.5rem; display: flex; flex-direction: column; }
@@ -256,6 +315,7 @@ function getAvatarColor(name: string) {
 
 .btn { padding: 0.6rem 1.15rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease; text-decoration: none; }
 .btn-primary { background: linear-gradient(135deg, #145032 0%, #1a6b43 100%); color: #fff; box-shadow: 0 3px 10px rgba(20, 80, 50, 0.25); }
+.btn-outline { background: #fff; border: 1px solid var(--color-border); color: var(--color-text); }
 .btn-ghost { background: transparent; color: var(--color-text); }
 
 .modal-title-group h3 { font-size: 1.2rem; font-weight: 800; margin: 0 0 0.2rem; }
@@ -265,4 +325,46 @@ function getAvatarColor(name: string) {
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
 .form-group.wide { grid-column: 1 / -1; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--color-border-light); }
+
+.print-only { display: none; }
+
+@media print {
+  .no-print, header, aside, .sidebar, .app-top-bar, .toolbar, .header-actions, .actions-group, button {
+    display: none !important;
+  }
+  .page-wrapper {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-header-block {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #000;
+    padding-bottom: 0.75rem;
+  }
+  .print-header-block .bismillah {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-size: 1.15rem;
+    margin-bottom: 0.25rem;
+  }
+  .print-header-block h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+  }
+  .print-header-block .print-sub {
+    font-size: 0.9rem;
+    color: #444;
+    margin: 0;
+  }
+  .print-header-block .print-date {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.25rem;
+  }
+}
 </style>
