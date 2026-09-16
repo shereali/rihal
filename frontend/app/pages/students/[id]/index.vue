@@ -497,7 +497,7 @@
 
                 <div class="info-tile full-width">
                   <span class="tile-label"><Icon name="checkCircle" size="14" /> স্বাস্থ্য ও শারীরিক অবস্থা</span>
-                  <strong class="tile-val">{{ student.health_summary || 'স্বাভাবিক' }}</strong>
+                  <strong class="tile-val">{{ formatHealth(student.health_summary) }}</strong>
                 </div>
               </div>
             </div>
@@ -1773,7 +1773,9 @@ function populateEditForm() {
   editForm.guardian_phone = s.guardian_phone || s.guardian?.guardian_phone || ''
   editForm.guardian_relation = s.guardian_relation || s.guardian?.relation || s.guardian?.relationship || ''
   editForm.address_bn = s.address_bn || ''
-  editForm.health_summary = typeof s.health_summary === 'string' ? s.health_summary : (s.health_summary?.notes || '')
+  editForm.health_summary = typeof s.health_summary === 'object' && s.health_summary !== null
+    ? (s.health_summary.notes || s.health_summary.status || s.health_summary.summary || '')
+    : (typeof s.health_summary === 'string' ? s.health_summary : '')
 }
 
 function switchToEditTab() {
@@ -2017,6 +2019,25 @@ function printIdCard() {
   setTimeout(() => {
     window.print()
   }, 60)
+}
+
+function formatHealth(h: any) {
+  if (!h) return 'স্বাভাবিক'
+  if (typeof h === 'string') {
+    try {
+      const parsed = JSON.parse(h)
+      if (parsed && typeof parsed === 'object') {
+        return parsed.notes || parsed.status || parsed.summary || h
+      }
+    } catch {
+      return h
+    }
+    return h
+  }
+  if (typeof h === 'object') {
+    return h.notes || h.status || h.summary || 'স্বাভাবিক'
+  }
+  return String(h)
 }
 
 function formatDate(d: string | null | undefined) {

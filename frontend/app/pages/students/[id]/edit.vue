@@ -490,7 +490,9 @@ async function loadStudent() {
 
     // Address & Health
     form.address_bn = s.address_bn || ''
-    form.health_summary = typeof s.health_summary === 'string' ? s.health_summary : (s.health_summary?.notes || '')
+    form.health_summary = typeof s.health_summary === 'object' && s.health_summary !== null
+      ? (s.health_summary.notes || s.health_summary.status || s.health_summary.summary || '')
+      : (typeof s.health_summary === 'string' ? s.health_summary : '')
   } catch (err: any) {
     console.error('Failed to load student:', err)
     error.value = err?.response?.data?.message || 'শিক্ষার্থীর তথ্য লোড করতে সমস্যা হয়েছে।'
